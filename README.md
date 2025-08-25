@@ -271,7 +271,7 @@ mix dev
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions!
 
 Common ways to help:
 - 🐛 Report bugs or issues

@@ -59,8 +59,9 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:tailwind, "~> 0.3", only: :dev, runtime: false},
 
-      # Static analysis
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
+      # Tooling
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false}
     ]
   end
 
