@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-Upgrade to Lotus v0.3.3
+- Upgrade to Lotus v0.3.3
+- Improved cell formatting for HTML display
 
 ## [0.1.2] - 2025-08-25
 
