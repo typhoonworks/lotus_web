@@ -128,7 +128,7 @@ defmodule Lotus.Web.QueryEditorPage do
             <%= if @result do %>
               <.table id="query-results" rows={@result.rows}>
                 <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
-                  <%= Enum.at(row, index) %>
+                  <%= format_cell_value(Enum.at(row, index)) %>
                 </:col>
               </.table>
             <% else %>
@@ -520,6 +520,38 @@ defmodule Lotus.Web.QueryEditorPage do
     else
       {:noreply,
        assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
+    end
+  end
+
+  # Helper function to safely format cell values for HTML display
+  defp format_cell_value(value) do
+    case value do
+      nil -> ""
+      value when is_binary(value) -> safe_string(value)
+      value when is_number(value) -> to_string(value)
+      value when is_boolean(value) -> to_string(value)
+      value when is_atom(value) -> to_string(value)
+      %Date{} = date -> Date.to_string(date)
+      %DateTime{} = datetime -> DateTime.to_string(datetime)
+      %NaiveDateTime{} = datetime -> NaiveDateTime.to_string(datetime)
+      %Time{} = time -> Time.to_string(time)
+      value when is_map(value) -> inspect(value, limit: 50)
+      value when is_list(value) -> inspect(value, limit: 50)
+      value -> inspect(value)
+    end
+  end
+
+  defp safe_string(binary) when is_binary(binary) do
+    if String.valid?(binary) do
+      binary
+    else
+      case byte_size(binary) do
+        size when size > 50 ->
+          "<<binary, #{size} bytes>>"
+
+        _ ->
+          inspect(binary, limit: 50)
+      end
     end
   end
 end
