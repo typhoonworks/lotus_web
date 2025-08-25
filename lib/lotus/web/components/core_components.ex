@@ -372,7 +372,7 @@ defmodule Lotus.Web.CoreComponents do
                 <td
                   :for={col <- @col}
                   phx-click={@row_click && @row_click.(row)}
-                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-500 sm:pl-3"
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-3"
                 >
                   {render_slot(col, @row_item.(row))}
                 </td>
