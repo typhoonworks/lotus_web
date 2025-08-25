@@ -90,7 +90,18 @@ defmodule Lotus.Web.MixProject do
   end
 
   defp docs do
-    []
+    [
+      main: "readme",
+      name: "Lotus Web",
+      source_ref: "v#{@version}",
+      canonical: "http://hexdocs.pm/lotus_web",
+      source_url: @source_url,
+      extras: [
+        "README.md",
+        "guides/installation.md",
+        "guides/getting-started.md"
+      ]
+    ]
   end
 
   defp description do
