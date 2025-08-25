@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+Upgrade to Lotus v0.3.3
+
 ## [0.1.2] - 2025-08-25
 
 Quick hotfix to safely format cell values for HTML display
