@@ -1,6 +1,6 @@
 # LotusWeb
 
-![Lotus](https://raw.githubusercontent.com/typhoonworks/lotus/main/media/screenshot.png)
+![Lotus](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/screenshot.png)
 
 <p>
   <a href="https://hex.pm/packages/lotus_web">
