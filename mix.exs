@@ -2,7 +2,7 @@ defmodule Lotus.Web.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/typhoonworks/lotus_web"
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -82,7 +82,7 @@ defmodule Lotus.Web.MixProject do
       maintainers: ["Rui Freitas"],
       licenses: ["MIT"],
       links: %{GitHub: @source_url},
-      files: ~w[lib .formatter.exs mix.exs README* LICENSE*]
+      files: ~w[lib priv/static* .formatter.exs mix.exs README* LICENSE*]
     ]
   end
 
