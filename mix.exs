@@ -45,7 +45,7 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_ecto, "~> 4.5"},
 
       # Lotus
-      {:lotus, "~> 0.3"},
+      {:lotus, "~> 0.3.1"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
@@ -57,7 +57,10 @@ defmodule Lotus.Web.MixProject do
       {:bandit, "~> 1.5", only: :dev},
       {:esbuild, "~> 0.10", only: :dev, runtime: false},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:tailwind, "~> 0.3", only: :dev, runtime: false}
+      {:tailwind, "~> 0.3", only: :dev, runtime: false},
+
+      # Static analysis
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -65,6 +68,8 @@ defmodule Lotus.Web.MixProject do
     [
       "assets.build": ["tailwind default", "esbuild default"],
       dev: "run --no-halt dev.exs",
+      "ecto.setup": ["ecto.create", "ecto.migrate"],
+      "ecto.reset": ["ecto.drop", "ecto.setup"],
       "test.setup": ["ecto.drop --quiet", "ecto.create", "ecto.migrate"],
       lint: ["format", "dialyzer"]
     ]
