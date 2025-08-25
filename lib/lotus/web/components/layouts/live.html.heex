@@ -1,0 +1,31 @@
+<meta name="live-transport" content={@live_transport} />
+<meta name="live-path" content={@live_path} />
+
+<div class="flex flex-col h-screen overflow-hidden bg-red-50">
+  <nav class="border-b border-gray-200 bg-white">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 justify-between">
+        <div class="flex">
+          <div class="flex items-center">
+            <.logo />
+          </div>
+        </div>
+        <div class="sm:ml-6 sm:flex sm:items-center">
+          <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
+            <.button type="button">New Query</.button>
+          </.link>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-1 min-h-0">
+      <.flash flash={@flash} kind={:info} />
+      <.flash flash={@flash} kind={:error} />
+      <div class="h-full overflow-hidden">
+          {@inner_content}
+      </div>
+  </main>
+
+  <.footer />
+</div>
