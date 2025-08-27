@@ -7,6 +7,7 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Storage.Query
   alias Lotus.Web.CellFormatter
   alias Lotus.Web.Live.SchemaExplorer
+  alias Lotus.Web.EditorComponents, as: Editor
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
@@ -59,17 +60,37 @@ defmodule Lotus.Web.QueryEditorPage do
 
           <.form for={@form} phx-submit="run-query" phx-target={@myself} phx-change="validate">
             <div class="bg-slate-100">
-              <div class="flex justify-between w-full px-6 py-3 border-b border-gray-200">
+              <div class="flex items-center w-full px-6 py-3 border-b border-gray-200 gap-4">
                 <div class="w-48">
-                  <.input
+                  <Editor.input
                     type="select"
                     field={@form[:data_repo]}
+                    label="Source"
                     prompt="Select a database"
                     options={Enum.map(@data_repo_names, &{&1, &1})}
                   />
                 </div>
 
+                <div class="w-px self-stretch bg-gray-300"></div>
+
+                <div class="flex-1 flex">
+                  <div class="w-48">
+                    <Editor.input
+                      type="text"
+                      label="Name"
+                      field={@form[:name]}
+                    />
+                  </div>
+                </div>
+
                 <div class="flex items-center space-x-1">
+                  <button
+                    type="button"
+                    class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Variable settings"
+                  >
+                    <Icons.variable class="h-5 w-5" />
+                  </button>
                   <button
                     type="button"
                     phx-click="toggle-drawer"

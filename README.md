@@ -37,7 +37,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - **Phoenix integration** - follows Phoenix conventions and patterns
 
 ### ⚡ **Developer & User Friendly**
-- **SQL editor with syntax highlighting** - powered by Monaco Editor
+- **SQL editor with syntax highlighting** - powered by CoreMirror Editor
 - **Schema explorer** - browse tables and columns interactively
 - **Query management** - save, organize, and reuse queries
 - **Multiple database support** - switch between configured repositories
