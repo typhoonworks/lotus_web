@@ -120,6 +120,7 @@ defmodule Lotus.Web.QueryEditorPage do
               <div class={["relative", if(@editor_minimized, do: "hidden", else: "")]}>
                 <div id="editor" phx-update="ignore" class="w-full bg-slate-100" style="min-height: 300px;"></div>
                 <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" style="display: none;" />
+                <div data-editor-schema={Lotus.JSON.encode!(@editor_schema || %{})} style="display: none;"></div>
 
                 <button
                   type="submit"
@@ -341,7 +342,8 @@ defmodule Lotus.Web.QueryEditorPage do
       error: nil,
       running: false,
       editor_minimized: false,
-      drawer_visible: false
+      drawer_visible: false,
+      editor_schema: nil
     )
   end
 
@@ -413,11 +415,12 @@ defmodule Lotus.Web.QueryEditorPage do
     statement = query_params["statement"] |> String.trim()
     statement_empty = statement == ""
 
-    # Update the SchemaExplorer with the new database selection
     send_update(SchemaExplorer,
       id: "schema-explorer",
       initial_database: query_params["data_repo"]
     )
+
+    socket = maybe_update_editor_schema(socket, query_params["data_repo"])
 
     {:noreply, assign(socket, form: form, statement_empty: statement_empty)}
   end
@@ -533,6 +536,13 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("request_editor_schema", _params, socket) do
+    data_repo = socket.assigns.form.params["data_repo"]
+    socket = maybe_update_editor_schema(socket, data_repo)
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("run-query", %{"query" => query_params}, socket) do
     statement = query_params["statement"] |> String.trim()
     data_repo = query_params["data_repo"]
@@ -542,6 +552,43 @@ defmodule Lotus.Web.QueryEditorPage do
     else
       {:noreply,
        assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
+    end
+  end
+
+  defp maybe_update_editor_schema(socket, data_repo) do
+    if data_repo && data_repo != "" do
+      case build_editor_schema(data_repo) do
+        {:ok, schema} ->
+          assign(socket, editor_schema: schema)
+
+        {:error, _reason} ->
+          assign(socket, editor_schema: nil)
+      end
+    else
+      assign(socket, editor_schema: nil)
+    end
+  end
+
+  defp build_editor_schema(data_repo) do
+    case Lotus.list_tables(data_repo) do
+      {:ok, tables} ->
+        schema =
+          tables
+          |> Enum.reduce(%{}, fn {_schema, table}, acc ->
+            case Lotus.get_table_schema(data_repo, table) do
+              {:ok, columns} ->
+                column_names = Enum.map(columns, & &1.name)
+                Map.put(acc, table, column_names)
+
+              {:error, _} ->
+                acc
+            end
+          end)
+
+        {:ok, schema}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

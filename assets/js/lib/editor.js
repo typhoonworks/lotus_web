@@ -29,21 +29,22 @@ const editorTheme = EditorView.theme({
 });
 
 export class Editor {
-  constructor(textarea, editorContainer, onContentChange) {
+  constructor(textarea, editorContainer, onContentChange, schema = null) {
     this.textarea = textarea;
     this.editorContainer = editorContainer;
     this.onContentChange = onContentChange;
+    this.schema = schema;
     this.view = null;
+    this.languageCompartment = new Compartment();
     this.initialize();
   }
 
   initialize() {
-    let language = new Compartment();
     let state = EditorState.create({
       doc: this.textarea.value,
       extensions: [
         basicSetup,
-        language.of(sql()),
+        this.languageCompartment.of(this.createSqlExtension()),
         editorTheme,
         EditorView.lineWrapping,
         placeholder("SELECT * FROM TABLE_NAME"),
@@ -87,6 +88,28 @@ export class Editor {
           to: this.view.state.doc.length,
           insert: content,
         },
+      });
+    }
+  }
+
+  createSqlExtension() {
+    // Configure SQL with schema if available
+    const sqlConfig = {
+      upperCaseKeywords: true
+    };
+    
+    if (this.schema) {
+      sqlConfig.schema = this.schema;
+    }
+    
+    return sql(sqlConfig);
+  }
+
+  updateSchema(schema) {
+    if (this.view && schema !== this.schema) {
+      this.schema = schema;
+      this.view.dispatch({
+        effects: this.languageCompartment.reconfigure(this.createSqlExtension())
       });
     }
   }
