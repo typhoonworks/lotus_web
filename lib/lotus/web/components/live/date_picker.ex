@@ -1,7 +1,7 @@
 defmodule Lotus.Web.DatePickerComponent do
   @moduledoc """
   A date picker component for selecting dates with a calendar interface.
-  
+
   Props:
     * id           - required, base id for the component
     * name         - required, posted param name
@@ -14,12 +14,12 @@ defmodule Lotus.Web.DatePickerComponent do
     * max          - maximum selectable date
     * timezone     - timezone for date display
     * floating_label - whether to use floating label style
-  
+
   Emits:
     * updates the hidden `<input name>` so `phx-change` on the surrounding form
       receives the change as usual.
   """
-  
+
   use Lotus.Web, :live_component
   alias Lotus.Web.Components.Icons
 
@@ -274,14 +274,19 @@ defmodule Lotus.Web.DatePickerComponent do
     case Date.from_iso8601(date_str) do
       {:ok, date} ->
         cond do
-          before_min_date?(date, socket.assigns.min) -> {:noreply, socket}
-          after_max_date?(date, socket.assigns.max) -> {:noreply, socket}
+          before_min_date?(date, socket.assigns.min) ->
+            {:noreply, socket}
+
+          after_max_date?(date, socket.assigns.max) ->
+            {:noreply, socket}
+
           true ->
             {:noreply,
              socket
              |> assign(:value, date)
              |> assign(:calendar_open, false)}
         end
+
       {:error, _} ->
         {:noreply, socket}
     end
@@ -334,64 +339,83 @@ defmodule Lotus.Web.DatePickerComponent do
 
   defp selected_date?(_day, nil), do: false
   defp selected_date?(day, %Date{} = selected_date), do: day == selected_date
-  defp selected_date?(day, %DateTime{} = selected_date), do: day == DateTime.to_date(selected_date)
+
+  defp selected_date?(day, %DateTime{} = selected_date),
+    do: day == DateTime.to_date(selected_date)
+
   defp selected_date?(day, selected_date) when is_binary(selected_date) do
     case parse_date_value(selected_date) do
       nil -> false
       date -> selected_date?(day, date)
     end
   end
+
   defp selected_date?(_day, _selected_date), do: false
 
   defp format_selected_date(nil, _timezone), do: nil
+
   defp format_selected_date(%Date{} = date, _timezone) do
     Calendar.strftime(date, "%b %d")
   end
+
   defp format_selected_date(%DateTime{} = datetime, _timezone) do
     Calendar.strftime(datetime, "%b %d")
   end
+
   defp format_selected_date(date_str, timezone) when is_binary(date_str) do
     case parse_date_value(date_str) do
       nil -> nil
       date -> format_selected_date(date, timezone)
     end
   end
+
   defp format_selected_date(_date, _timezone), do: nil
 
   defp format_selected_date_with_year(nil, _timezone), do: nil
+
   defp format_selected_date_with_year(%Date{} = date, _timezone) do
     Calendar.strftime(date, "%b %d, %Y")
   end
+
   defp format_selected_date_with_year(%DateTime{} = datetime, _timezone) do
     Calendar.strftime(datetime, "%b %d, %Y")
   end
+
   defp format_selected_date_with_year(date_str, timezone) when is_binary(date_str) do
     case parse_date_value(date_str) do
       nil -> nil
       date -> format_selected_date_with_year(date, timezone)
     end
   end
+
   defp format_selected_date_with_year(_date, _timezone), do: nil
 
   defp parse_date_value(nil), do: nil
   defp parse_date_value(""), do: nil
   defp parse_date_value(%Date{} = date), do: date
   defp parse_date_value(%DateTime{} = datetime), do: DateTime.to_date(datetime)
+
   defp parse_date_value(date_str) when is_binary(date_str) do
     case Date.from_iso8601(date_str) do
-      {:ok, date} -> date
-      {:error, _} -> 
+      {:ok, date} ->
+        date
+
+      {:error, _} ->
         case DateTime.from_iso8601(date_str) do
           {:ok, datetime, _} -> DateTime.to_date(datetime)
           {:error, _} -> nil
         end
     end
   end
+
   defp parse_date_value(_), do: nil
 
   defp format_value_for_form(nil), do: ""
   defp format_value_for_form(%Date{} = date), do: Date.to_string(date)
-  defp format_value_for_form(%DateTime{} = datetime), do: Date.to_string(DateTime.to_date(datetime))
+
+  defp format_value_for_form(%DateTime{} = datetime),
+    do: Date.to_string(DateTime.to_date(datetime))
+
   defp format_value_for_form(value) when is_binary(value), do: value
   defp format_value_for_form(_), do: ""
 end

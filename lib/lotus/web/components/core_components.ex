@@ -103,7 +103,7 @@ defmodule Lotus.Web.CoreComponents do
 
     assigns
     |> assign(field: nil, id: assigns.id || field.id)
-    |> assign(:errors, errors)
+    |> assign(:errors, Enum.map(errors, &translate_error(&1)))
     |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
     |> assign_new(:value, fn -> field.value end)
     |> input()
@@ -135,9 +135,14 @@ defmodule Lotus.Web.CoreComponents do
     """
   end
 
-  def input(%{type: "radio"} = assigns) do
-    assigns = assign_new(assigns, :checked, fn -> false end)
-    
+  def input(%{type: "radio", name: name, value: value} = assigns) do
+    id = name <> "_" <> to_string(value)
+
+    assigns =
+      assigns
+      |> assign(:id, id)
+      |> assign_new(:checked, fn -> false end)
+
     ~H"""
     <label class="flex items-center cursor-pointer">
       <input
@@ -452,5 +457,19 @@ defmodule Lotus.Web.CoreComponents do
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
+  end
+
+  defp translate_error({msg, opts}) when is_binary(msg) do
+    Enum.reduce(opts, msg, fn {k, v}, acc ->
+      String.replace(acc, "%{#{k}}", to_string(v))
+    end)
+  end
+
+  defp errors_for_field(field) do
+    if Phoenix.Component.used_input?(field) do
+      Enum.map(field.errors, &translate_error/1)
+    else
+      []
+    end
   end
 end

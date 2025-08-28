@@ -4,7 +4,6 @@ defmodule Lotus.Web.EditorComponents do
   """
 
   use Phoenix.Component
-  alias Lotus.Web.Components.Icons
 
   @doc """
   Renders a fieldset-based input with legend acting as floating label.
@@ -91,7 +90,7 @@ defmodule Lotus.Web.EditorComponents do
 
   def input(%{type: "select"} = assigns) do
     assigns = assign(assigns, :formatted_label, format_label(assigns[:label]))
-    
+
     ~H"""
     <.live_component
       module={Lotus.Web.SelectComponent}
@@ -112,7 +111,7 @@ defmodule Lotus.Web.EditorComponents do
 
   def input(%{type: "date"} = assigns) do
     assigns = assign(assigns, :formatted_label, format_label(assigns[:label]))
-    
+
     ~H"""
     <.live_component
       module={Lotus.Web.DatePickerComponent}
@@ -134,7 +133,7 @@ defmodule Lotus.Web.EditorComponents do
 
   def input(%{type: "textarea"} = assigns) do
     assigns = assign(assigns, :formatted_label, format_label(assigns[:label]))
-    
+
     ~H"""
     <fieldset class={[
       "border border-gray-300 rounded-md bg-white focus-within:border-2 focus-within:border-pink-600",
@@ -211,11 +210,13 @@ defmodule Lotus.Web.EditorComponents do
   end
 
   defp format_label(nil), do: nil
+
   defp format_label(label) when is_binary(label) do
     label
     |> String.split("_")
     |> Enum.map(&String.capitalize/1)
     |> Enum.join(" ")
   end
+
   defp format_label(label), do: to_string(label)
 end
