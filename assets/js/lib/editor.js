@@ -1,7 +1,11 @@
 import { EditorView, basicSetup } from "codemirror";
-import { placeholder } from "@codemirror/view";
+import { placeholder, keymap } from "@codemirror/view";
 import { EditorState, Compartment } from "@codemirror/state";
 import { sql } from "@codemirror/lang-sql";
+import {
+  lotusVariablesPlugin,
+  lotusVariableStyles,
+} from "./plugins/lotus_variables";
 
 const editorTheme = EditorView.theme({
   "&": {
@@ -29,10 +33,19 @@ const editorTheme = EditorView.theme({
 });
 
 export class Editor {
-  constructor(textarea, editorContainer, onContentChange, schema = null) {
+  constructor(
+    textarea,
+    editorContainer,
+    onContentChange,
+    schema = null,
+    onVariableChange = null,
+    onRunQuery = null,
+  ) {
     this.textarea = textarea;
     this.editorContainer = editorContainer;
     this.onContentChange = onContentChange;
+    this.onVariableChange = onVariableChange;
+    this.onRunQuery = onRunQuery;
     this.schema = schema;
     this.view = null;
     this.languageCompartment = new Compartment();
@@ -40,15 +53,40 @@ export class Editor {
   }
 
   initialize() {
+    const extensions = [];
+
+    if (this.onRunQuery) {
+      extensions.push(
+        keymap.of([
+          {
+            key: "Mod-Enter",
+            run: (view) => {
+              this.onRunQuery();
+              return true;
+            },
+            preventDefault: true,
+            stopPropagation: true,
+          },
+        ]),
+      );
+    }
+
+    extensions.push(
+      basicSetup,
+      this.languageCompartment.of(this.createSqlExtension()),
+      editorTheme,
+      lotusVariableStyles,
+      EditorView.lineWrapping,
+      placeholder("SELECT * FROM TABLE_NAME"),
+    );
+
+    if (this.onVariableChange) {
+      extensions.push(lotusVariablesPlugin(this.onVariableChange));
+    }
+
     let state = EditorState.create({
       doc: this.textarea.value,
-      extensions: [
-        basicSetup,
-        this.languageCompartment.of(this.createSqlExtension()),
-        editorTheme,
-        EditorView.lineWrapping,
-        placeholder("SELECT * FROM TABLE_NAME"),
-      ],
+      extensions: extensions,
     });
 
     this.view = new EditorView({
@@ -93,15 +131,14 @@ export class Editor {
   }
 
   createSqlExtension() {
-    // Configure SQL with schema if available
     const sqlConfig = {
-      upperCaseKeywords: true
+      upperCaseKeywords: true,
     };
-    
+
     if (this.schema) {
       sqlConfig.schema = this.schema;
     }
-    
+
     return sql(sqlConfig);
   }
 
@@ -109,7 +146,9 @@ export class Editor {
     if (this.view && schema !== this.schema) {
       this.schema = schema;
       this.view.dispatch({
-        effects: this.languageCompartment.reconfigure(this.createSqlExtension())
+        effects: this.languageCompartment.reconfigure(
+          this.createSqlExtension(),
+        ),
       });
     }
   }

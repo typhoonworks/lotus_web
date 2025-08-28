@@ -1,6 +1,7 @@
 import topbar from "topbar";
 
 import EditorForm from "./hooks/editor_form";
+import PlatformScout from "./hooks/platform_scout";
 
 let topBarScheduled = undefined;
 
@@ -23,6 +24,7 @@ topbar.config({
 
 const hooks = {
   EditorForm,
+  PlatformScout,
 };
 
 const csrfToken = document

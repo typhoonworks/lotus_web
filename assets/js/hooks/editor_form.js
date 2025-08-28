@@ -15,12 +15,43 @@ export default {
       );
     };
 
+    // Debounced variable change handler
+    let variableDebounceTimer = null;
+    const onVariableChange = (variables) => {
+      if (variableDebounceTimer) {
+        clearTimeout(variableDebounceTimer);
+      }
+
+      variableDebounceTimer = setTimeout(() => {
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "variables_detected",
+          {
+            variables: variables,
+          },
+        );
+      }, 500);
+    };
+
+    const onRunQuery = () => {
+      const form = this.el.form;
+      if (form) {
+        textarea.value = this.editor.getContent();
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton && !submitButton.disabled) {
+          submitButton.click();
+        }
+      }
+    };
+
     const initialSchema = this.getSchemaFromDOM();
     this.editor = new Editor(
       textarea,
       editorContainer,
       onContentChange,
       initialSchema,
+      onVariableChange,
+      onRunQuery,
     );
 
     this.el.form.addEventListener("submit", (_event) => {
