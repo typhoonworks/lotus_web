@@ -28,6 +28,8 @@ defmodule Lotus.Web.SelectComponent do
   attr(:prompt, :string, default: nil)
   attr(:disabled, :boolean, default: false)
   attr(:errors, :list, default: [])
+  attr(:show_icons, :boolean, default: false)
+  attr(:class, :string, default: nil)
 
   def render(assigns) do
     ~H"""
@@ -65,7 +67,10 @@ defmodule Lotus.Web.SelectComponent do
           aria-controls={@id <> "-listbox"}
           aria-expanded={@open}
           disabled={@disabled}
-          class="w-full border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm flex items-center justify-between"
+          class={[
+            "border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm flex items-center justify-between",
+            @class || "w-full"
+          ]}
         >
           <span class="truncate">
             <%= selected_label(@options, @value) || @prompt || "Select…" %>
@@ -100,11 +105,12 @@ defmodule Lotus.Web.SelectComponent do
         aria-expanded={@open}
         disabled={@disabled}
         class={[
-          "grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900",
+          "grid cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900",
           "outline outline-1 -outline-offset-1",
           @errors == [] && "outline-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-600",
           @errors != [] && "outline-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose-500",
-          "sm:text-sm/6"
+          "sm:text-sm/6",
+          @class || "w-full"
         ]}
       >
         <span class="col-start-1 row-start-1 truncate pr-6">
@@ -157,7 +163,9 @@ defmodule Lotus.Web.SelectComponent do
           }
         >
           <div class="flex items-center">
-            <Icons.database class="mr-3 h-5 w-5 flex-shrink-0" />
+            <%= if @show_icons do %>
+              <Icons.database class="mr-3 h-5 w-5 flex-shrink-0" />
+            <% end %>
             <span class={["block truncate", @value == value && "font-semibold"]}><%= label %></span>
           </div>
           <span class={[

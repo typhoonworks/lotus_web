@@ -80,7 +80,7 @@ defmodule Lotus.Web.CoreComponents do
   attr(:type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
+               radio range search select tel text textarea time url week)
   )
 
   attr(:field, Phoenix.HTML.FormField,
@@ -132,6 +132,28 @@ defmodule Lotus.Web.CoreComponents do
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
+    """
+  end
+
+  def input(%{type: "radio"} = assigns) do
+    assigns = assign_new(assigns, :checked, fn -> false end)
+    
+    ~H"""
+    <label class="flex items-center cursor-pointer">
+      <input
+        type="radio"
+        id={@id}
+        name={@name}
+        value={@value}
+        checked={@checked}
+        class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+        {@rest}
+      />
+      <span :if={@label} class="ml-2 text-sm text-gray-700">
+        {@label}
+      </span>
+    </label>
+    <.error :for={msg <- @errors}>{msg}</.error>
     """
   end
 
