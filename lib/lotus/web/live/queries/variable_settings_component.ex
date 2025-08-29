@@ -3,15 +3,33 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
   A drawer component for configuring variables.
   """
 
-  use Lotus.Web, :html
+  use Lotus.Web, :live_component
 
   alias Lotus.Storage.QueryVariable
 
-  attr(:visible, :boolean, default: false)
-  attr(:form, Phoenix.HTML.Form, required: true)
-  attr(:target, Phoenix.LiveComponent.CID, required: true)
+  @impl Phoenix.LiveComponent
+  def mount(socket) do
+    {:ok, assign(socket, active_tab: nil)}
+  end
 
-  def variable_settings(assigns) do
+  @impl Phoenix.LiveComponent
+  def update(assigns, socket) do
+    has_variables = not empty_variables?(assigns.form)
+
+    active_tab =
+      case assigns.active_tab do
+        nil -> if has_variables, do: :settings, else: :help
+        tab -> tab
+      end
+
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(active_tab: active_tab, has_variables: has_variables)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def render(assigns) do
     ~H"""
     <div
       class={[
@@ -19,27 +37,63 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
         if(@visible, do: "w-80", else: "w-0")
       ]}
     >
-      <%= if empty_variables?(@form) do %>
-        <.variable_settings_help />
-      <% else %>
-        <.variable_settings_form form={@form} target={@target} />
-      <% end %>
+      <div class="h-full flex flex-col">
+        <.variable_settings_header active_tab={@active_tab} has_variables={@has_variables} myself={@myself} parent={@parent} />
+        <%= if @active_tab == :help do %>
+          <.variable_settings_help />
+        <% else %>
+          <.variable_settings_form form={@form} parent={@parent} />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  defp variable_settings_header(assigns) do
+    ~H"""
+    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <h3 class="text-sm font-medium text-gray-900">Variables</h3>
+        <div class="flex space-x-2">
+          <button
+            type="button"
+            phx-click="switch_variable_tab"
+            phx-value-tab="settings"
+            phx-target={@parent}
+            disabled={not @has_variables}
+            class={[
+              "px-2 py-1 text-xs rounded transition-colors",
+              if(@active_tab == :settings, do: "bg-blue-100 text-blue-700", else: "text-gray-500 hover:text-gray-700"),
+              unless(@has_variables, do: "opacity-50 cursor-not-allowed")
+            ]}
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            phx-click="switch_variable_tab"
+            phx-value-tab="help"
+            phx-target={@parent}
+            class={[
+              "px-2 py-1 text-xs rounded transition-colors",
+              if(@active_tab == :help, do: "bg-blue-100 text-blue-700", else: "text-gray-500 hover:text-gray-700")
+            ]}
+          >
+            Help
+          </button>
+        </div>
+      </div>
+      <button type="button" phx-click="close_variable_settings" phx-target={@parent}>
+        <Icons.x_mark class="h-4 w-4" />
+      </button>
     </div>
     """
   end
 
   defp variable_settings_form(assigns) do
     ~H"""
-    <div class="h-full flex flex-col">
-      <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-        <h3 class="text-sm font-medium text-gray-900">Variables</h3>
-        <button type="button" phx-click="close_variable_settings" phx-target={@target}>
-          <Icons.x_mark class="h-4 w-4" />
-        </button>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4 space-y-6">
-        <.form for={@form} phx-change="validate" phx-target={@target}>
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+        <.form for={@form} phx-change="validate" phx-target={@parent}>
           <.inputs_for :let={vf} field={@form[:variables]}>
             <div class="border-b border-gray-200 pb-4 last:border-0 space-y-3">
               <div>
@@ -69,7 +123,6 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
             </div>
           </.inputs_for>
         </.form>
-      </div>
     </div>
     """
   end
@@ -101,7 +154,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
 
   defp variable_settings_help(assigns) do
     ~H"""
-    <div class="h-full p-5 text-sm text-gray-700 space-y-5">
+    <div class="flex-1 overflow-y-auto p-5 text-sm text-gray-700 space-y-5">
         <div>
           <h3 class="text-sm font-semibold text-gray-900">Using variables</h3>
           <p class="mt-1">
@@ -136,11 +189,10 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
             <ul class="list-disc pl-5 mt-1 space-y-1">
               <li>
                 <span class="font-medium">Static options</span> –
-                one per line. Use <code class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">value | label</code>
-                (or just <code class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">value</code>).
+                one per line. <code class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">value</code>.
               </li>
               <li>
-                <span class="font-medium">SQL query</span> –
+                <span class="font-medium">SQL query</span> <span class="text-xs bg-amber-100 text-amber-700 px-1 py-0.5 rounded">coming soon</span> –
                 return columns as <code class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">value, label</code>
                 (or a single <code class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">value</code> column).
               </li>

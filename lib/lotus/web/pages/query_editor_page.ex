@@ -8,20 +8,20 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Storage.QueryVariable
   alias Lotus.Web.SchemaBuilder
   alias Lotus.Web.Queries.SchemaExplorerComponent
+  alias Lotus.Web.Queries.VariableSettingsComponent
 
   import Lotus.Web.Queries.EditorComponent
   import Lotus.Web.Queries.ResultsComponent
-  import Lotus.Web.Queries.VariableSettingsComponent
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div id="query-editor-page" class="flex flex-col h-full overflow-hidden">
-      <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full">
-        <div class="bg-white shadow rounded-lg h-full overflow-y-auto relative">
+      <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full flex flex-col">
+        <div class="bg-white shadow rounded-lg h-full flex flex-col overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
-          <div class="relative h-full">
+          <div class="relative flex-1 overflow-y-auto">
             <.live_component
               module={SchemaExplorerComponent}
               id="schema-explorer"
@@ -30,10 +30,17 @@ defmodule Lotus.Web.QueryEditorPage do
               initial_database={@query_form[:data_repo].value}
             />
 
-            <.variable_settings visible={@variable_settings_visible} form={@query_form} target={@myself} />
+            <.live_component
+              module={VariableSettingsComponent}
+              id="variable-settings"
+              visible={@variable_settings_visible}
+              form={@query_form}
+              parent={@myself}
+              active_tab={@variable_settings_active_tab}
+            />
 
             <div class={[
-              "h-full transition-all duration-300 ease-in-out",
+              "transition-all duration-300 ease-in-out",
               cond do
                 @schema_explorer_visible -> "mr-80"
                 @variable_settings_visible -> "mr-80"
@@ -208,6 +215,17 @@ defmodule Lotus.Web.QueryEditorPage do
 
         {:noreply, assign_query_changeset(socket, query)}
     end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("close_variable_settings", _params, socket) do
+    {:noreply, assign(socket, variable_settings_visible: false, variable_settings_active_tab: nil)}
+  end
+
+  @impl Phoenix.LiveComponent  
+  def handle_event("switch_variable_tab", %{"tab" => tab}, socket) do
+    active_tab = String.to_existing_atom(tab)
+    {:noreply, assign(socket, variable_settings_active_tab: active_tab)}
   end
 
   @impl Page
@@ -410,10 +428,6 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
-  @impl Phoenix.LiveComponent
-  def handle_event("close_variable_settings", _params, socket) do
-    {:noreply, assign(socket, variable_settings_visible: false)}
-  end
 
   @impl Phoenix.LiveComponent
   def handle_event("variables_changed", %{"variables" => incoming}, socket) do
@@ -474,6 +488,7 @@ defmodule Lotus.Web.QueryEditorPage do
         Map.update(acc, v.name, v.default, & &1)
       end)
 
+
     socket =
       socket
       |> assign(
@@ -482,6 +497,7 @@ defmodule Lotus.Web.QueryEditorPage do
         query: Ecto.Changeset.apply_changes(changeset),
         variable_values: with_defaults,
         variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
+        variable_settings_active_tab: if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab),
         schema_explorer_visible:
           if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
       )
@@ -545,6 +561,7 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_minimized: false,
       schema_explorer_visible: false,
       variable_settings_visible: false,
+      variable_settings_active_tab: nil,
       editor_schema: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
