@@ -1,4 +1,4 @@
-defmodule Lotus.Web.Live.SchemaExplorer do
+defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   @moduledoc """
   A drawer component for browsing database tables and columns.
   """
@@ -71,7 +71,7 @@ defmodule Lotus.Web.Live.SchemaExplorer do
     ~H"""
     <button
       type="button"
-      phx-click="close-drawer"
+      phx-click="close_schema_explorer"
       phx-target={@parent}
       class="p-1 text-gray-400 hover:text-gray-600"
     >

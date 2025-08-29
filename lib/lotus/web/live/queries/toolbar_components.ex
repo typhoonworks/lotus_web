@@ -1,6 +1,6 @@
-defmodule Lotus.Web.EditorComponents do
+defmodule Lotus.Web.Queries.ToolbarComponents do
   @moduledoc """
-  Editor UI components.
+  Editor toolbar UI components.
   """
 
   use Phoenix.Component

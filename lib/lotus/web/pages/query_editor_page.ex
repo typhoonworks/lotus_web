@@ -6,10 +6,12 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.Page
   alias Lotus.Storage.Query
   alias Lotus.Storage.QueryVariable
-  alias Lotus.Web.CellFormatter
   alias Lotus.Web.SchemaBuilder
-  alias Lotus.Web.Live.SchemaExplorer
-  alias Lotus.Web.EditorComponents, as: Editor
+  alias Lotus.Web.Queries.SchemaExplorerComponent
+
+  import Lotus.Web.Queries.EditorComponent
+  import Lotus.Web.Queries.ResultsComponent
+  import Lotus.Web.Queries.VariableSettingsComponent
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
@@ -17,306 +19,153 @@ defmodule Lotus.Web.QueryEditorPage do
     <div id="query-editor-page" class="flex flex-col h-full overflow-hidden">
       <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full">
         <div class="bg-white shadow rounded-lg h-full overflow-y-auto relative">
-          <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 class="text-xl font-semibold">
-              <%= if @page.mode == :new, do: "New Query", else: (@query.name || "Untitled") %>
-            </h2>
-            <div class="flex gap-3">
-              <%= if @page[:mode] == :edit do %>
-                <.button
-                  type="button"
-                  variant="light"
-                  phx-click={show_modal("delete-query-modal")}
-                  class="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
-                >
-                  Delete
-                </.button>
-              <% end %>
-              <.button
-                type="button"
-                disabled={@statement_empty}
-                phx-click={show_modal("save-query-modal")}
-                class={@statement_empty && "opacity-50 cursor-not-allowed"}
-              >
-                Save
-              </.button>
-            </div>
-          </div>
+          <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
           <div class="relative h-full">
             <.live_component
-              module={SchemaExplorer}
+              module={SchemaExplorerComponent}
               id="schema-explorer"
-              visible={@schema_drawer_visible}
+              visible={@schema_explorer_visible}
               parent={@myself}
               initial_database={@query_form[:data_repo].value}
             />
 
-            <.variable_settings_drawer {assigns} />
+            <.variable_settings visible={@variable_settings_visible} form={@query_form} target={@myself} />
 
             <div class={[
               "h-full transition-all duration-300 ease-in-out",
               cond do
-                @schema_drawer_visible -> "mr-80"
-                @variable_drawer_visible -> "mr-80"
+                @schema_explorer_visible -> "mr-80"
+                @variable_settings_visible -> "mr-80"
                 true -> "mr-0"
               end
             ]}>
 
-          <.form for={@query_form} phx-submit="run_query" phx-target={@myself} phx-change="validate">
-            <div class="bg-slate-100">
-              <div class="flex items-center w-full px-6 py-3 border-b border-gray-200 gap-4">
-                <div class="w-48">
-                  <Editor.input
-                    type="select"
-                    field={@query_form[:data_repo]}
-                    label="Source"
-                    prompt="Select a database"
-                    options={Enum.map(@data_repo_names, &{&1, &1})}
-                    show_icons={true}
-                  />
-                </div>
+              <.editor
+                form={@query_form}
+                target={@myself}
+                minimized={@editor_minimized}
+                data_repo_names={@data_repo_names}
+                schema={@editor_schema}
+                running={@running}
+                statement_empty={@statement_empty}
+                schema_explorer_visible={@schema_explorer_visible}
+                variable_settings_visible={@variable_settings_visible}
+              />
+              <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} />
 
-                <div class="w-px self-stretch bg-gray-300"></div>
-
-                <div class="flex-1 flex flex-wrap gap-3 items-center">
-                  <.inputs_for :let={vf} field={@query_form[:variables]}>
-                    <% name = vf[:name].value %>
-                    <% label = vf[:label].value || format_variable_label(name) %>
-                    <% value = @var_values[name] || vf[:default].value || "" %>
-
-                    <div class="flex items-center gap-2 min-w-32">
-                      <%= case vf[:widget].value do %>
-                        <% :select -> %>
-                          <Editor.input
-                            id={"vars_#{name}"}
-                            type="select"
-                            name={"vars[#{name}]"}
-                            value={value}
-                            label={label}
-                            options={vf[:static_options].value || []}
-                            prompt="Select value"
-                            class="min-w-32 w-32"
-                          />
-                        <% :date -> %>
-                          <Editor.input
-                            id={"vars_#{name}"}
-                            type="date"
-                            name={"vars[#{name}]"}
-                            value={value}
-                            label={label}
-                            placeholder="Select date"
-                            class="min-w-32 w-32"
-                          />
-                        <% _ -> %>
-                          <Editor.input
-                            id={"vars_#{name}"}
-                            type="text"
-                            name={"vars[#{name}]"}
-                            value={value}
-                            label={label}
-                            placeholder="Enter value"
-                            class="w-32"
-                          />
-                      <% end %>
-                    </div>
-                  </.inputs_for>
-                </div>
-
-                <div class="flex items-center space-x-1">
-                  <button
-                    type="button"
-                    phx-click="toggle-variable-drawer"
-                    phx-target={@myself}
-                    class={[
-                      "p-2 transition-colors",
-                      if(@variable_drawer_visible,
-                        do: "text-pink-600 hover:text-pink-700",
-                        else: "text-gray-400 hover:text-gray-600"
-                      )
-                    ]}
-                    title="Variable settings"
-                  >
-                    <Icons.variable class="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    phx-click="toggle-drawer"
-                    phx-target={@myself}
-                    class={[
-                      "p-2 transition-colors",
-                      if(@schema_drawer_visible,
-                        do: "text-pink-600 hover:text-pink-700",
-                        else: "text-gray-400 hover:text-gray-600"
-                      )
-                    ]}
-                    title="Browse tables"
-                  >
-                    <Icons.tables class="h-5 w-5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    phx-click="toggle-editor"
-                    phx-target={@myself}
-                    class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                    title={if @editor_minimized, do: "Expand editor", else: "Minimize editor"}
-                  >
-                    <%= if @editor_minimized do %>
-                      <Icons.maximize class="h-5 w-5" />
-                    <% else %>
-                      <Icons.minimize class="h-5 w-5" />
-                    <% end %>
-                  </button>
-                </div>
-              </div>
-
-              <div class={["relative", if(@editor_minimized, do: "hidden", else: "")]}>
-                <div id="editor" phx-update="ignore" class="w-full bg-slate-100" style="min-height: 300px;"></div>
-                <.input type="textarea" field={@query_form[:statement]} phx-hook="EditorForm" style="display: none;" />
-                <div data-editor-schema={Lotus.JSON.encode!(@editor_schema || %{})} style="display: none;"></div>
-
-                <button
-                  type="submit"
-                  disabled={@running or @statement_empty}
-                  class={[
-                    "absolute bottom-4 right-4 w-12 h-12 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center bg-pink-600",
-                    if(@running or @statement_empty,
-                      do: "cursor-not-allowed opacity-50",
-                      else: "hover:bg-pink-500 hover:shadow-xl transform hover:scale-105"
-                    )
-                  ]}
-                  title={if @statement_empty, do: "Enter SQL to run query", else: "Run Query"}
-                >
-                  <%= if @running do %>
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  <% else %>
-                    <Icons.play class="h-5 w-5 text-white ml-0.5" />
-                  <% end %>
-                </button>
-              </div>
             </div>
-          </.form>
-
-          <div class="px-4 sm:px-6 lg:px-8">
-            <%= if @result do %>
-              <.table id="query-results" rows={@result.rows}>
-                <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
-                  <%= CellFormatter.format(Enum.at(row, index)) %>
-                </:col>
-              </.table>
-            <% else %>
-              <div class="flex flex-col items-center justify-center py-16 text-gray-500">
-                <%= if @error do %>
-                  <div class="text-red-600 text-center">
-                    <p class="font-medium">Error:</p>
-                    <p class="text-sm mt-1"><%= @error %></p>
-                  </div>
-                <% else %>
-                  <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                    <Icons.terminal class="h-8 w-8 text-gray-400" />
-                  </div>
-
-                  <p class="text-base text-gray-600 mb-2 flex items-center justify-center gap-2">
-                    <span>To run your query, click on the Run button or press</span>
-                    <span class="inline-flex items-center gap-1">
-                      <%= if Map.get(assigns, :os) == :mac do %>
-                        <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-sans text-gray-700">⌘</kbd>
-                        <span class="text-sm text-gray-500">+</span>
-                        <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-sans text-gray-700">Enter</kbd>
-                      <% else %>
-                        <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-sans text-gray-700">Ctrl</kbd>
-                        <span class="text-sm text-gray-500">+</span>
-                        <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-sans text-gray-700">Enter</kbd>
-                      <% end %>
-                    </span>
-                  </p>
-                  <p class="text-sm text-gray-500">
-                    Here's where your results will appear
-                  </p>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-
-          </div>
           </div>
         </div>
       </div>
 
-      <.modal id="save-query-modal">
-        <h3 class="text-lg font-semibold mb-4">Save Query</h3>
-
-        <.form for={@query_form}
-               as={:save_query}
-               phx-submit="save-query"
-               phx-change="validate-save"
-               phx-target={@myself}>
-          <div class="space-y-4">
-            <.input
-              field={@query_form[:name]}
-              type="text"
-              label="Name"
-              placeholder="Enter query name"
-              required
-            />
-            <.input
-              field={@query_form[:description]}
-              type="textarea"
-              label="Description"
-              placeholder="Enter query description (optional)"
-              rows="3"
-            />
-          </div>
-          <div class="mt-6 flex justify-end gap-3">
-            <.button
-              type="button"
-              variant="light"
-              phx-click={hide_modal("save-query-modal")}
-            >
-              Cancel
-            </.button>
-            <.button
-              type="submit"
-              phx-click={hide_modal("save-query-modal")}
-              disabled={String.trim(Phoenix.HTML.Form.input_value(@query_form, :name) || "") == ""}
-            >
-              Save Query
-            </.button>
-          </div>
-        </.form>
-      </.modal>
-
-
-      <%= if @page[:mode] == :edit do %>
-        <.modal id="delete-query-modal">
-          <h3 class="text-lg font-semibold mb-4">Delete query</h3>
-          <p class="text-sm text-gray-500 mb-6">
-            Are you sure you want to delete this query? This action cannot be undone.
-          </p>
-          <div class="flex justify-end gap-3">
-            <.button
-              type="button"
-              variant="light"
-              phx-click={hide_modal("delete-query-modal")}
-            >
-              Cancel
-            </.button>
-            <.button
-              type="button"
-              phx-click="delete-query"
-              phx-target={@myself}
-              class="bg-red-600 hover:bg-red-700 focus-visible:outline-red-600"
-            >
-              Delete
-            </.button>
-          </div>
-        </.modal>
-      <% end %>
+      <.save_modal query_form={@query_form} target={@myself} />
+      <.delete_modal :if={@page.mode == :edit} target={@myself} />
     </div>
+    """
+  end
+
+  defp header(assigns) do
+    ~H"""
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 class="text-xl font-semibold">
+        <%= if @mode == :new, do: "New Query", else: (@query.name || "Untitled") %>
+      </h2>
+      <div class="flex gap-3">
+        <%= if @mode == :edit do %>
+          <.button
+            type="button"
+            variant="light"
+            phx-click={show_modal("delete-query-modal")}
+            class="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
+          >
+            Delete
+          </.button>
+        <% end %>
+        <.button
+          type="button"
+          disabled={@statement_empty}
+          phx-click={show_modal("save-query-modal")}
+          class={@statement_empty && "opacity-50 cursor-not-allowed"}
+        >
+          Save
+        </.button>
+      </div>
+    </div>
+    """
+  end
+
+  defp save_modal(assigns) do
+    ~H"""
+    <.modal id="save-query-modal">
+      <h3 class="text-lg font-semibold mb-4">Save Query</h3>
+
+      <.form for={@query_form}
+             phx-submit="save_query"
+             phx-change="validate_save"
+             phx-target={@target}>
+        <div class="space-y-4">
+          <.input
+            field={@query_form[:name]}
+            type="text"
+            label="Name"
+            placeholder="Enter query name"
+            required
+          />
+          <.input
+            field={@query_form[:description]}
+            type="textarea"
+            label="Description"
+            placeholder="Enter query description (optional)"
+            rows="3"
+          />
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <.button
+            type="button"
+            variant="light"
+            phx-click={hide_modal("save-query-modal")}
+          >
+            Cancel
+          </.button>
+          <.button
+            type="submit"
+            phx-click={hide_modal("save-query-modal")}
+            disabled={String.trim(Phoenix.HTML.Form.input_value(@query_form, :name) || "") == ""}
+          >
+            Save Query
+          </.button>
+        </div>
+      </.form>
+    </.modal>
+    """
+  end
+
+  defp delete_modal(assigns) do
+    ~H"""
+    <.modal id="delete-query-modal">
+      <h3 class="text-lg font-semibold mb-4">Delete query</h3>
+      <p class="text-sm text-gray-500 mb-6">
+        Are you sure you want to delete this query? This action cannot be undone.
+      </p>
+      <div class="flex justify-end gap-3">
+        <.button
+          type="button"
+          variant="light"
+          phx-click={hide_modal("delete-query-modal")}
+        >
+          Cancel
+        </.button>
+        <.button
+          type="button"
+          phx-click="delete_query"
+          phx-target={@target}
+          class="bg-red-600 hover:bg-red-700 focus-visible:outline-red-600"
+        >
+          Delete
+        </.button>
+      </div>
+    </.modal>
     """
   end
 
@@ -329,8 +178,6 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Lotus.Web.Page
   def handle_params(_params, _uri, socket) do
-    IO.inspect(socket.assigns.page)
-
     case socket.assigns.page do
       %{mode: :edit, id: id} ->
         case Lotus.get_query(id) do
@@ -365,6 +212,7 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
+  @impl Phoenix.LiveComponent
   def handle_event("validate", %{"query" => query_params}, socket) do
     changeset =
       socket.assigns.query
@@ -379,7 +227,7 @@ defmodule Lotus.Web.QueryEditorPage do
       |> String.trim()
       |> Kernel.==("")
 
-    send_update(SchemaExplorer,
+    send_update(SchemaExplorerComponent,
       id: "schema-explorer",
       initial_database: query_params["data_repo"]
     )
@@ -388,6 +236,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
     {:noreply,
      assign(socket,
+       query: Ecto.Changeset.apply_changes(changeset),
        query_changeset: changeset,
        query_form: form,
        statement_empty: statement_empty
@@ -410,7 +259,7 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("validate-save", %{"save_query" => save_params}, socket) do
+  def handle_event("validate_save", %{"query" => save_params}, socket) do
     changeset =
       socket.assigns.query
       |> Query.update(save_params)
@@ -435,9 +284,18 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("save-query", %{"save_query" => save_params}, socket) do
+  def handle_event("save_query", %{"query" => save_params}, socket) do
     page = socket.assigns.page
-    query_attrs = Map.merge(socket.assigns.query_form.params, save_params)
+
+    current_query = socket.assigns.query
+
+    query_attrs = %{
+      "name" => save_params["name"],
+      "description" => save_params["description"],
+      "statement" => current_query.statement,
+      "data_repo" => current_query.data_repo,
+      "variables" => Enum.map(current_query.variables, &variable_to_params/1)
+    }
 
     result =
       case page do
@@ -469,7 +327,7 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("delete-query", _params, socket) do
+  def handle_event("delete_query", _params, socket) do
     query_id = socket.assigns.page.id
 
     case Lotus.get_query(query_id) do
@@ -497,38 +355,38 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("toggle-editor", _params, socket) do
+  def handle_event("toggle_editor", _params, socket) do
     {:noreply, assign(socket, editor_minimized: not socket.assigns.editor_minimized)}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("toggle-drawer", _params, socket) do
+  def handle_event("toggle_schema_explorer", _params, socket) do
     socket =
       socket
-      |> assign(schema_drawer_visible: not socket.assigns.schema_drawer_visible)
-      |> assign(variable_drawer_visible: false)
+      |> assign(schema_explorer_visible: not socket.assigns.schema_explorer_visible)
+      |> assign(variable_settings_visible: false)
 
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("close-drawer", _params, socket) do
-    {:noreply, assign(socket, schema_drawer_visible: false)}
+  def handle_event("close_schema_explorer", _params, socket) do
+    {:noreply, assign(socket, schema_explorer_visible: false)}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("toggle-variable-drawer", _params, socket) do
+  def handle_event("toggle_variable_settings", _params, socket) do
     socket =
       socket
-      |> assign(variable_drawer_visible: not socket.assigns.variable_drawer_visible)
-      |> assign(schema_drawer_visible: false)
+      |> assign(variable_settings_visible: not socket.assigns.variable_settings_visible)
+      |> assign(schema_explorer_visible: false)
 
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("close-variable-drawer", _params, socket) do
-    {:noreply, assign(socket, variable_drawer_visible: false)}
+  def handle_event("close_variable_settings", _params, socket) do
+    {:noreply, assign(socket, variable_settings_visible: false)}
   end
 
   @impl Phoenix.LiveComponent
@@ -548,7 +406,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
     prev_names = Enum.map(existing, & &1.name)
     new_names = names -- prev_names
-    should_open_drawer = new_names != [] and not socket.assigns.variable_drawer_visible
+    show_settings = new_names != [] and not socket.assigns.variable_settings_visible
 
     ordered_vars =
       Enum.map(names, fn name ->
@@ -582,9 +440,9 @@ defmodule Lotus.Web.QueryEditorPage do
         query_changeset: changeset,
         query_form: to_form(changeset, as: "query"),
         query: Ecto.Changeset.apply_changes(changeset),
-        variable_drawer_visible: should_open_drawer || socket.assigns.variable_drawer_visible,
-        schema_drawer_visible:
-          if(should_open_drawer, do: false, else: socket.assigns.schema_drawer_visible)
+        variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
+        schema_explorer_visible:
+          if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
       )
 
     {:noreply, socket}
@@ -644,8 +502,8 @@ defmodule Lotus.Web.QueryEditorPage do
       error: nil,
       running: false,
       editor_minimized: false,
-      schema_drawer_visible: false,
-      variable_drawer_visible: false,
+      schema_explorer_visible: false,
+      variable_settings_visible: false,
       editor_schema: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
@@ -699,6 +557,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp maybe_update_editor_schema(socket, data_repo) do
     if data_repo && data_repo != "" do
+      dialect = dialect_for_repo(data_repo)
+
       case SchemaBuilder.build(data_repo) do
         {:ok, schema} ->
           assign(socket, editor_schema: schema)
@@ -708,6 +568,22 @@ defmodule Lotus.Web.QueryEditorPage do
       end
     else
       assign(socket, editor_schema: nil)
+    end
+  end
+
+  defp dialect_for_repo(repo_name) do
+    repo =
+      try do
+        Lotus.Config.get_data_repo!(repo_name)
+      rescue
+        _ -> nil
+      end
+
+    case repo && repo.__adapter__() do
+      Ecto.Adapters.Postgres -> "postgres"
+      Ecto.Adapters.MyXQL -> "mysql"
+      Ecto.Adapters.SQLite3 -> "sqlite"
+      _ -> "postgres"
     end
   end
 
@@ -731,70 +607,6 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp format_variable_label(var_name), do: var_name
-
-  defp variable_settings_drawer(assigns) do
-    ~H"""
-    <div
-      class={[
-        "absolute top-0 right-0 h-full bg-white border-l border-gray-200 z-10 transition-all duration-300 ease-in-out overflow-hidden",
-        if(@variable_drawer_visible, do: "w-80", else: "w-0")
-      ]}
-    >
-      <%= if @variable_drawer_visible do %>
-        <div class="h-full flex flex-col">
-          <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-            <h3 class="text-sm font-medium text-gray-900">Variables</h3>
-            <button type="button" phx-click="close-variable-drawer" phx-target={@myself}>
-              <Icons.x_mark class="h-4 w-4" />
-            </button>
-          </div>
-
-          <div class="flex-1 overflow-y-auto p-4 space-y-6">
-            <.form for={@query_form} phx-change="validate" phx-target={@myself}>
-              <.inputs_for :let={vf} field={@query_form[:variables]}>
-                <div class="border-b border-gray-200 pb-4 last:border-0 space-y-3">
-                  <div>
-                    <label class="text-xs font-medium text-gray-700">Variable name</label>
-                    <div class="mt-1 text-sm text-pink-600 font-mono"><%= vf[:name].value %></div>
-                  </div>
-
-                  <.input type="select" field={vf[:type]} label="Variable type"
-                          options={[{"Text","text"},{"Number","number"},{"Date","date"}]} />
-
-                  <.input type="text" field={vf[:label]} label="Input label"
-                          placeholder={"Label for #{vf[:name].value}"} />
-
-                  <%= if vf[:type].value != :date do %>
-                    <.input type="radio" field={vf[:widget]} value="input" label="Input box" checked={vf[:widget].value == :input}/>
-                    <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
-                  <% end %>
-
-                  <%= if vf[:widget].value == :select do %>
-                    <.input type="radio" name={"#{vf[:name].name}_option_source"} value="static" label="Static values"
-                            checked={QueryVariable.get_option_source(vf.source.data) == :static}/>
-                    <.input type="radio" name={"#{vf[:name].name}_option_source"} value="query" label="SQL query"
-                            checked={QueryVariable.get_option_source(vf.source.data) == :query}/>
-
-                    <%= if QueryVariable.get_option_source(vf.source.data) == :static do %>
-                      <.input type="textarea" field={vf[:static_options]} label="Static options" rows="3"
-                              placeholder="One option per line"/>
-                    <% else %>
-                      <.input type="textarea" field={vf[:options_query]} label="Options query" rows="3"
-                              placeholder="SELECT value_column, label_column FROM table_name"/>
-                    <% end %>
-                  <% end %>
-
-                  <.input type="text" field={vf[:default]} label="Default value"
-                          placeholder="Enter a default value..." />
-                </div>
-              </.inputs_for>
-            </.form>
-          </div>
-        </div>
-      <% end %>
-    </div>
-    """
-  end
 
   defp execute_options_query(query, data_repo) do
     case Lotus.run_sql(query, [], repo: data_repo) do

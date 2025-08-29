@@ -464,12 +464,4 @@ defmodule Lotus.Web.CoreComponents do
       String.replace(acc, "%{#{k}}", to_string(v))
     end)
   end
-
-  defp errors_for_field(field) do
-    if Phoenix.Component.used_input?(field) do
-      Enum.map(field.errors, &translate_error/1)
-    else
-      []
-    end
-  end
 end

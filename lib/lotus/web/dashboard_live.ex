@@ -38,6 +38,8 @@ defmodule Lotus.Web.DashboardLive do
 
   @impl Phoenix.LiveView
   def handle_params(params, uri, socket) do
+    page = resolve_page(params)
+    socket = assign(socket, page: page)
     socket.assigns.page.comp.handle_params(params, uri, socket)
   end
 
