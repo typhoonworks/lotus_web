@@ -151,14 +151,13 @@ defmodule Lotus.Web.CoreComponents do
         name={@name}
         value={@value}
         checked={@checked}
-        class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+        class="h-4 w-4 text-pink-600 focus:ring-0 border-gray-300"
         {@rest}
       />
       <span :if={@label} class="ml-2 text-sm text-gray-700">
         {@label}
       </span>
     </label>
-    <.error :for={msg <- @errors}>{msg}</.error>
     """
   end
 
@@ -461,7 +460,14 @@ defmodule Lotus.Web.CoreComponents do
 
   defp translate_error({msg, opts}) when is_binary(msg) do
     Enum.reduce(opts, msg, fn {k, v}, acc ->
-      String.replace(acc, "%{#{k}}", to_string(v))
+      # Handle tuple values gracefully instead of crashing
+      value_string =
+        case v do
+          {_, _} = tuple -> inspect(tuple)
+          other -> to_string(other)
+        end
+
+      String.replace(acc, "%{#{k}}", value_string)
     end)
   end
 end

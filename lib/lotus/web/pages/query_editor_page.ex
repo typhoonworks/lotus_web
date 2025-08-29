@@ -214,23 +214,35 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
-  @impl Phoenix.LiveComponent
   def handle_event("validate", params, socket) do
     query_params = Map.get(params, "query", %{})
     var_params = Map.get(params, "variables", %{})
 
+    # Normalize variables params - convert textarea strings to arrays for static_options
+    normalized_query_params = normalize_query_params(query_params)
+
     changeset =
       socket.assigns.query
-      |> Query.update(query_params)
+      |> Query.update(normalized_query_params)
       |> Map.put(:action, :validate)
 
     form = to_form(changeset, as: "query")
 
     statement_empty =
-      query_params["statement"]
-      |> to_string()
-      |> String.trim()
-      |> Kernel.==("")
+      case query_params["statement"] do
+        nil ->
+          socket.assigns.query.statement
+          |> to_string()
+          |> String.trim()
+          |> Kernel.==("")
+
+        statement ->
+          # Statement in params, use that value
+          statement
+          |> to_string()
+          |> String.trim()
+          |> Kernel.==("")
+      end
 
     send_update(SchemaExplorerComponent,
       id: "schema-explorer",
@@ -637,26 +649,46 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp format_variable_label(var_name), do: var_name
 
-  defp execute_options_query(query, data_repo) do
-    case Lotus.run_sql(query, [], repo: data_repo) do
-      {:ok, result} ->
-        # Convert result to {label, value} format
-        options =
-          result.rows
-          |> Enum.map(fn row ->
-            case row do
-              [value, label] -> {to_string(label), to_string(value)}
-              # fallback if only one column
-              [value] -> {to_string(value), to_string(value)}
-              _ -> nil
-            end
+  defp normalize_query_params(params) do
+    case Map.get(params, "variables") do
+      nil ->
+        params
+
+      variables_map when is_map(variables_map) ->
+        normalized_variables =
+          variables_map
+          |> Enum.map(fn {idx, var_attrs} ->
+            normalized_attrs = normalize_variable_attrs(var_attrs)
+            {idx, normalized_attrs}
           end)
-          |> Enum.reject(&is_nil/1)
+          |> Map.new()
 
-        {:ok, options}
+        Map.put(params, "variables", normalized_variables)
 
-      {:error, error} ->
-        {:error, "Query error: #{inspect(error)}"}
+      _ ->
+        params
     end
   end
+
+  defp normalize_variable_attrs(attrs) when is_map(attrs) do
+    case Map.get(attrs, "static_options") do
+      options_string when is_binary(options_string) and options_string != "" ->
+        options_array =
+          options_string
+          |> String.split("\n")
+          |> Enum.map(&String.trim/1)
+          |> Enum.reject(&(&1 == ""))
+
+        result = Map.put(attrs, "static_options", options_array)
+        result
+
+      "" ->
+        Map.put(attrs, "static_options", [])
+
+      _ ->
+        attrs
+    end
+  end
+
+  defp normalize_variable_attrs(attrs), do: attrs
 end

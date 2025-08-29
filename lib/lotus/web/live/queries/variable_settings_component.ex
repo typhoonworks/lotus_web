@@ -16,7 +16,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
     <div
       class={[
         "absolute top-0 right-0 h-full bg-white border-l border-gray-200 z-10 transition-all duration-300 ease-in-out overflow-hidden",
-        if(@visible, do: "w-80", else: "translate-x-full")
+        if(@visible, do: "w-80", else: "w-0")
       ]}
     >
       <%= if empty_variables?(@form) do %>
@@ -43,8 +43,9 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
           <.inputs_for :let={vf} field={@form[:variables]}>
             <div class="border-b border-gray-200 pb-4 last:border-0 space-y-3">
               <div>
-                <label class="text-xs font-medium text-gray-700">Variable name</label>
-                <div class="mt-1 text-sm text-pink-600 font-mono"><%= vf[:name].value %></div>
+                <.label for={vf[:name].id}>Variable name</.label>
+                <div class="mt-1 text-sm text-pink-600 font-mono"><%= vf.source.data.name || vf[:name].value %></div>
+                <input type="hidden" name={vf[:name].name} value={vf[:name].value} />
               </div>
 
               <.input type="select" field={vf[:type]} label="Variable type"
@@ -54,6 +55,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                       placeholder={"Label for #{vf[:name].value}"} />
 
               <%= if vf[:type].value != :date do %>
+                <.label>Widget type</.label>
                 <.input type="radio" field={vf[:widget]} value="input" label="Input box" checked={vf[:widget].value == :input}/>
                 <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
               <% end %>
@@ -74,16 +76,24 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
 
   defp select_options_configuration(assigns) do
     ~H"""
+    <.label>Options</.label>
     <.input type="radio" name={"#{@vf[:name].name}_option_source"} value="static" label="Static values"
             checked={QueryVariable.get_option_source(@vf.source.data) == :static}/>
-    <.input type="radio" name={"#{@vf[:name].name}_option_source"} value="query" label="SQL query"
-            checked={QueryVariable.get_option_source(@vf.source.data) == :query}/>
+    <.input type="radio" name={"#{@vf[:name].name}_option_source"} value="query" label="SQL query (coming soon)"
+            checked={QueryVariable.get_option_source(@vf.source.data) == :query} disabled={true}/>
 
     <%= if QueryVariable.get_option_source(@vf.source.data) == :static do %>
-      <.input type="textarea" field={@vf[:static_options]} label="Static options" rows="3"
-              placeholder="One option per line"/>
+      <div>
+        <textarea
+          id={"#{@vf[:static_options].name}_textarea"}
+          name={@vf[:static_options].name}
+          rows="3"
+          placeholder="One option per line"
+          class="mt-2 block w-full rounded-lg text-sm min-h-[6rem] border-zinc-300 focus:border-zinc-400 focus:ring-0"
+        ><%= (@vf[:static_options].value || []) |> Enum.join("\n") %></textarea>
+      </div>
     <% else %>
-      <.input type="textarea" field={@vf[:options_query]} label="Options query" rows="3"
+      <.input type="textarea" field={@vf[:options_query]} rows="3"
               placeholder="SELECT value_column, label_column FROM table_name"/>
     <% end %>
     """

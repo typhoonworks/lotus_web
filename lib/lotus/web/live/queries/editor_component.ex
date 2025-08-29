@@ -2,6 +2,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   use Lotus.Web, :html
 
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
+  import Lotus.Web.Queries.WidgetComponent
 
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
@@ -92,72 +93,18 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
       <div class="w-px self-stretch bg-gray-300"></div>
 
-      <.render_widgets
-        variables={@variables}
-        variable_values={@variable_values}
-        target={@target}
-      />
+      <div class="flex-1 flex flex-wrap gap-3 items-center">
+        <%= for v <- @variables do %>
+          <.widget var={v} value={Map.get(@variable_values, v.name, v.default)} />
+        <% end %>
+      </div>
+
       <.render_actions
         target={@target}
         schema_explorer_visible={@schema_explorer_visible}
         variable_settings_visible={@variable_settings_visible}
         minimized={@minimized}
       />
-    </div>
-    """
-  end
-
-  attr(:variables, :list, required: true)
-  attr(:variable_values, :map, required: true)
-  attr(:target, Phoenix.LiveComponent.CID, required: true)
-
-  def render_widgets(assigns) do
-    ~H"""
-    <div class="flex-1 flex flex-wrap gap-3 items-center">
-      <%= for v <- @variables do %>
-        <% name   = v.name %>
-        <% label  = v.label || format_variable_label(v.name) %>
-        <% value  = Map.get(@variable_values, name, v.default) %>
-        <% opts   = v.static_options || [] %>
-        <% id     = "var-#{name}" %>
-
-        <div class="flex items-center gap-2 min-w-32">
-          <%= case v.widget do %>
-            <% :select -> %>
-              <Toolbar.input
-                type="select"
-                id={id}
-                name={"variables[#{name}]"}
-                label={label}
-                value={value || ""}
-                options={opts}
-                disabled={opts == []}
-                prompt={if opts == [], do: "No options configured", else: "Select value"}
-                class="min-w-32 w-32"
-              />
-            <% :date -> %>
-              <Toolbar.input
-                type="date"
-                id={id}
-                name={"variables[#{name}]"}
-                label={label}
-                value={value}
-                placeholder="Select date"
-                class="min-w-32 w-32"
-              />
-            <% _ -> %>
-              <Toolbar.input
-                type="text"
-                id={id}
-                name={"variables[#{name}]"}
-                label={label}
-                value={value}
-                placeholder="Enter value"
-                class="w-32"
-              />
-          <% end %>
-        </div>
-      <% end %>
     </div>
     """
   end
@@ -217,13 +164,4 @@ defmodule Lotus.Web.Queries.EditorComponent do
     </div>
     """
   end
-
-  defp format_variable_label(var_name) when is_binary(var_name) do
-    var_name
-    |> String.split("_")
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join(" ")
-  end
-
-  defp format_variable_label(var_name), do: var_name
 end

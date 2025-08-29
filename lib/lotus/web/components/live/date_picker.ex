@@ -63,7 +63,13 @@ defmodule Lotus.Web.DatePickerComponent do
       </legend>
 
       <div class="relative" id={@id <> "-root"} phx-click-away="close-calendar" phx-target={@myself}>
-        <input id={@id <> "-hidden"} type="hidden" name={@name} value={format_value_for_form(@value)} />
+        <input
+          id={@id <> "-hidden"}
+          type="hidden"
+          name={@name}
+          value={format_value_for_form(@value)}
+          phx-hook="DispatchChangeOnUpdate"
+        />
 
         <button
           type="button"
@@ -95,7 +101,13 @@ defmodule Lotus.Web.DatePickerComponent do
     <.label :if={@label} for={@id}><%= @label %></.label>
 
     <div class="relative mt-2 w-full" id={@id <> "-root"} phx-click-away="close-calendar" phx-target={@myself}>
-      <input id={@id <> "-hidden"} type="hidden" name={@name} value={format_value_for_form(@value)} />
+      <input
+        id={@id <> "-hidden"}
+        type="hidden"
+        name={@name}
+        value={format_value_for_form(@value)}
+        phx-hook="DispatchChangeOnUpdate"
+      />
 
       <button
         type="button"
