@@ -54,6 +54,7 @@ defmodule Lotus.Web.QueryEditorPage do
                 minimized={@editor_minimized}
                 data_repo_names={@data_repo_names}
                 schema={@editor_schema}
+                dialect={@editor_dialect}
                 running={@running}
                 statement_empty={@statement_empty}
                 schema_explorer_visible={@schema_explorer_visible}
@@ -227,9 +228,6 @@ defmodule Lotus.Web.QueryEditorPage do
     active_tab = String.to_existing_atom(tab)
     {:noreply, assign(socket, variable_settings_active_tab: active_tab)}
   end
-
-  @impl Page
-  def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
   def handle_event("validate", params, socket) do
@@ -547,6 +545,9 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
+  @impl Page
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
   defp assign_data_repos(socket) do
     data_repo_names = Lotus.list_data_repo_names()
     default_repo = List.first(data_repo_names)
@@ -563,6 +564,7 @@ defmodule Lotus.Web.QueryEditorPage do
       variable_settings_visible: false,
       variable_settings_active_tab: nil,
       editor_schema: nil,
+      editor_dialect: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
       variable_values: %{}
@@ -619,13 +621,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
       case SchemaBuilder.build(data_repo) do
         {:ok, schema} ->
-          assign(socket, editor_schema: schema)
+          assign(socket, editor_schema: schema, editor_dialect: dialect)
 
         {:error, _reason} ->
-          assign(socket, editor_schema: nil)
+          assign(socket, editor_schema: nil, editor_dialect: dialect)
       end
     else
-      assign(socket, editor_schema: nil)
+      assign(socket, editor_schema: nil, editor_dialect: nil)
     end
   end
 

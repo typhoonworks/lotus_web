@@ -27,7 +27,12 @@ defmodule Lotus.Web.Case do
 
   setup context do
     pid1 = Ecto.Adapters.SQL.Sandbox.start_owner!(Lotus.Web.TestRepo, shared: not context[:async])
-    on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid1) end)
+    pid2 = Ecto.Adapters.SQL.Sandbox.start_owner!(Lotus.Web.ReportingTestRepo, shared: not context[:async])
+    
+    on_exit(fn -> 
+      Ecto.Adapters.SQL.Sandbox.stop_owner(pid1)
+      Ecto.Adapters.SQL.Sandbox.stop_owner(pid2)
+    end)
 
     :ok
   end
