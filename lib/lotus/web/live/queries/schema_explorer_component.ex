@@ -9,8 +9,8 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <div
       class={[
-        "absolute top-0 right-0 h-full bg-white border-l border-gray-200 z-10 transition-all duration-300 ease-in-out overflow-hidden",
-        if(@visible, do: "w-80", else: "w-0")
+        "absolute top-0 right-0 h-full w-80 bg-white border-l border-gray-200 z-10 transition-transform duration-300 ease-in-out overflow-hidden",
+        if(@visible, do: "translate-x-0", else: "translate-x-full")
       ]}
     >
       <%= if @visible do %>

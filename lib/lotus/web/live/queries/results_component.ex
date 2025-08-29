@@ -12,11 +12,13 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     <div class="px-4 sm:px-6 lg:px-8">
       <%= cond do %>
         <% @result != nil -> %>
-          <.table id="query-results" rows={@result.rows}>
-            <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
-              <%= CellFormatter.format(Enum.at(row, index)) %>
-            </:col>
-          </.table>
+          <div class="overflow-x-auto">
+            <.table id="query-results" rows={@result.rows}>
+              <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
+                <%= CellFormatter.format(Enum.at(row, index)) %>
+              </:col>
+            </.table>
+          </div>
 
         <% is_binary(@error) and @error != "" -> %>
           <.render_error error={@error} />

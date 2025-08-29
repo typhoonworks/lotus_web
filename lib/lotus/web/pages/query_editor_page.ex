@@ -21,7 +21,7 @@ defmodule Lotus.Web.QueryEditorPage do
         <div class="bg-white shadow rounded-lg h-full flex flex-col overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
-          <div class="relative flex-1 overflow-y-auto">
+          <div class="relative flex-1 overflow-y-auto overflow-x-hidden">
             <.live_component
               module={SchemaExplorerComponent}
               id="schema-explorer"
