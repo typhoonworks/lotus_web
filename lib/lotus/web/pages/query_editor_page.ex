@@ -51,6 +51,8 @@ defmodule Lotus.Web.QueryEditorPage do
                 statement_empty={@statement_empty}
                 schema_explorer_visible={@schema_explorer_visible}
                 variable_settings_visible={@variable_settings_visible}
+                variables={@query.variables}
+                variable_values={Map.get(assigns, :variable_values, %{})}
               />
               <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} />
 
@@ -213,7 +215,10 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   @impl Phoenix.LiveComponent
-  def handle_event("validate", %{"query" => query_params}, socket) do
+  def handle_event("validate", params, socket) do
+    query_params = Map.get(params, "query", %{})
+    var_params = Map.get(params, "variables", %{})
+
     changeset =
       socket.assigns.query
       |> Query.update(query_params)
@@ -232,22 +237,31 @@ defmodule Lotus.Web.QueryEditorPage do
       initial_database: query_params["data_repo"]
     )
 
-    socket = maybe_update_editor_schema(socket, query_params["data_repo"])
+    socket =
+      socket
+      |> assign(
+        query: Ecto.Changeset.apply_changes(changeset),
+        query_changeset: changeset,
+        query_form: form,
+        statement_empty: statement_empty,
+        variable_values: Map.merge(socket.assigns.variable_values || %{}, var_params)
+      )
+      |> maybe_update_editor_schema(query_params["data_repo"])
 
-    {:noreply,
-     assign(socket,
-       query: Ecto.Changeset.apply_changes(changeset),
-       query_changeset: changeset,
-       query_form: form,
-       statement_empty: statement_empty
-     )}
+    {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("editor_content_changed", %{"statement" => statement}, socket) do
+    base_params = socket.assigns.query_form.params || %{}
+
+    params =
+      base_params
+      |> Map.put("statement", statement)
+
     cs =
       socket.assigns.query
-      |> Query.update(%{"statement" => statement})
+      |> Query.update(params)
 
     {:noreply,
      assign(socket,
@@ -390,6 +404,12 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("variables_changed", %{"variables" => incoming}, socket) do
+    {:noreply,
+     assign(socket, variable_values: Map.merge(socket.assigns.variable_values || %{}, incoming))}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("request_editor_schema", _params, socket) do
     data_repo = socket.assigns.query.data_repo
     socket = maybe_update_editor_schema(socket, data_repo)
@@ -434,12 +454,21 @@ defmodule Lotus.Web.QueryEditorPage do
       |> Query.update(params)
       |> Map.put(:action, :validate)
 
+    current_vals = socket.assigns.variable_values || %{}
+    keep = Map.take(current_vals, names)
+
+    with_defaults =
+      Enum.reduce(ordered_vars, keep, fn v, acc ->
+        Map.update(acc, v.name, v.default, & &1)
+      end)
+
     socket =
       socket
       |> assign(
         query_changeset: changeset,
         query_form: to_form(changeset, as: "query"),
         query: Ecto.Changeset.apply_changes(changeset),
+        variable_values: with_defaults,
         variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
         schema_explorer_visible:
           if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
@@ -467,7 +496,7 @@ defmodule Lotus.Web.QueryEditorPage do
        assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
     else
       query = Ecto.Changeset.apply_changes(changeset)
-      vars = Map.get(socket.assigns, :var_values, %{})
+      vars = Map.get(socket.assigns, :variable_values, %{})
       repo = query.data_repo || socket.assigns.default_repo
       opts = [repo: repo, vars: vars]
 
@@ -507,7 +536,7 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_schema: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
-      variable_configs: %{}
+      variable_values: %{}
     )
   end
 
@@ -543,7 +572,7 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp execute_query(%{assigns: %{query: q, var_values: vals}} = socket) do
+  defp execute_query(%{assigns: %{query: q, variable_values: vals}} = socket) do
     opts = [repo: q.data_repo, vars: vals]
 
     case Lotus.run_query(q, opts) do

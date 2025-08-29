@@ -12,7 +12,9 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:data_repo_names, :list, default: [])
   attr(:schema, :map, default: %{})
-  attr(:dialect, :string, default: "posgres")
+  attr(:dialect, :string, default: "postgres")
+  attr(:variables, :list, default: [])
+  attr(:variable_values, :map, default: %{})
 
   def editor(assigns) do
     ~H"""
@@ -25,6 +27,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
           variable_settings_visible={@variable_settings_visible}
           target={@target}
           minimized={@minimized}
+          variables={@variables}
+          variable_values={@variable_values}
         />
 
         <div class={["relative", if(@minimized, do: "hidden", else: "")]}>
@@ -69,6 +73,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variable_settings_visible, :boolean, default: false)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:minimized, :boolean, default: false)
+  attr(:variables, :list, default: [])
+  attr(:variable_values, :map, default: %{})
 
   def render_toolbar(assigns) do
     ~H"""
@@ -86,7 +92,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
       <div class="w-px self-stretch bg-gray-300"></div>
 
-      <.render_variables form={@form} />
+      <.render_widgets
+        variables={@variables}
+        variable_values={@variable_values}
+        target={@target}
+      />
       <.render_actions
         target={@target}
         schema_explorer_visible={@schema_explorer_visible}
@@ -97,45 +107,57 @@ defmodule Lotus.Web.Queries.EditorComponent do
     """
   end
 
-  attr(:form, Phoenix.HTML.Form, required: true)
+  attr(:variables, :list, required: true)
+  attr(:variable_values, :map, required: true)
+  attr(:target, Phoenix.LiveComponent.CID, required: true)
 
-  def render_variables(assigns) do
+  def render_widgets(assigns) do
     ~H"""
     <div class="flex-1 flex flex-wrap gap-3 items-center">
-      <.inputs_for :let={vf} field={@form[:variables]}>
+      <%= for v <- @variables do %>
+        <% name   = v.name %>
+        <% label  = v.label || format_variable_label(v.name) %>
+        <% value  = Map.get(@variable_values, name, v.default) %>
+        <% opts   = v.static_options || [] %>
+        <% id     = "var-#{name}" %>
+
         <div class="flex items-center gap-2 min-w-32">
-          <%= case vf[:widget].value do %>
+          <%= case v.widget do %>
             <% :select -> %>
               <Toolbar.input
-                id={"vars_#{vf[:name].value}"}
                 type="select"
-                label={vf[:label].value || format_variable_label(vf[:name].value)}
-                field={vf[:default]}
-                options={vf[:static_options].value || []}
-                prompt="Select value"
+                id={id}
+                name={"variables[#{name}]"}
+                label={label}
+                value={value || ""}
+                options={opts}
+                disabled={opts == []}
+                prompt={if opts == [], do: "No options configured", else: "Select value"}
                 class="min-w-32 w-32"
               />
             <% :date -> %>
               <Toolbar.input
-                id={"vars_#{vf[:name].value}"}
                 type="date"
-                label={vf[:label].value || format_variable_label(vf[:name].value)}
-                field={vf[:default]}
+                id={id}
+                name={"variables[#{name}]"}
+                label={label}
+                value={value}
                 placeholder="Select date"
                 class="min-w-32 w-32"
               />
             <% _ -> %>
               <Toolbar.input
-                id={"vars_#{vf[:name].value}"}
                 type="text"
-                label={vf[:label].value || format_variable_label(vf[:name].value)}
-                field={vf[:default]}
+                id={id}
+                name={"variables[#{name}]"}
+                label={label}
+                value={value}
                 placeholder="Enter value"
                 class="w-32"
               />
           <% end %>
         </div>
-      </.inputs_for>
+      <% end %>
     </div>
     """
   end
