@@ -202,7 +202,7 @@ defmodule Lotus.Web.QueryEditorPage do
              socket
              |> ensure_query_repo_default(query)
              |> assign_query_changeset(query)
-             |> maybe_auto_run_query()}
+             |> auto_run_query()}
         end
 
       %{mode: :new} ->
@@ -220,10 +220,11 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("close_variable_settings", _params, socket) do
-    {:noreply, assign(socket, variable_settings_visible: false, variable_settings_active_tab: nil)}
+    {:noreply,
+     assign(socket, variable_settings_visible: false, variable_settings_active_tab: nil)}
   end
 
-  @impl Phoenix.LiveComponent  
+  @impl Phoenix.LiveComponent
   def handle_event("switch_variable_tab", %{"tab" => tab}, socket) do
     active_tab = String.to_existing_atom(tab)
     {:noreply, assign(socket, variable_settings_active_tab: active_tab)}
@@ -234,30 +235,13 @@ defmodule Lotus.Web.QueryEditorPage do
     query_params = Map.get(params, "query", %{})
     var_params = Map.get(params, "variables", %{})
 
-    # Normalize variables params - convert textarea strings to arrays for static_options
-    normalized_query_params = normalize_query_params(query_params)
-
-    changeset =
-      socket.assigns.query
-      |> Query.update(normalized_query_params)
-      |> Map.put(:action, :validate)
-
-    form = to_form(changeset, as: "query")
+    changeset = build_query_changeset(socket.assigns.query, query_params)
 
     statement_empty =
-      case query_params["statement"] do
-        nil ->
-          socket.assigns.query.statement
-          |> to_string()
-          |> String.trim()
-          |> Kernel.==("")
-
-        statement ->
-          # Statement in params, use that value
-          statement
-          |> to_string()
-          |> String.trim()
-          |> Kernel.==("")
+      query_params["statement"]
+      |> case do
+        nil -> check_statement_empty(socket.assigns.query.statement)
+        statement -> check_statement_empty(statement)
       end
 
     send_update(SchemaExplorerComponent,
@@ -267,10 +251,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
     socket =
       socket
-      |> assign(
-        query: Ecto.Changeset.apply_changes(changeset),
-        query_changeset: changeset,
-        query_form: form,
+      |> update_query_state(changeset,
         statement_empty: statement_empty,
         variable_values: Map.merge(socket.assigns.variable_values || %{}, var_params)
       )
@@ -282,40 +263,22 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("editor_content_changed", %{"statement" => statement}, socket) do
     base_params = socket.assigns.query_form.params || %{}
+    params = Map.put(base_params, "statement", statement)
+    changeset = Query.update(socket.assigns.query, params)
 
-    params =
-      base_params
-      |> Map.put("statement", statement)
+    socket =
+      update_query_state(socket, changeset, statement_empty: check_statement_empty(statement))
 
-    cs =
-      socket.assigns.query
-      |> Query.update(params)
-
-    {:noreply,
-     assign(socket,
-       query: Ecto.Changeset.apply_changes(cs),
-       query_changeset: cs,
-       query_form: to_form(cs, as: "query"),
-       statement_empty: String.trim(statement) == ""
-     )}
+    {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("validate_save", %{"query" => save_params}, socket) do
-    changeset =
-      socket.assigns.query
-      |> Query.update(save_params)
-      |> Map.put(:action, :validate)
+    changeset = build_query_changeset(socket.assigns.query, save_params)
+    form = build_query_form(changeset)
 
-    form = to_form(changeset, as: "query")
-
-    statement_present =
-      socket.assigns.query_form[:statement].value
-      |> to_string()
-      |> String.trim() != ""
-
-    name_present =
-      String.trim(Phoenix.HTML.Form.input_value(form, :name) || "") != ""
+    statement_present = not check_statement_empty(socket.assigns.query_form)
+    name_present = String.trim(Phoenix.HTML.Form.input_value(form, :name) || "") != ""
 
     {:noreply,
      assign(socket,
@@ -327,29 +290,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("save_query", %{"query" => save_params}, socket) do
-    page = socket.assigns.page
-
-    current_query = socket.assigns.query
-
-    query_attrs = %{
-      "name" => save_params["name"],
-      "description" => save_params["description"],
-      "statement" => current_query.statement,
-      "data_repo" => current_query.data_repo,
-      "variables" => Enum.map(current_query.variables, &variable_to_params/1)
-    }
-
-    result =
-      case page do
-        %{mode: :edit, id: id} ->
-          case Lotus.get_query(id) do
-            nil -> {:error, "Query not found"}
-            %Query{} = query -> Lotus.update_query(query, query_attrs)
-          end
-
-        %{mode: :new} ->
-          Lotus.create_query(query_attrs)
-      end
+    query_attrs = build_query_attrs(save_params, socket.assigns.query)
+    result = perform_save_operation(socket.assigns.page, query_attrs)
 
     case result do
       {:ok, query} ->
@@ -426,7 +368,6 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
-
   @impl Phoenix.LiveComponent
   def handle_event("variables_changed", %{"variables" => incoming}, socket) do
     {:noreply,
@@ -443,81 +384,20 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("variables_detected", %{"variables" => names}, socket) do
     names = List.wrap(names)
+    existing_variables = socket.assigns.query.variables
 
-    q = socket.assigns.query
-    existing = q.variables
-    existing_by_name = Map.new(existing, &{&1.name, &1})
-
-    prev_names = Enum.map(existing, & &1.name)
-    new_names = names -- prev_names
-    show_settings = new_names != [] and not socket.assigns.variable_settings_visible
-
-    ordered_vars =
-      Enum.map(names, fn name ->
-        case existing_by_name do
-          %{^name => %QueryVariable{} = var} ->
-            var
-
-          _ ->
-            %QueryVariable{
-              name: name,
-              type: :text,
-              widget: :input,
-              label: format_variable_label(name),
-              default: nil,
-              static_options: [],
-              options_query: nil
-            }
-        end
-      end)
-
-    params = %{"variables" => Enum.map(ordered_vars, &variable_to_params/1)}
-
-    changeset =
-      q
-      |> Query.update(params)
-      |> Map.put(:action, :validate)
-
-    current_vals = socket.assigns.variable_values || %{}
-    keep = Map.take(current_vals, names)
-
-    with_defaults =
-      Enum.reduce(ordered_vars, keep, fn v, acc ->
-        Map.update(acc, v.name, v.default, & &1)
-      end)
-
-
-    socket =
-      socket
-      |> assign(
-        query_changeset: changeset,
-        query_form: to_form(changeset, as: "query"),
-        query: Ecto.Changeset.apply_changes(changeset),
-        variable_values: with_defaults,
-        variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
-        variable_settings_active_tab: if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab),
-        schema_explorer_visible:
-          if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
-      )
+    ordered_vars = build_ordered_variables(names, existing_variables)
+    socket = update_variable_state(socket, ordered_vars, names)
 
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("run_query", %{"query" => query_params} = _payload, socket) do
-    changeset =
-      socket.assigns.query
-      |> Query.update(query_params)
-      |> Map.put(:action, :validate)
+    changeset = build_query_changeset(socket.assigns.query, query_params)
+    form = build_query_form(changeset)
 
-    form = to_form(changeset, as: "query")
-
-    stmt =
-      Phoenix.HTML.Form.input_value(form, :statement)
-      |> to_string()
-      |> String.trim()
-
-    if stmt == "" do
+    if check_statement_empty(form) do
       {:noreply,
        assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
     else
@@ -527,21 +407,10 @@ defmodule Lotus.Web.QueryEditorPage do
       opts = [repo: repo, vars: vars]
 
       socket =
-        assign(socket,
-          query_changeset: changeset,
-          query_form: form,
-          query: query,
-          running: true,
-          error: nil
-        )
+        socket
+        |> update_query_state(changeset, running: true, error: nil)
 
-      case Lotus.run_query(query, opts) do
-        {:ok, result} ->
-          {:noreply, assign(socket, result: result, running: false)}
-
-        {:error, msg} ->
-          {:noreply, assign(socket, error: to_string(msg), result: nil, running: false)}
-      end
+      {:noreply, execute_query(socket, query, opts)}
     end
   end
 
@@ -590,29 +459,9 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp maybe_auto_run_query(socket) do
+  defp auto_run_query(socket) do
     query = socket.assigns[:query]
-
-    case Lotus.run_query(query) do
-      {:ok, result} ->
-        assign(socket, result: result, error: nil, running: false)
-
-      {:error, error_msg} ->
-        assign(socket, error: error_msg, result: nil, running: false)
-        socket
-    end
-  end
-
-  defp execute_query(%{assigns: %{query: q, variable_values: vals}} = socket) do
-    opts = [repo: q.data_repo, vars: vals]
-
-    case Lotus.run_query(q, opts) do
-      {:ok, result} ->
-        {:noreply, assign(socket, result: result, error: nil, running: false)}
-
-      {:error, msg} ->
-        {:noreply, assign(socket, result: nil, error: msg, running: false)}
-    end
+    execute_query(socket, query)
   end
 
   defp maybe_update_editor_schema(socket, data_repo) do
@@ -710,4 +559,122 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp normalize_variable_attrs(attrs), do: attrs
+
+  defp build_query_changeset(query, params, action \\ :validate) do
+    query
+    |> Query.update(normalize_query_params(params))
+    |> Map.put(:action, action)
+  end
+
+  defp build_query_form(changeset) do
+    to_form(changeset, as: "query")
+  end
+
+  defp update_query_state(socket, changeset, additional_assigns) do
+    form = build_query_form(changeset)
+    query = Ecto.Changeset.apply_changes(changeset)
+
+    base_assigns = [
+      query: query,
+      query_changeset: changeset,
+      query_form: form
+    ]
+
+    assign(socket, base_assigns ++ additional_assigns)
+  end
+
+  defp check_statement_empty(statement) when is_binary(statement) do
+    statement |> String.trim() |> Kernel.==("")
+  end
+
+  defp check_statement_empty(%Phoenix.HTML.Form{} = form) do
+    form[:statement].value
+    |> to_string()
+    |> check_statement_empty()
+  end
+
+  defp check_statement_empty(nil), do: true
+
+  defp execute_query(socket, query, opts \\ []) do
+    case Lotus.run_query(query, opts) do
+      {:ok, result} ->
+        assign(socket, result: result, error: nil, running: false)
+
+      {:error, error_msg} ->
+        assign(socket, error: to_string(error_msg), result: nil, running: false)
+    end
+  end
+
+  defp build_ordered_variables(names, existing_variables) do
+    existing_by_name = Map.new(existing_variables, &{&1.name, &1})
+
+    Enum.map(names, fn name ->
+      case existing_by_name do
+        %{^name => %QueryVariable{} = var} ->
+          var
+
+        _ ->
+          %QueryVariable{
+            name: name,
+            type: :text,
+            widget: :input,
+            label: format_variable_label(name),
+            default: nil,
+            static_options: [],
+            options_query: nil
+          }
+      end
+    end)
+  end
+
+  defp merge_variable_defaults(current_values, ordered_vars) do
+    Enum.reduce(ordered_vars, current_values, fn v, acc ->
+      Map.update(acc, v.name, v.default, & &1)
+    end)
+  end
+
+  defp update_variable_state(socket, ordered_vars, names) do
+    params = %{"variables" => Enum.map(ordered_vars, &variable_to_params/1)}
+    changeset = build_query_changeset(socket.assigns.query, params)
+
+    current_vals = socket.assigns.variable_values || %{}
+    keep = Map.take(current_vals, names)
+    with_defaults = merge_variable_defaults(keep, ordered_vars)
+
+    prev_names = Enum.map(socket.assigns.query.variables, & &1.name)
+    new_names = names -- prev_names
+    show_settings = new_names != [] and not socket.assigns.variable_settings_visible
+
+    update_query_state(socket, changeset,
+      variable_values: with_defaults,
+      variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
+      variable_settings_active_tab:
+        if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab),
+      schema_explorer_visible:
+        if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
+    )
+  end
+
+  defp build_query_attrs(save_params, current_query) do
+    %{
+      "name" => save_params["name"],
+      "description" => save_params["description"],
+      "statement" => current_query.statement,
+      "data_repo" => current_query.data_repo,
+      "variables" => Enum.map(current_query.variables, &variable_to_params/1)
+    }
+  end
+
+  defp perform_save_operation(page, query_attrs) do
+    case page do
+      %{mode: :edit, id: id} ->
+        case Lotus.get_query(id) do
+          nil -> {:error, "Query not found"}
+          %Query{} = query -> Lotus.update_query(query, query_attrs)
+        end
+
+      %{mode: :new} ->
+        Lotus.create_query(query_attrs)
+    end
+  end
 end
