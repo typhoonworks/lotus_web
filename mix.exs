@@ -105,7 +105,8 @@ defmodule Lotus.Web.MixProject do
       extras: [
         "README.md",
         "guides/installation.md",
-        "guides/getting-started.md"
+        "guides/getting-started.md",
+        "guides/variables-and-widgets.md"
       ]
     ]
   end

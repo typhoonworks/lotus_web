@@ -63,15 +63,51 @@ LotusWeb inherits Lotus's security features:
 - **Safe Parameters** - All queries use parameterized execution
 - **Timeouts** - Long-running queries will timeout automatically
 
+## Using Variables in Queries
+
+LotusWeb supports dynamic variables in your SQL queries using the `{{variable_name}}` syntax:
+
+### Adding Variables
+1. **Type Variables** - In your SQL query, use `{{variable_name}}` syntax:
+   ```sql
+   SELECT * FROM orders 
+   WHERE status = {{status}} 
+     AND created_at >= {{start_date}}
+   ```
+2. **Automatic Detection** - Variables appear automatically in the toolbar
+3. **Configure Variables** - Click the "Variable settings" {x} icon in the toolbar to configure types and widgets
+
+### Variable Types
+- **Text** - Plain strings (automatically quoted for safety)
+- **Number** - Integers and decimals  
+- **Date** - Date picker with ISO format output
+
+### Widget Types
+- **Input** - Free text/number entry fields
+- **Dropdown** - Select from predefined options (one option per line)
+- **Date Picker** - Calendar interface for date variables
+
+### Variable Settings
+- **Access Settings** - Click the "Variable settings" {x} icon in the toolbar to open variable settings
+- **Help Tab** - Contains detailed usage examples and syntax help
+- **Settings Tab** - Configure labels, default values, and widget types
+
+Variables are always sent as prepared parameters, preventing SQL injection attacks.
+
+**Important**: When you save a query, all variable configurations (types, widgets, labels, defaults) are saved with it. However, the actual values users enter are NOT saved - widgets start empty each time unless you set default values in the settings.
+
 ## Tips for Success
 
 - **Start Simple** - Begin with basic SELECT queries
 - **Use Descriptive Names** - Give your saved queries clear, meaningful names
 - **Test First** - Run queries before saving them
 - **Check Results** - Always verify your query results make sense
+- **Use Variables** - Make queries reusable with `{{variable}}` syntax
 
 ## What's Next?
 
 - Explore your database schema using the Schema Explorer
 - Create useful reports by saving commonly-used queries
+- Use variables to make your queries dynamic and reusable
 - Share query results with your team (export features coming soon)
+- Read the [Variables and Widgets Guide](variables-and-widgets.md) for advanced variable usage

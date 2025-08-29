@@ -2,6 +2,35 @@
 
 ## Unreleased
 
+### Added
+- **Variables and Widgets System** - Complete support for dynamic SQL queries with `{{variable}}` syntax
+  - Variable detection and highlighting in SQL editor with CodeMirror plugin
+  - Automatic toolbar widget generation for detected variables
+  - Three variable types: Text (auto-quoted), Number, Date (ISO format)
+  - Two widget types: Input fields and Dropdown lists with static options
+  - Variable settings panel with Help and Settings tabs
+  - Variable configurations persist with saved queries (types, widgets, labels, defaults)
+  - User input values are not saved - widgets start empty unless defaults are set
+- **Enhanced Query Editor Components**
+  - Refactored query editor into modular LiveView components
+  - New toolbar components for variables and query controls
+  - Schema explorer component with improved UX
+  - Results component with better formatting
+- **New LiveView Components**
+  - Date picker component for date variables
+  - Select component for dropdown widgets
+  - Variable settings component with tabs and configuration options
+  - Widget component for rendering different input types
+- **Updated Documentation**
+  - New Variables and Widgets guide with comprehensive usage examples
+  - Updated Getting Started guide with variables section
+  - README updated to reflect completed variables feature
+
+### Changed
+- Upgraded to Lotus v0.5.4 for enhanced variable support
+- Improved aside panel toggling UX and scrolling behavior
+- Enhanced JavaScript editor integration with variables plugin
+
 ## [0.1.4] - 2025-08-25
 
 - Upgrade to Lotus v0.3.3

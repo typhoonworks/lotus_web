@@ -15,7 +15,7 @@ Add `lotus_web` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.1.0"}
+    {:lotus_web, "~> 0.2.0"}
   ]
 end
 ```
@@ -29,6 +29,7 @@ LotusWeb requires Lotus to be configured. Add to your `config/config.exs`:
 ```elixir
 config :lotus,
   ecto_repo: MyApp.Repo,
+  default_repo: "main",         # Default repository for query execution
   data_repos: %{
     "main" => MyApp.Repo,
     "analytics" => MyApp.AnalyticsRepo  # Optional: multiple databases
@@ -76,7 +77,7 @@ defmodule MyAppWeb.Router do
 
   scope "/", MyAppWeb do
     pipe_through [:browser, :require_authenticated_user] # ⚠️ Add auth!
-    
+
     lotus_dashboard "/lotus"
   end
 end
