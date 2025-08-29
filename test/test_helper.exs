@@ -26,6 +26,8 @@ Application.put_env(:lotus, :data_repos, %{
   "reporting" => Lotus.Web.ReportingTestRepo
 })
 
+Application.put_env(:lotus, :default_repo, "public")
+
 Application.put_env(:lotus_web, Lotus.Web.Endpoint,
   check_origin: false,
   http: [port: 4002],

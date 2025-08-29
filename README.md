@@ -37,7 +37,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - **Phoenix integration** - follows Phoenix conventions and patterns
 
 ### ⚡ **Developer & User Friendly**
-- **SQL editor with syntax highlighting** - powered by Monaco Editor
+- **SQL editor with syntax highlighting** - powered by CoreMirror Editor
 - **Schema explorer** - browse tables and columns interactively
 - **Query management** - save, organize, and reuse queries
 - **Multiple database support** - switch between configured repositories
@@ -50,6 +50,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - 📊 **Results visualization** - clean, tabular display of query results
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
+- ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax and configurable widgets
 
 ## What's planned?
 - [ ] **Export functionality** - CSV, JSON, and Excel export options
@@ -58,7 +59,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - [ ] **Query sharing** - share query results via secure links
 - [ ] **Advanced permissions** - role-based access to queries and databases
 - [ ] **Charts** - render charts from queries
-- [ ] **Smart variables** - parameterized queries with `{variable}` syntax
+- [x] **Smart variables** - parameterized queries with `{{variable}}` syntax
 - [x] **Schema exploration** - interactive database schema browser
 
 ## Installation
@@ -68,7 +69,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.1.0"}
+    {:lotus_web, "~> 0.2.0"}
   ]
 end
 ```
@@ -84,7 +85,8 @@ Add Lotus configuration to your `config/config.exs`:
 ```elixir
 config :lotus,
   ecto_repo: MyApp.Repo,        # Where Lotus stores queries
-  data_repos: %{                 # Where queries execute
+  default_repo: "main",         # Default repository for query execution
+  data_repos: %{                # Where queries execute
     "main" => MyApp.Repo,
     "analytics" => MyApp.AnalyticsRepo
   }

@@ -1,80 +1,85 @@
-import { EditorView, basicSetup } from "codemirror";
-import { placeholder } from "@codemirror/view";
-import { EditorState, Compartment } from "@codemirror/state";
-import { sql } from "@codemirror/lang-sql";
-
-const editorTheme = EditorView.theme({
-  "&": {
-    fontSize: "14px",
-    height: "100%",
-  },
-  ".cm-content": {
-    padding: "12px",
-    fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
-  },
-  ".cm-focused": {
-    outline: "none",
-  },
-  ".cm-editor": {
-    height: "100%",
-  },
-  ".cm-editor.cm-focused": {
-    outline: "2px solid #3b82f6",
-    outlineOffset: "-1px",
-  },
-  ".cm-scroller": {
-    fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
-    lineHeight: "1.5",
-  },
-});
+import { createEditor } from "../lib/editor.js";
 
 export default {
   mounted() {
-    let textarea = this.el;
+    const textarea = this.el;
+    const editorContainer = document.getElementById("editor");
 
-    let language = new Compartment();
-    let state = EditorState.create({
-      doc: textarea.value,
-      extensions: [
-        basicSetup,
-        language.of(sql()),
-        editorTheme,
-        EditorView.lineWrapping,
-        placeholder("SELECT * FROM TABLE_NAME"),
-      ],
+    const onContentChange = (content) => {
+      this.pushEventTo(
+        this.el.closest("[data-phx-component]"),
+        "editor_content_changed",
+        { statement: content },
+      );
+    };
+
+    // debounce vars -> server
+    let t = null;
+    const onVariableChange = (vars) => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => {
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "variables_detected",
+          { variables: vars },
+        );
+      }, 500);
+    };
+
+    const onRunQuery = () => {
+      const form = this.el.form;
+      if (!form) return;
+      textarea.value = this.editor.getContent();
+      const submit = form.querySelector('button[type="submit"]');
+      if (submit && !submit.disabled) submit.click();
+    };
+
+    const initialSchema = this.getSchemaFromDOM();
+
+    this.editor = createEditor({
+      textarea,
+      parent: editorContainer,
+      schema: initialSchema,
+      onChange: onContentChange,
+      onRun: onRunQuery,
+      onVars: onVariableChange,
     });
 
-    let view = new EditorView({
-      state: state,
-      parent: document.getElementById("editor"),
-      dispatch: (transaction) => {
-        view.update([transaction]);
-
-        if (transaction.docChanged) {
-          const content = view.state.doc.toString();
-          textarea.value = content;
-
-          this.pushEventTo(
-            this.el.closest("[data-phx-component]"),
-            "editor_content_changed",
-            {
-              statement: content,
-            },
-          );
-        }
-      },
+    this.el.form?.addEventListener("submit", () => {
+      textarea.value = this.editor.getContent();
     });
 
-    this.view = view;
+    this.requestSchema();
+  },
 
-    this.el.form.addEventListener("submit", (_event) => {
-      textarea.value = view.state.doc.toString();
-    });
+  updated() {
+    const newSchema = this.getSchemaFromDOM();
+    if (newSchema) this.editor?.updateSchema(newSchema);
+
+    if (this.editor && this.el.value !== this.editor.getContent()) {
+      this.editor.setContent(this.el.value);
+    }
+  },
+
+  getSchemaFromDOM() {
+    const el = document.querySelector("[data-editor-schema]");
+    if (!el) return null;
+    try {
+      return JSON.parse(el.dataset.editorSchema);
+    } catch {
+      return null;
+    }
+  },
+
+  requestSchema() {
+    this.pushEventTo(
+      this.el.closest("[data-phx-component]"),
+      "request_editor_schema",
+      {},
+    );
   },
 
   destroyed() {
-    if (this.view) {
-      this.view.destroy();
-    }
+    this.editor?.destroy();
   },
 };

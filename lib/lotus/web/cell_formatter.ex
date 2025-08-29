@@ -29,7 +29,7 @@ defmodule Lotus.Web.CellFormatter do
   def format(b) when is_boolean(b), do: to_string(b)
 
   # Maps → JSON string (consistent for SQL result cells)
-  def format(m) when is_map(m), do: Jason.encode!(m)
+  def format(m) when is_map(m), do: Lotus.JSON.encode!(m)
 
   # Lists (arrays) → bracketed string
   def format(list) when is_list(list), do: format_list(list)

@@ -1,4 +1,4 @@
-defmodule Lotus.Web.Live.SchemaExplorer do
+defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   @moduledoc """
   A drawer component for browsing database tables and columns.
   """
@@ -9,8 +9,8 @@ defmodule Lotus.Web.Live.SchemaExplorer do
     ~H"""
     <div
       class={[
-        "absolute top-0 right-0 h-full bg-white border-l border-gray-200 z-10 transition-all duration-300 ease-in-out overflow-hidden",
-        if(@visible, do: "w-80", else: "w-0")
+        "absolute top-0 right-0 h-full w-80 bg-white border-l border-gray-200 z-10 transition-transform duration-300 ease-in-out overflow-hidden",
+        if(@visible, do: "translate-x-0", else: "translate-x-full")
       ]}
     >
       <%= if @visible do %>
@@ -71,7 +71,7 @@ defmodule Lotus.Web.Live.SchemaExplorer do
     ~H"""
     <button
       type="button"
-      phx-click="close-drawer"
+      phx-click="close_schema_explorer"
       phx-target={@parent}
       class="p-1 text-gray-400 hover:text-gray-600"
     >

@@ -38,7 +38,22 @@ defmodule Lotus.Web.DashboardLive do
 
   @impl Phoenix.LiveView
   def handle_params(params, uri, socket) do
+    page = resolve_page(params)
+    socket = assign(socket, page: page)
     socket.assigns.page.comp.handle_params(params, uri, socket)
+  end
+
+  @impl Phoenix.LiveView
+  def handle_event("platform_info", %{"os" => os, "ua" => ua}, socket) do
+    os_atom =
+      case os do
+        "mac" -> :mac
+        "windows" -> :windows
+        "linux" -> :linux
+        _ -> :unknown
+      end
+
+    {:noreply, assign(socket, os: os_atom, ua: ua)}
   end
 
   @impl Phoenix.LiveView
