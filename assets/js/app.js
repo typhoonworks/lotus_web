@@ -1,6 +1,6 @@
 import topbar from "topbar";
 
-import DispatchChangeOnUpdate from "./hooks/dipatch_change_on_update";
+import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
 import EditorForm from "./hooks/editor_form";
 import PlatformScout from "./hooks/platform_scout";
 
