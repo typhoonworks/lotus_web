@@ -74,7 +74,20 @@ def deps do
 end
 ```
 
-LotusWeb requires Elixir 1.16 or later, and OTP 25 or later.
+## Requirements
+
+- **Elixir 1.16+** and **OTP 25+**
+- **Lotus 0.6+** - LotusWeb 0.2+ requires Lotus 0.6 or later
+- **Phoenix 1.7+** for LiveView compatibility
+
+### Version Compatibility Matrix
+
+| LotusWeb Version | Required Lotus Version | Notes |
+|------------------|------------------------|-------|
+| 0.2.x            | 0.6.0+                | Latest stable release |
+| 0.1.x            | 0.3.0+                | Legacy version |
+
+> The dependency constraint in `mix.exs` automatically ensures compatible versions are installed together.
 
 ## Quick Setup
 
