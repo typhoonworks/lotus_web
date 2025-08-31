@@ -30,6 +30,7 @@
 - Upgraded to Lotus v0.5.4 for enhanced variable support
 - Improved aside panel toggling UX and scrolling behavior
 - Enhanced JavaScript editor integration with variables plugin
+- Auto-run queries now check for missing variables before execution using `Lotus.can_run?`
 
 ## [0.1.4] - 2025-08-25
 
