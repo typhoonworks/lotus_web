@@ -69,7 +69,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.2.0"}
+    {:lotus_web, "~> 0.3.0"}
   ]
 end
 ```
@@ -77,14 +77,14 @@ end
 ## Requirements
 
 - **Elixir 1.16+** and **OTP 25+**
-- **Lotus 0.6+** - LotusWeb 0.2+ requires Lotus 0.6 or later
+- **Lotus 0.6+** - LotusWeb 0.3+ requires Lotus 0.6 or later
 - **Phoenix 1.7+** for LiveView compatibility
 
 ### Version Compatibility Matrix
 
 | LotusWeb Version | Required Lotus Version | Notes |
 |------------------|------------------------|-------|
-| 0.2.x            | 0.6.0+                | Latest stable release |
+| 0.3.x            | 0.6.0+                | Latest stable release |
 | 0.1.x            | 0.3.0+                | Legacy version |
 
 > The dependency constraint in `mix.exs` automatically ensures compatible versions are installed together.
