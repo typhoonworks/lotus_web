@@ -152,7 +152,7 @@ Once mounted, visit `/lotus` in your application to access the dashboard:
 ### **Schema Explorer**
 - Browse available tables and their columns
 - View table statistics and schema information
-- Click to insert table/column names into queries (comming soon)
+- Click to insert table/column names into queries (coming soon)
 
 ### **Query Management**
 - Save queries with descriptive names
