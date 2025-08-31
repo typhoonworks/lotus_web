@@ -202,7 +202,7 @@ defmodule Lotus.Web.QueryEditorPage do
              socket
              |> ensure_query_repo_default(query)
              |> assign_query_changeset(query)
-             |> auto_run_query()}
+             |> maybe_auto_run_query()}
         end
 
       %{mode: :new} ->
@@ -402,15 +402,12 @@ defmodule Lotus.Web.QueryEditorPage do
        assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
     else
       query = Ecto.Changeset.apply_changes(changeset)
-      vars = Map.get(socket.assigns, :variable_values, %{})
-      repo = query.data_repo || socket.assigns.default_repo
-      opts = [repo: repo, vars: vars]
 
       socket =
         socket
-        |> update_query_state(changeset, running: true, error: nil)
+        |> update_query_state(changeset, [])
 
-      {:noreply, execute_query(socket, query, opts)}
+      {:noreply, execute_query(socket, query)}
     end
   end
 
@@ -435,19 +432,30 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_schema: nil,
       editor_dialect: nil,
       detected_variables: [],
-      variable_form: to_form(%{}, as: "variables"),
-      variable_values: %{}
+      variable_form: to_form(%{}, as: "variables")
     )
   end
 
   defp assign_query_changeset(socket, %Query{} = query) do
     changeset = Query.update(query, %{})
 
+    variable_values =
+      case Map.get(socket.assigns, :variable_values) do
+        nil ->
+          query.variables
+          |> Enum.filter(& &1.default)
+          |> Map.new(fn v -> {v.name, v.default} end)
+
+        existing ->
+          existing
+      end
+
     assign(socket,
       query: query,
       query_changeset: changeset,
       query_form: to_form(changeset, as: "query"),
-      statement_empty: String.trim(query.statement) == ""
+      statement_empty: String.trim(query.statement) == "",
+      variable_values: variable_values
     )
   end
 
@@ -459,9 +467,15 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp auto_run_query(socket) do
+  defp maybe_auto_run_query(socket) do
     query = socket.assigns[:query]
-    execute_query(socket, query)
+    variable_values = Map.get(socket.assigns, :variable_values, %{})
+
+    if Lotus.can_run?(query, vars: variable_values) do
+      execute_query(socket, query)
+    else
+      socket
+    end
   end
 
   defp maybe_update_editor_schema(socket, data_repo) do
@@ -595,7 +609,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp check_statement_empty(nil), do: true
 
-  defp execute_query(socket, query, opts \\ []) do
+  defp execute_query(socket, query) do
+    vars = Map.get(socket.assigns, :variable_values, %{})
+    repo = query.data_repo || socket.assigns.default_repo
+    opts = [repo: repo, vars: vars]
+    socket = assign(socket, running: true, error: nil)
+
     case Lotus.run_query(query, opts) do
       {:ok, result} ->
         assign(socket, result: result, error: nil, running: false)

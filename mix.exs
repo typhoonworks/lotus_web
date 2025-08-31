@@ -45,7 +45,7 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_ecto, "~> 4.5"},
 
       # Lotus
-      {:lotus, "~> 0.5.4"},
+      {:lotus, "~> 0.6.0"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
