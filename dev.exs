@@ -196,11 +196,18 @@ Application.put_env(:lotus, :data_repos, %{
   "reporting" => WebDev.ReportingRepo
 })
 
+# Configure Lotus caching
+Application.put_env(:lotus, :cache, %{
+  adapter: Lotus.Cache.ETS,
+  namespace: "lotus_web_dev"
+})
+
 Task.async(fn ->
   children = [
     {Phoenix.PubSub, [name: WebDev.PubSub, adapter: Phoenix.PubSub.PG2]},
     {WebDev.Repo, []},
     {WebDev.ReportingRepo, []},
+    Lotus,
     {WebDev.Endpoint, []}
   ]
 
