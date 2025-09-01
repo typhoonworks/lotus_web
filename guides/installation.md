@@ -35,6 +35,15 @@ config :lotus,
   data_repos: %{
     "main" => MyApp.Repo,
     "analytics" => MyApp.AnalyticsRepo  # Optional: multiple databases
+  },
+  # Recommended: Enable caching for better dashboard performance
+  cache: %{
+    adapter: Lotus.Cache.ETS,
+    namespace: "myapp_lotus"
+    # Lotus includes built-in profiles that work great with LotusWeb:
+    # - :results (60s TTL) - User query results  
+    # - :schema (1h TTL) - Table introspection (used by dashboard)
+    # - :options (5m TTL) - Dropdown options and reference data
   }
 ```
 
@@ -66,7 +75,28 @@ Run the migration:
 mix ecto.migrate
 ```
 
-## Step 4: Mount LotusWeb Dashboard
+## Step 4: Add Lotus to Supervision Tree (Required for Caching)
+
+For caching to work, Lotus must be started as part of your application's supervision tree. Add Lotus to your application supervisor:
+
+```elixir
+# lib/my_app/application.ex
+def start(_type, _args) do
+  children = [
+    MyApp.Repo,
+    # Add Lotus for caching support (required for optimal dashboard performance)
+    Lotus,
+    MyAppWeb.Endpoint
+  ]
+  
+  opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+  Supervisor.start_link(children, opts)
+end
+```
+
+**Note**: Without this step, caching will be disabled and dashboard performance may be slower due to repeated database introspection queries.
+
+## Step 5: Mount LotusWeb Dashboard
 
 Add to your router:
 
@@ -87,7 +117,7 @@ end
 
 **⚠️ Security Warning**: Always mount behind authentication in production.
 
-## Step 5: Visit the Dashboard
+## Step 6: Visit the Dashboard
 
 Start your Phoenix server and visit `/lotus` to access the dashboard.
 
