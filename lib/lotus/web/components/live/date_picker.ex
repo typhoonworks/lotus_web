@@ -55,10 +55,10 @@ defmodule Lotus.Web.DatePickerComponent do
   defp render_fieldset_trigger(assigns) do
     ~H"""
     <fieldset class={[
-      "border border-gray-300 rounded-md bg-white focus-within:border-2 focus-within:border-pink-600",
+      "border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-input-dark focus-within:border-2 focus-within:border-pink-600",
       @errors != [] && "border-rose-400 focus-within:border-rose-500"
     ]}>
-      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700">
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
         <%= @label %>
       </legend>
 
@@ -80,14 +80,14 @@ defmodule Lotus.Web.DatePickerComponent do
           aria-expanded={@calendar_open}
           disabled={@disabled}
           class={[
-            "border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm flex items-center justify-between",
+            "border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-0 sm:text-sm flex items-center justify-between",
             @class || "w-full"
           ]}
         >
           <span class="truncate">
             <%= format_selected_date(@value, @timezone) || @placeholder %>
           </span>
-          <Icons.calendar class="size-5 text-gray-500" />
+          <Icons.calendar class="size-5 text-gray-500 dark:text-gray-400" />
         </button>
 
         <.render_calendar {assigns} />
@@ -118,9 +118,9 @@ defmodule Lotus.Web.DatePickerComponent do
         aria-expanded={@calendar_open}
         disabled={@disabled}
         class={[
-          "grid cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900",
+          "grid cursor-default grid-cols-1 rounded-md bg-white dark:bg-input-dark py-1.5 pl-3 pr-2 text-left text-gray-900 dark:text-gray-100",
           "outline outline-1 -outline-offset-1",
-          @errors == [] && "outline-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-600",
+          @errors == [] && "outline-gray-300 dark:outline-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-600",
           @errors != [] && "outline-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose-500",
           "sm:text-sm/6",
           @class || "w-full"
@@ -129,7 +129,7 @@ defmodule Lotus.Web.DatePickerComponent do
         <span class="col-start-1 row-start-1 truncate pr-6">
           <%= format_selected_date(@value, @timezone) || @placeholder %>
         </span>
-        <Icons.calendar class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500" />
+        <Icons.calendar class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 dark:text-gray-400" />
       </button>
 
       <.render_calendar {assigns} />
@@ -146,9 +146,9 @@ defmodule Lotus.Web.DatePickerComponent do
       phx-click-away="close-calendar"
       phx-target={@myself}
     >
-      <div class="w-full bg-white rounded-md ring-1 ring-gray-300 shadow-lg focus:outline-none p-1">
+      <div class="w-full bg-white dark:bg-input-dark rounded-md ring-1 ring-gray-300 dark:ring-gray-600 shadow-lg focus:outline-none p-1">
         <div class="w-full p-1.5 my-2">
-          <label :if={@label} for={@id <> "-display"} class="block text-xs text-gray-500 mb-2">
+          <label :if={@label} for={@id <> "-display"} class="block text-xs text-gray-500 dark:text-gray-400 mb-2">
             <%= @label %>
           </label>
           <div>
@@ -158,15 +158,15 @@ defmodule Lotus.Web.DatePickerComponent do
               readonly
               placeholder={@placeholder}
               value={format_selected_date_with_year(@value, @timezone)}
-              class="w-full px-2 py-1 bg-transparent text-gray-900 text-[13px] placeholder:text-gray-500 focus:outline-none border border-gray-300 focus:border-transparent focus:ring-2 focus:ring-pink-600 rounded-md"
+              class="w-full px-2 py-1 bg-transparent text-gray-900 dark:text-gray-100 text-[13px] placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none border border-gray-300 dark:border-gray-600 focus:border-transparent focus:ring-2 focus:ring-pink-600 rounded-md"
             />
           </div>
         </div>
 
-        <div role="separator" class="relative -mx-1 h-px bg-gray-200"></div>
+        <div role="separator" class="relative -mx-1 h-px bg-gray-200 dark:bg-gray-600"></div>
 
         <div class="flex justify-between p-1.5">
-          <div class="self-center text-gray-900 text-xs tracking-wide">
+          <div class="self-center text-gray-900 dark:text-gray-100 text-xs tracking-wide">
             <%= @current.month %>
           </div>
           <div class="flex">
@@ -174,7 +174,7 @@ defmodule Lotus.Web.DatePickerComponent do
               type="button"
               phx-target={@myself}
               phx-click="prev-month"
-              class="mr-1.5 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md"
+              class="mr-1.5 p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" class="size-4">
                 <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
@@ -184,7 +184,7 @@ defmodule Lotus.Web.DatePickerComponent do
               type="button"
               phx-target={@myself}
               phx-click="next-month"
-              class="ml-1.5 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md"
+              class="ml-1.5 p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md"
             >
               <svg viewBox="0 0 20 20" fill="currentColor" class="size-4">
                 <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
@@ -198,19 +198,19 @@ defmodule Lotus.Web.DatePickerComponent do
             type="button"
             phx-click="today"
             phx-target={@myself}
-            class="text-xs text-gray-400 hover:text-gray-600"
+            class="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           >
             Today
           </button>
         </div>
 
-        <div class="text-center my-2 grid grid-cols-7 text-xs leading-6 text-gray-500">
+        <div class="text-center my-2 grid grid-cols-7 text-xs leading-6 text-gray-500 dark:text-gray-400">
           <div :for={week_day <- List.first(@current.week_rows)}>
             <%= Calendar.strftime(week_day, "%a") %>
           </div>
         </div>
 
-        <div role="separator" class="relative -mx-1 h-px bg-gray-200"></div>
+        <div role="separator" class="relative -mx-1 h-px bg-gray-200 dark:bg-gray-600"></div>
 
         <div class="isolate mt-2 grid grid-cols-7 gap-px text-sm">
           <button
@@ -221,12 +221,12 @@ defmodule Lotus.Web.DatePickerComponent do
             phx-value-date={Date.to_string(day)}
             class={[
               "calendar-day overflow-hidden py-1 h-10 w-auto focus:z-10 text-sm",
-              today?(day, @timezone) && "font-semibold bg-gray-100 ring-1 ring-gray-300",
+              today?(day, @timezone) && "font-semibold bg-gray-100 dark:bg-gray-600 ring-1 ring-gray-300 dark:ring-gray-500",
               (before_min_date?(day, @min) or after_max_date?(day, @max)) &&
-                "text-gray-300 cursor-not-allowed",
+                "text-gray-300 dark:text-gray-600 cursor-not-allowed",
               (!before_min_date?(day, @min) and not after_max_date?(day, @max)) &&
-                "hover:bg-pink-600 rounded-full text-gray-900 hover:text-white",
-              other_month?(day, @current.date) && "text-gray-400",
+                "hover:bg-pink-600 rounded-full text-gray-900 dark:text-gray-100 hover:text-white",
+              other_month?(day, @current.date) && "text-gray-400 dark:text-gray-500",
               selected_date?(day, @value) &&
                 "bg-pink-600 text-white hover:bg-pink-700"
             ]}

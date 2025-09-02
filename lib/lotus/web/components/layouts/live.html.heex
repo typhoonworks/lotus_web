@@ -1,9 +1,9 @@
 <meta name="live-transport" content={@live_transport} />
 <meta name="live-path" content={@live_path} />
 
-<div class="flex flex-col h-screen overflow-hidden bg-red-50">
+<div class="flex flex-col h-screen overflow-hidden bg-red-50 dark:bg-gray-900">
   <div id="platform-scout" phx-hook="PlatformScout" style="display: none;"></div>
-  <nav class="border-b border-gray-200 bg-white">
+  <nav class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
         <div class="flex">
@@ -11,10 +11,11 @@
             <.logo />
           </div>
         </div>
-        <div class="sm:ml-6 sm:flex sm:items-center">
+        <div class="sm:ml-6 sm:flex sm:items-center sm:space-x-4">
           <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
             <.button type="button">New Query</.button>
           </.link>
+          <.theme_toggle />
         </div>
       </div>
     </div>
@@ -28,5 +29,5 @@
       </div>
   </main>
 
-  <.footer />
+  <.footer class="dark:bg-gray-900 dark:text-gray-300" />
 </div>

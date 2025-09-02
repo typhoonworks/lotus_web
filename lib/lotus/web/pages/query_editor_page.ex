@@ -18,7 +18,7 @@ defmodule Lotus.Web.QueryEditorPage do
     ~H"""
     <div id="query-editor-page" class="flex flex-col h-full overflow-hidden">
       <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full flex flex-col">
-        <div class="bg-white shadow rounded-lg h-full flex flex-col overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-full flex flex-col overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
           <div class="relative flex-1 overflow-y-auto overflow-x-hidden">
@@ -77,8 +77,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp header(assigns) do
     ~H"""
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 class="text-xl font-semibold">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+      <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
         <%= if @mode == :new, do: "New Query", else: (@query.name || "Untitled") %>
       </h2>
       <div class="flex gap-3">
@@ -87,7 +87,7 @@ defmodule Lotus.Web.QueryEditorPage do
             type="button"
             variant="light"
             phx-click={show_modal("delete-query-modal")}
-            class="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
+            class="text-red-600 hover:text-red-700 border-transparent hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-transparent dark:hover:bg-white/10"
           >
             Delete
           </.button>
@@ -155,7 +155,7 @@ defmodule Lotus.Web.QueryEditorPage do
     ~H"""
     <.modal id="delete-query-modal">
       <h3 class="text-lg font-semibold mb-4">Delete query</h3>
-      <p class="text-sm text-gray-500 mb-6">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
         Are you sure you want to delete this query? This action cannot be undone.
       </p>
       <div class="flex justify-end gap-3">

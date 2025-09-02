@@ -64,10 +64,10 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
 
     ~H"""
     <fieldset class={[
-      "border border-gray-300 rounded-md bg-white px-3 py-2 focus-within:border-2 focus-within:border-pink-600",
+      "border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-input-dark px-3 py-2 focus-within:border-2 focus-within:border-pink-600",
       @errors != [] && "border-rose-400 focus-within:border-rose-500"
     ]}>
-      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700">
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
         {@formatted_label}
       </legend>
       <div class="flex items-center gap-4">
@@ -81,7 +81,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
           class="rounded border-gray-300 text-pink-600 focus:ring-0 focus:ring-offset-0"
           {@rest}
         />
-        <span class="text-sm text-gray-700">{@formatted_label}</span>
+        <span class="text-sm text-gray-700 dark:text-gray-300">{@formatted_label}</span>
       </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
@@ -136,16 +136,16 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
 
     ~H"""
     <fieldset class={[
-      "border border-gray-300 rounded-md bg-white focus-within:border-2 focus-within:border-pink-600",
+      "border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-input-dark focus-within:border-2 focus-within:border-pink-600",
       @errors != [] && "border-rose-400 focus-within:border-rose-500"
     ]}>
-      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700">
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
         {@formatted_label}
       </legend>
       <textarea
         id={@id}
         name={@name}
-        class="w-full border-0 bg-transparent px-3 py-1.5 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm resize-none min-h-[6rem]"
+        class="w-full border-0 bg-transparent px-3 py-1.5 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-0 sm:text-sm resize-none min-h-[6rem]"
         {@rest}
       >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -168,12 +168,12 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
 
     ~H"""
     <fieldset class={[
-      "group border rounded-md bg-white",
+      "group border rounded-md bg-white dark:bg-input-dark",
       @has_value && "border-pink-600",
-      !@has_value && "border-gray-300 focus-within:border-pink-600",
+      !@has_value && "border-gray-300 dark:border-gray-600 focus-within:border-pink-600",
       @errors != [] && "border-rose-400 focus-within:border-rose-500"
     ]}>
-      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700">
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
         {@formatted_label}
       </legend>
       <div class="flex items-center px-2 cursor-text">
@@ -185,8 +185,8 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
           placeholder={!@has_value && "Enter value" || ""}
           class={[
             "w-full border-0 bg-transparent focus:ring-0 text-sm py-1.5 focus:placeholder:hidden",
-            @has_value && "text-pink-600 focus:text-gray-900",
-            !@has_value && "text-gray-900"
+            @has_value && "text-pink-600 focus:text-gray-900 dark:focus:text-gray-100",
+            !@has_value && "text-gray-900 dark:text-gray-100"
           ]}
           {@rest}
         />

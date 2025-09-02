@@ -29,7 +29,7 @@ defmodule Lotus.Web.CoreComponents do
         base_classes =
           case assigns.variant do
             "light" ->
-              "rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              "rounded-md bg-white dark:bg-transparent px-3.5 py-2.5 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-white/10"
 
             _ ->
               "phx-submit-loading:opacity-75 rounded-md bg-pink-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-pink-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
@@ -117,7 +117,7 @@ defmodule Lotus.Web.CoreComponents do
 
     ~H"""
     <div>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <input
           type="checkbox"
@@ -125,7 +125,7 @@ defmodule Lotus.Web.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+          class="rounded border-zinc-300 dark:border-zinc-600 dark:bg-input-dark text-text-light dark:text-text-dark focus:ring-0"
           {@rest}
         />
         {@label}
@@ -151,10 +151,10 @@ defmodule Lotus.Web.CoreComponents do
         name={@name}
         value={@value}
         checked={@checked}
-        class="h-4 w-4 text-pink-600 focus:ring-0 border-gray-300"
+        class="h-4 w-4 text-pink-600 focus:ring-0 border-gray-300 dark:border-gray-600 dark:bg-input-dark"
         {@rest}
       />
-      <span :if={@label} class="ml-2 text-sm text-gray-700">
+      <span :if={@label} class="ml-2 text-sm text-gray-700 dark:text-gray-300">
         {@label}
       </span>
     </label>
@@ -186,8 +186,8 @@ defmodule Lotus.Web.CoreComponents do
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
+          "mt-2 block w-full rounded-lg text-text-light dark:text-text-dark dark:bg-input-dark focus:ring-0 sm:text-sm sm:leading-6 min-h-[6rem]",
+          @errors == [] && "border-zinc-300 dark:border-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-500",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
@@ -208,8 +208,8 @@ defmodule Lotus.Web.CoreComponents do
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
+          "mt-2 block w-full rounded-lg text-text-light dark:text-text-dark dark:bg-input-dark focus:ring-0 sm:text-sm sm:leading-6",
+          @errors == [] && "border-zinc-300 dark:border-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-500",
           @errors != [] && "border-rose-400 focus:border-rose-400"
         ]}
         {@rest}
@@ -227,7 +227,7 @@ defmodule Lotus.Web.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-text-light dark:text-text-dark">
       {render_slot(@inner_block)}
     </label>
     """
@@ -294,13 +294,13 @@ defmodule Lotus.Web.CoreComponents do
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden rounded-2xl bg-white p-14 shadow-lg ring-1 transition"
+              class="shadow-zinc-700/10 ring-zinc-700/10 dark:ring-zinc-300/10 relative hidden rounded-2xl bg-white dark:bg-gray-800 p-14 shadow-lg ring-1 transition"
             >
               <div class="absolute top-6 right-5">
                 <button
                   phx-click={JS.exec("data-cancel", to: "##{@id}")}
                   type="button"
-                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40"
+                  class="-m-3 flex-none p-3 opacity-20 hover:opacity-40 text-gray-900 dark:text-gray-100"
                   aria-label="close"
                 >
                   <Icons.x_mark class="h-5 w-5" />
@@ -373,13 +373,13 @@ defmodule Lotus.Web.CoreComponents do
     <div class="mt-8 flow-root">
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <table class="relative min-w-full divide-y divide-gray-300">
+          <table class="relative min-w-full divide-y divide-gray-300 dark:divide-gray-600">
             <thead>
               <tr>
                 <th
                   :for={col <- @col}
                   scope="col"
-                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-3"
+                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3"
                 >
                   {col[:label]}
                 </th>
@@ -388,17 +388,17 @@ defmodule Lotus.Web.CoreComponents do
             <tbody
               id={@id}
               phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}
-              class="bg-white"
+              class="bg-white dark:bg-gray-800"
             >
               <tr
                 :for={row <- @rows}
                 id={@row_id && @row_id.(row)}
-                class="even:bg-gray-50"
+                class="even:bg-gray-50 dark:even:bg-gray-700"
               >
                 <td
                   :for={col <- @col}
                   phx-click={@row_click && @row_click.(row)}
-                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 sm:pl-3"
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3"
                 >
                   {render_slot(col, @row_item.(row))}
                 </td>
@@ -456,6 +456,28 @@ defmodule Lotus.Web.CoreComponents do
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
+  end
+
+  @doc """
+  Renders a theme toggle button that switches between light and dark modes.
+  Shows sun icon in dark mode (to switch to light) and moon icon in light mode (to switch to dark).
+  """
+  attr(:rest, :global)
+
+  def theme_toggle(assigns) do
+    ~H"""
+    <button
+      id="theme-toggle"
+      phx-hook="ThemeToggle"
+      type="button"
+      class="rounded-full p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+      aria-label="Toggle theme"
+      {@rest}
+    >
+      <Icons.sun class="h-5 w-5 hidden dark:block" />
+      <Icons.moon class="h-5 w-5 block dark:hidden" />
+    </button>
+    """
   end
 
   defp translate_error({msg, opts}) when is_binary(msg) do
