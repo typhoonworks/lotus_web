@@ -4,6 +4,7 @@ import { EditorState, Compartment, Prec } from "@codemirror/state";
 import { sql, PostgreSQL, MySQL, SQLite } from "@codemirror/lang-sql";
 import { editorStyles, completionStyles } from "./styles";
 import { lotusVariablesPlugin } from "./plugins/lotus_variables";
+import { ContextAwareCompletion } from "./context_aware_completion";
 
 const editorTheme = EditorView.theme(editorStyles);
 const completionTheme = EditorView.theme(completionStyles);
@@ -23,13 +24,25 @@ function dialectFromName(name = "postgres") {
   }
 }
 
-function sqlExt(schema, dialectName) {
+function sqlExt(schema, dialectName, contextCompletion) {
   const cfg = {
     upperCaseKeywords: true,
     dialect: dialectFromName(dialectName),
   };
   if (schema) cfg.schema = schema;
-  return sql(cfg);
+
+  const sqlLang = sql(cfg);
+
+  if (contextCompletion) {
+    return [
+      sqlLang,
+      sqlLang.language.data.of({
+        autocomplete: contextCompletion.createCompletionSource(),
+      }),
+    ];
+  }
+
+  return sqlLang;
 }
 
 export function createEditor({
@@ -44,9 +57,13 @@ export function createEditor({
   let currentSchema = schema;
   let currentDialect = dialectName;
 
+  const contextCompletion = new ContextAwareCompletion(currentSchema);
+
   const extensions = [
     basicSetup,
-    languageCompartment.of(sqlExt(currentSchema, currentDialect)),
+    languageCompartment.of(
+      sqlExt(currentSchema, currentDialect, contextCompletion),
+    ),
     editorTheme,
     completionTheme,
     EditorView.lineWrapping,
@@ -101,9 +118,10 @@ export function createEditor({
     },
     updateSchema(newSchema) {
       currentSchema = newSchema;
+      contextCompletion.updateSchema(currentSchema);
       view.dispatch({
         effects: languageCompartment.reconfigure(
-          sqlExt(currentSchema, currentDialect),
+          sqlExt(currentSchema, currentDialect, contextCompletion),
         ),
       });
     },
@@ -111,7 +129,7 @@ export function createEditor({
       currentDialect = newDialect || "postgres";
       view.dispatch({
         effects: languageCompartment.reconfigure(
-          sqlExt(currentSchema, currentDialect),
+          sqlExt(currentSchema, currentDialect, contextCompletion),
         ),
       });
     },
