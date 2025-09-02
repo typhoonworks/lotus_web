@@ -20,14 +20,17 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
   def editor(assigns) do
     search_path_field = assigns.form[:search_path]
-    search_path_value = case search_path_field.value do
-      nil -> ""
-      [] -> ""
-      list when is_list(list) -> Enum.join(list, ",")
-      value when is_binary(value) -> value
-    end
+
+    search_path_value =
+      case search_path_field.value do
+        nil -> ""
+        [] -> ""
+        list when is_list(list) -> Enum.join(list, ",")
+        value when is_binary(value) -> value
+      end
+
     show_search_path = search_path_value != ""
-    
+
     ~H"""
     <.form for={@form} phx-submit="run_query" phx-target={@target} phx-change="validate">
       <div class="bg-editor-light dark:bg-editor-dark">

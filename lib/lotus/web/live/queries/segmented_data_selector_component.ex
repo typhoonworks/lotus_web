@@ -99,7 +99,6 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
     {:noreply, assign(socket, schema_loading: true)}
   end
 
-
   defp maybe_load_schemas(socket) do
     source = socket.assigns.source_field.value
 

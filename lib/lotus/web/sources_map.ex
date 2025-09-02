@@ -75,8 +75,8 @@ defmodule Lotus.Web.SourcesMap do
       {:ok, tables} ->
         table_names =
           case List.first(tables) do
-            {_schema, table} -> Enum.map(tables, fn {_schema, table} -> table end)
-            table -> tables
+            {_schema, _table} -> Enum.map(tables, fn {_schema, table} -> table end)
+            _table -> tables
           end
 
         [

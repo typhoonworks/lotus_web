@@ -244,7 +244,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   @impl Phoenix.LiveComponent
   def update(params, socket) do
-    socket = 
+    socket =
       socket
       |> assign(params)
       |> maybe_navigate_to_database(params[:initial_db])
@@ -270,6 +270,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   defp maybe_navigate_to_database(socket, nil), do: socket
   defp maybe_navigate_to_database(socket, ""), do: socket
+
   defp maybe_navigate_to_database(socket, initial_db) do
     if initial_db != socket.assigns.current_db do
       navigate_to_database(socket, initial_db)

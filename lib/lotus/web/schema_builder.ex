@@ -8,12 +8,15 @@ defmodule Lotus.Web.SchemaBuilder do
   """
   def build(%SourcesMap{} = sources_map, data_repo, search_path \\ nil) do
     case SourcesMap.get_database(sources_map, data_repo) do
-      nil -> {:error, :database_not_found}
+      nil ->
+        {:error, :database_not_found}
+
       database ->
-        schema_map = 
+        schema_map =
           database
           |> determine_selected_schemas(search_path)
           |> build_schema_map(database, data_repo)
+
         {:ok, schema_map}
     end
   end
