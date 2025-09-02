@@ -2,12 +2,29 @@ import { EditorView, basicSetup } from "codemirror";
 import { placeholder, keymap } from "@codemirror/view";
 import { EditorState, Compartment, Prec } from "@codemirror/state";
 import { sql, PostgreSQL, MySQL, SQLite } from "@codemirror/lang-sql";
-import { editorStyles, completionStyles } from "./styles";
+import { editorStyles, getCompletionStyles } from "./styles";
 import { lotusVariablesPlugin } from "./plugins/lotus_variables";
+import { ContextAwareCompletion } from "./context_aware_completion";
 
 const editorTheme = EditorView.theme(editorStyles);
-const completionTheme = EditorView.theme(completionStyles);
 const languageCompartment = new Compartment();
+const completionThemeCompartment = new Compartment();
+
+function isDarkMode() {
+  if (
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+  ) {
+    return true;
+  }
+  if (
+    document.documentElement.classList.contains("dark") ||
+    document.body.classList.contains("dark")
+  ) {
+    return true;
+  }
+  return false;
+}
 
 function dialectFromName(name = "postgres") {
   switch (name.toLowerCase()) {
@@ -23,13 +40,25 @@ function dialectFromName(name = "postgres") {
   }
 }
 
-function sqlExt(schema, dialectName) {
+function sqlExt(schema, dialectName, contextCompletion) {
   const cfg = {
     upperCaseKeywords: true,
     dialect: dialectFromName(dialectName),
   };
   if (schema) cfg.schema = schema;
-  return sql(cfg);
+
+  const sqlLang = sql(cfg);
+
+  if (contextCompletion) {
+    return [
+      sqlLang,
+      sqlLang.language.data.of({
+        autocomplete: contextCompletion.createCompletionSource(),
+      }),
+    ];
+  }
+
+  return sqlLang;
 }
 
 export function createEditor({
@@ -44,11 +73,17 @@ export function createEditor({
   let currentSchema = schema;
   let currentDialect = dialectName;
 
+  const contextCompletion = new ContextAwareCompletion(currentSchema);
+
   const extensions = [
     basicSetup,
-    languageCompartment.of(sqlExt(currentSchema, currentDialect)),
+    languageCompartment.of(
+      sqlExt(currentSchema, currentDialect, contextCompletion),
+    ),
+    completionThemeCompartment.of(
+      EditorView.theme(getCompletionStyles(isDarkMode())),
+    ),
     editorTheme,
-    completionTheme,
     EditorView.lineWrapping,
     placeholder("SELECT * FROM table_name"),
   ];
@@ -89,6 +124,43 @@ export function createEditor({
     },
   });
 
+  let themeObserver = null;
+
+  const updateCompletionTheme = () => {
+    view.dispatch({
+      effects: completionThemeCompartment.reconfigure(
+        EditorView.theme(getCompletionStyles(isDarkMode())),
+      ),
+    });
+  };
+
+  if (typeof MutationObserver !== "undefined") {
+    themeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          (mutation.attributeName === "class" ||
+            mutation.attributeName === "data-theme")
+        ) {
+          updateCompletionTheme();
+        }
+      });
+    });
+
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+    themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "data-theme"],
+    });
+  }
+
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const mediaQueryListener = () => updateCompletionTheme();
+  mediaQuery.addEventListener("change", mediaQueryListener);
+
   return {
     view,
     getContent() {
@@ -101,9 +173,10 @@ export function createEditor({
     },
     updateSchema(newSchema) {
       currentSchema = newSchema;
+      contextCompletion.updateSchema(currentSchema);
       view.dispatch({
         effects: languageCompartment.reconfigure(
-          sqlExt(currentSchema, currentDialect),
+          sqlExt(currentSchema, currentDialect, contextCompletion),
         ),
       });
     },
@@ -111,11 +184,18 @@ export function createEditor({
       currentDialect = newDialect || "postgres";
       view.dispatch({
         effects: languageCompartment.reconfigure(
-          sqlExt(currentSchema, currentDialect),
+          sqlExt(currentSchema, currentDialect, contextCompletion),
         ),
       });
     },
+    updateTheme() {
+      updateCompletionTheme();
+    },
     destroy() {
+      if (themeObserver) {
+        themeObserver.disconnect();
+      }
+      mediaQuery.removeEventListener("change", mediaQueryListener);
       view.destroy();
     },
   };

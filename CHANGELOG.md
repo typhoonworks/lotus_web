@@ -6,6 +6,13 @@
 
 - **Light/Dark Mode Theme System** - Complete theming with persistent storage across sessions
 - **Global Query Shortcuts** - Query keyboard shortcuts (Cmd+Enter/Ctrl+Enter) now work anywhere on the query editor page, not just when focused in the CodeMirror editor
+- **Smart SQL Completions** - Context-aware SQL completions with table and column suggestions
+  - Table-aware column suggestions (e.g., typing after `FROM users WHERE` suggests columns from `users` table)
+  - Table alias support for qualified column completion
+  - Context-sensitive completions for SELECT, WHERE, ORDER BY, GROUP BY, and JOIN clauses
+  - Built-in SQL functions and aggregate suggestions
+  - Intelligent keyword detection to avoid interfering with SQL keyword completion
+  - Dynamic completion theme switching that follows light/dark mode changes
 
 ## [0.3.1] - 2025-09-01
 
