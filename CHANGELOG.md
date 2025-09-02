@@ -5,6 +5,7 @@
 ### Added
 
 - **Light/Dark Mode Theme System** - Complete theming with persistent storage across sessions
+- **Global Query Shortcuts** - Query keyboard shortcuts (Cmd+Enter/Ctrl+Enter) now work anywhere on the query editor page, not just when focused in the CodeMirror editor
 
 ## [0.3.1] - 2025-09-01
 
