@@ -1,7 +1,6 @@
 defmodule Lotus.Web.Queries.EditorComponent do
   use Lotus.Web, :html
 
-  alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
   alias Lotus.Web.Queries.SegmentedDataSelectorComponent
   import Lotus.Web.Queries.WidgetComponent
 
@@ -31,6 +30,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
     show_search_path = search_path_value != ""
 
+    assigns =
+      assigns
+      |> assign(:search_path_value, search_path_value)
+      |> assign(:show_search_path, show_search_path)
+
     ~H"""
     <.form for={@form} phx-submit="run_query" phx-target={@target} phx-change="validate">
       <div class="bg-editor-light dark:bg-editor-dark">
@@ -54,11 +58,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
             style="display: none;">
           </div>
 
-          <%= if show_search_path do %>
+          <%= if @show_search_path do %>
             <div class="absolute bottom-2 left-4 flex items-center gap-2 text-sm">
               <span class="font-medium text-gray-600 dark:text-gray-400">search_path:</span>
               <code class="px-2 py-0.5 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded text-xs font-mono text-gray-700 dark:text-gray-300">
-                <%= search_path_value %>
+                <%= @search_path_value %>
               </code>
             </div>
           <% end %>

@@ -113,7 +113,7 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
             schema_multiple: false
           )
 
-        %{type: adapter_type, label: label, multiple: multiple, show: true} ->
+        %{type: _adapter_type, label: label, multiple: multiple, show: true} ->
           case Lotus.list_schemas(source) do
             {:ok, schemas} ->
               options = Enum.map(schemas, &{&1, &1})
