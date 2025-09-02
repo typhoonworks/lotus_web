@@ -464,19 +464,52 @@ defmodule Lotus.Web.CoreComponents do
   """
   attr(:rest, :global)
 
-  def theme_toggle(assigns) do
+  def theme_selector(assigns) do
     ~H"""
-    <button
-      id="theme-toggle"
-      phx-hook="ThemeToggle"
-      type="button"
-      class="rounded-full p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-      aria-label="Toggle theme"
-      {@rest}
-    >
-      <Icons.sun class="h-5 w-5 hidden dark:block" />
-      <Icons.moon class="h-5 w-5 block dark:hidden" />
-    </button>
+    <div class="relative" id="theme-selector" phx-hook="ThemeSelector" {@rest}>
+      <button
+        type="button"
+        class="rounded-full p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+        aria-label="Theme selector"
+        data-dropdown-trigger
+      >
+        <Icons.sun class="h-5 w-5 theme-icon" data-theme="light" />
+        <Icons.moon class="h-5 w-5 theme-icon hidden" data-theme="dark" />
+        <Icons.monitor class="h-5 w-5 theme-icon hidden" data-theme="system" />
+      </button>
+
+      <div
+        class="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 hidden"
+        data-dropdown-menu
+      >
+        <div class="py-1">
+          <button
+            type="button"
+            class="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            data-theme-option="light"
+          >
+            <Icons.sun class="h-4 w-4 mr-3" />
+            Light
+          </button>
+          <button
+            type="button"
+            class="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            data-theme-option="dark"
+          >
+            <Icons.moon class="h-4 w-4 mr-3" />
+            Dark
+          </button>
+          <button
+            type="button"
+            class="flex items-center w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            data-theme-option="system"
+          >
+            <Icons.monitor class="h-4 w-4 mr-3" />
+            System
+          </button>
+        </div>
+      </div>
+    </div>
     """
   end
 
