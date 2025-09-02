@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Multi-Database Schema Support** - Full support for PostgreSQL schemas and MySQL databases
+  - Segmented data source selector with automatic schema detection
+  - PostgreSQL search_path support with visual indicator in editor
+  - Schema-aware SQL completions and table browsing
+  - Persistent schema selection with form state management
 - **Light/Dark Mode Theme System** - Complete theming with persistent storage across sessions
 - **Global Query Shortcuts** - Query keyboard shortcuts (Cmd+Enter/Ctrl+Enter) now work anywhere on the query editor page, not just when focused in the CodeMirror editor
 - **Smart SQL Completions** - Context-aware SQL completions with table and column suggestions

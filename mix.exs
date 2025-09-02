@@ -45,10 +45,11 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_ecto, "~> 4.5"},
 
       # Lotus
-      {:lotus, "~> 0.7.0"},
+      {:lotus, "~> 0.8.0"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
+      {:myxql, "~> 0.8", only: [:dev, :test]},
 
       # Tests
       {:floki, "~> 0.33", only: [:test, :dev]},

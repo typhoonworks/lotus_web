@@ -1,7 +1,7 @@
 defmodule Lotus.Web.Queries.EditorComponent do
   use Lotus.Web, :html
 
-  alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
+  alias Lotus.Web.Queries.SegmentedDataSelectorComponent
   import Lotus.Web.Queries.WidgetComponent
 
   attr(:minimized, :boolean, default: false)
@@ -18,6 +18,23 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variable_values, :map, default: %{})
 
   def editor(assigns) do
+    search_path_field = assigns.form[:search_path]
+
+    search_path_value =
+      case search_path_field.value do
+        nil -> ""
+        [] -> ""
+        list when is_list(list) -> Enum.join(list, ",")
+        value when is_binary(value) -> value
+      end
+
+    show_search_path = search_path_value != ""
+
+    assigns =
+      assigns
+      |> assign(:search_path_value, search_path_value)
+      |> assign(:show_search_path, show_search_path)
+
     ~H"""
     <.form for={@form} phx-submit="run_query" phx-target={@target} phx-change="validate">
       <div class="bg-editor-light dark:bg-editor-dark">
@@ -32,7 +49,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           variable_values={@variable_values}
         />
 
-        <div class={["relative", if(@minimized, do: "hidden", else: "")]}>
+        <div class={["relative pb-8", if(@minimized, do: "hidden", else: "")]}>
           <div id="editor" phx-update="ignore" class="w-full bg-editor-light dark:bg-editor-dark" style="min-height: 300px;"></div>
           <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" style="display: none;" />
           <div
@@ -40,6 +57,15 @@ defmodule Lotus.Web.Queries.EditorComponent do
             data-editor-dialect={@dialect || "postgres"}
             style="display: none;">
           </div>
+
+          <%= if @show_search_path do %>
+            <div class="absolute bottom-2 left-4 flex items-center gap-2 text-sm">
+              <span class="font-medium text-gray-600 dark:text-gray-400">search_path:</span>
+              <code class="px-2 py-0.5 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded text-xs font-mono text-gray-700 dark:text-gray-300">
+                <%= @search_path_value %>
+              </code>
+            </div>
+          <% end %>
 
           <button
             type="submit"
@@ -79,32 +105,37 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
   def render_toolbar(assigns) do
     ~H"""
-    <div class="flex items-center w-full px-6 py-3 border-b border-gray-200 dark:border-gray-700 gap-4">
-      <div class="w-48">
-        <Toolbar.input
-          type="select"
-          field={@form[:data_repo]}
-          label="Source"
-          prompt="Select a database"
-          options={Enum.map(@data_repo_names, &{&1, &1})}
-          show_icons={true}
+    <div class="w-full border-b border-gray-200 dark:border-gray-700">
+      <span class="sr-only">Toolbar</span>
+      <div class="flex items-center w-full px-6 py-3 gap-4">
+        <.live_component
+          module={SegmentedDataSelectorComponent}
+          id="data-selector"
+          source_field={@form[:data_repo]}
+          schema_field={@form[:search_path]}
+          source_options={Enum.map(@data_repo_names, &{&1, &1})}
+          source_id="source-selector"
+          schema_id="schema-selector"
+          target_field="data_repo"
+          parent={@target}
+          disabled={false}
+        />
+
+        <div class="w-px self-stretch bg-gray-300 dark:bg-gray-600"></div>
+
+        <div class="flex-1 flex flex-wrap gap-3 items-center">
+          <%= for v <- @variables do %>
+            <.widget var={v} value={Map.get(@variable_values, v.name, v.default)} />
+          <% end %>
+        </div>
+
+        <.render_actions
+          target={@target}
+          schema_explorer_visible={@schema_explorer_visible}
+          variable_settings_visible={@variable_settings_visible}
+          minimized={@minimized}
         />
       </div>
-
-      <div class="w-px self-stretch bg-gray-300 dark:bg-gray-600"></div>
-
-      <div class="flex-1 flex flex-wrap gap-3 items-center">
-        <%= for v <- @variables do %>
-          <.widget var={v} value={Map.get(@variable_values, v.name, v.default)} />
-        <% end %>
-      </div>
-
-      <.render_actions
-        target={@target}
-        schema_explorer_visible={@schema_explorer_visible}
-        variable_settings_visible={@variable_settings_visible}
-        minimized={@minimized}
-      />
     </div>
     """
   end

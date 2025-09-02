@@ -24,7 +24,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
   attr(:type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               range search select tel text textarea time url week)
+               range search select multiselect tel text textarea time url week)
   )
 
   attr(:field, Phoenix.HTML.FormField,
@@ -34,6 +34,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
   attr(:errors, :list, default: [])
   attr(:checked, :boolean, doc: "the checked flag for checkbox inputs")
   attr(:prompt, :string, default: nil, doc: "the prompt for select inputs")
+  attr(:search_prompt, :string, default: nil, doc: "the search prompt for multiselect inputs")
   attr(:options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2")
   attr(:multiple, :boolean, default: false, doc: "the multiple flag for select inputs")
   attr(:show_icons, :boolean, default: false, doc: "whether to show icons in select options")
@@ -101,6 +102,28 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
       value={@value}
       options={@options || []}
       prompt={@prompt}
+      disabled={@rest[:disabled]}
+      errors={@errors}
+      show_icons={@show_icons}
+      {@rest}
+    />
+    """
+  end
+
+  def input(%{type: "multiselect"} = assigns) do
+    assigns = assign(assigns, :formatted_label, format_label(assigns[:label]))
+
+    ~H"""
+    <.live_component
+      module={Lotus.Web.MultiSelectComponent}
+      id={@id || "#{@name}-multiselect-editor"}
+      name={@name}
+      label={@formatted_label}
+      floating_label={true}
+      value={@value}
+      options={@options || []}
+      prompt={@prompt}
+      search_prompt={@search_prompt}
       disabled={@rest[:disabled]}
       errors={@errors}
       show_icons={@show_icons}
