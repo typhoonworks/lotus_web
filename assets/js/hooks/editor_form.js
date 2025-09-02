@@ -1,4 +1,5 @@
 import { createEditor } from "../lib/editor.js";
+import { tinykeys } from "tinykeys";
 
 export default {
   mounted() {
@@ -45,6 +46,17 @@ export default {
       onVars: onVariableChange,
     });
 
+    this.unbindKeys = tinykeys(window, {
+      "Meta+Enter": (event) => {
+        event.preventDefault();
+        onRunQuery();
+      },
+      "Control+Enter": (event) => {
+        event.preventDefault();
+        onRunQuery();
+      },
+    });
+
     this.el.form?.addEventListener("submit", () => {
       textarea.value = this.editor.getContent();
     });
@@ -81,5 +93,6 @@ export default {
 
   destroyed() {
     this.editor?.destroy();
+    this.unbindKeys?.();
   },
 };
