@@ -2,6 +2,7 @@ import topbar from "topbar";
 
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
 import EditorForm from "./hooks/editor_form";
+import MultiSelectSearch from "./hooks/multi_select_search";
 import PlatformScout from "./hooks/platform_scout";
 import ThemeSelector from "./hooks/theme_selector";
 import { load } from "./lib/settings";
@@ -44,6 +45,7 @@ topbar.config({
 const hooks = {
   DispatchChangeOnUpdate,
   EditorForm,
+  MultiSelectSearch,
   PlatformScout,
   ThemeSelector,
 };

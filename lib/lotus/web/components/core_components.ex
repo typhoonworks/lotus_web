@@ -80,7 +80,7 @@ defmodule Lotus.Web.CoreComponents do
   attr(:type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file month number password
-               radio range search select tel text textarea time url week)
+               radio range search select multiselect tel text textarea time url week)
   )
 
   attr(:field, Phoenix.HTML.FormField,
@@ -166,6 +166,23 @@ defmodule Lotus.Web.CoreComponents do
       <.live_component
         module={Lotus.Web.SelectComponent}
         id={@id || "#{@name}-select-plus"}
+        name={@name}
+        label={@label}
+        value={@value}
+        options={@options || []}
+        prompt={@prompt}
+        disabled={@rest[:disabled]}
+        errors={@errors}
+        {@rest}
+      />
+    """
+  end
+
+  def input(%{type: "multiselect"} = assigns) do
+    ~H"""
+      <.live_component
+        module={Lotus.Web.MultiSelectComponent}
+        id={@id || "#{@name}-multiselect-plus"}
         name={@name}
         label={@label}
         value={@value}
