@@ -2,19 +2,19 @@
 
 # Repos
 
-defmodule WebDev.Repo do
+defmodule WebDev.PostgresRepo do
   use Ecto.Repo, otp_app: :lotus_web, adapter: Ecto.Adapters.Postgres
 end
 
-defmodule WebDev.ReportingRepo do
-  use Ecto.Repo, otp_app: :lotus_web, adapter: Ecto.Adapters.Postgres
+defmodule WebDev.MySQLRepo do
+  use Ecto.Repo, otp_app: :lotus_web, adapter: Ecto.Adapters.MyXQL
 end
 
 defmodule WebDev.Migration0 do
   use Ecto.Migration
 
   def change do
-    # Create sample tables for demonstration
+    # Create sample tables for demonstration in public schema
     create table(:users) do
       add :name, :string, null: false
       add :email, :string, null: false
@@ -93,6 +93,33 @@ defmodule WebDev.Migration2 do
   end
 end
 
+defmodule WebDev.MySQLMigration do
+  use Ecto.Migration
+
+  def change do
+    # Create sample tables in MySQL
+    create table(:products) do
+      add :name, :string, null: false
+      add :price, :decimal, precision: 10, scale: 2
+      add :category, :string
+      add :in_stock, :boolean, default: true
+      timestamps(type: :utc_datetime)
+    end
+
+    create table(:sales) do
+      add :product_id, references(:products, on_delete: :delete_all), null: false
+      add :quantity, :integer, null: false
+      add :total_price, :decimal, precision: 10, scale: 2
+      add :sale_date, :utc_datetime
+      timestamps(type: :utc_datetime)
+    end
+
+    create index(:sales, [:product_id])
+    create index(:sales, [:sale_date])
+  end
+end
+
+
 # Phoenix
 
 defmodule WebDev.Router do
@@ -169,7 +196,7 @@ Application.put_env(:lotus_web, WebDev.Endpoint,
   ]
 )
 
-Application.put_env(:lotus_web, WebDev.Repo,
+Application.put_env(:lotus_web, WebDev.PostgresRepo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
@@ -177,23 +204,23 @@ Application.put_env(:lotus_web, WebDev.Repo,
   database: "lotus_web_dev"
 )
 
-Application.put_env(:lotus_web, WebDev.ReportingRepo,
-  username: "postgres",
-  password: "postgres",
+Application.put_env(:lotus_web, WebDev.MySQLRepo,
+  username: "lotus",
+  password: "lotus",
   hostname: "localhost",
-  port: 2346,
-  database: "lotus_web_dev",
-  parameters: [search_path: "reporting"]
+  port: 3308,
+  database: "lotus_web_dev"
 )
 
 Application.put_env(:phoenix, :serve_endpoints, true)
 Application.put_env(:phoenix, :persistent, true)
 
 # Configure Lotus with the development repos
-Application.put_env(:lotus, :ecto_repo, WebDev.Repo)
+Application.put_env(:lotus, :ecto_repo, WebDev.PostgresRepo)
+Application.put_env(:lotus, :default_repo, "postgres")
 Application.put_env(:lotus, :data_repos, %{
-  "public"    => WebDev.Repo,
-  "reporting" => WebDev.ReportingRepo
+  "postgres" => WebDev.PostgresRepo,
+  "mysql"    => WebDev.MySQLRepo
 })
 
 # Configure Lotus caching
@@ -205,18 +232,23 @@ Application.put_env(:lotus, :cache, %{
 Task.async(fn ->
   children = [
     {Phoenix.PubSub, [name: WebDev.PubSub, adapter: Phoenix.PubSub.PG2]},
-    {WebDev.Repo, []},
-    {WebDev.ReportingRepo, []},
+    {WebDev.PostgresRepo, []},
+    {WebDev.MySQLRepo, []},
     Lotus,
     {WebDev.Endpoint, []}
   ]
 
-  Ecto.Adapters.Postgres.storage_up(WebDev.Repo.config())
+  # Set up PostgreSQL
+  Ecto.Adapters.Postgres.storage_up(WebDev.PostgresRepo.config())
+
+  # Set up MySQL
+  Ecto.Adapters.MyXQL.storage_up(WebDev.MySQLRepo.config())
 
   {:ok, _} = Supervisor.start_link(children, strategy: :one_for_one)
 
+  # Run PostgreSQL migrations
   Ecto.Migrator.run(
-    WebDev.Repo,
+    WebDev.PostgresRepo,
     [
       {0, WebDev.Migration0},         # public.users/posts/orders
       {1, WebDev.Migration1},         # reporting.customers/invoices
@@ -226,13 +258,28 @@ Task.async(fn ->
     all: true
   )
 
+  # Run MySQL migrations
+  Ecto.Migrator.run(
+    WebDev.MySQLRepo,
+    [
+      {0, WebDev.MySQLMigration}     # products/sales tables only
+    ],
+    :up,
+    all: true
+  )
+
   # --- DESTROY ALL EXISTING DATA ---
 
-  WebDev.Repo.query!("TRUNCATE TABLE users, posts, orders RESTART IDENTITY CASCADE")
-  WebDev.ReportingRepo.query!("TRUNCATE TABLE reporting.customers, reporting.invoices RESTART IDENTITY CASCADE")
+  WebDev.PostgresRepo.query!("TRUNCATE TABLE users, posts, orders RESTART IDENTITY CASCADE")
+  WebDev.PostgresRepo.query!("TRUNCATE TABLE reporting.customers, reporting.invoices RESTART IDENTITY CASCADE")
 
-  # --- USERS ---
-  WebDev.Repo.query!("INSERT INTO users (name, email, age, status, inserted_at, updated_at) VALUES
+  WebDev.MySQLRepo.query!("DELETE FROM sales")
+  WebDev.MySQLRepo.query!("DELETE FROM products")
+
+  # --- POSTGRESQL DATA ---
+
+  # Users
+  WebDev.PostgresRepo.query!("INSERT INTO users (name, email, age, status, inserted_at, updated_at) VALUES
     ('Alice', 'alice@example.com', 30, 'active', now(), now()),
     ('Bob',   'bob@example.com',   25, 'inactive', now(), now()),
     ('Charlie','charlie@example.com', 40, 'active', now(), now()),
@@ -240,17 +287,17 @@ Task.async(fn ->
     ('Eve',   'eve@example.com',   28, 'active', now(), now())
   ")
 
-  # --- POSTS ---
-  WebDev.Repo.query!("INSERT INTO posts (title, content, user_id, published, inserted_at, updated_at) VALUES
+  # Posts
+  WebDev.PostgresRepo.query!("INSERT INTO posts (title, content, user_id, published, inserted_at, updated_at) VALUES
     ('Hello World',     'First post!', 1, true,  now(), now()),
     ('Draft Thoughts',  'Unpublished idea', 1, false, now(), now()),
-    ('Bob’s Adventures','Exploring Elixir', 2, true,  now(), now()),
+    ('Bob''s Adventures','Exploring Elixir', 2, true,  now(), now()),
     ('Security Notes',  'Eve on crypto', 5, true,  now(), now()),
-    ('Cooking with SQL','Charlie’s recipe', 3, false, now(), now())
+    ('Cooking with SQL','Charlie''s recipe', 3, false, now(), now())
   ")
 
-  # --- ORDERS ---
-  WebDev.Repo.query!("INSERT INTO orders (total_amount, status, user_id, inserted_at, updated_at) VALUES
+  # Orders
+  WebDev.PostgresRepo.query!("INSERT INTO orders (total_amount, status, user_id, inserted_at, updated_at) VALUES
     (49.99,  'pending',  1, now(), now()),
     (19.50,  'completed',2, now(), now()),
     (200.00, 'completed',3, now(), now()),
@@ -258,22 +305,52 @@ Task.async(fn ->
     (300.10, 'shipped',  4, now(), now())
   ")
 
-  # --- REPORTING.CUSTOMERS ---
-  WebDev.ReportingRepo.query!("INSERT INTO customers (name, email, active, inserted_at, updated_at) VALUES
+  # Reporting Customers
+  WebDev.PostgresRepo.query!("INSERT INTO reporting.customers (name, email, active, inserted_at, updated_at) VALUES
     ('Acme Corp',       'contact@acme.com',       true,  now(), now()),
     ('Globex Inc',      'info@globex.com',        true,  now(), now()),
     ('Initech',         'hello@initech.com',      false, now(), now()),
     ('Umbrella Corp',   'support@umbrella.com',   true,  now(), now())
   ")
 
-  # --- REPORTING.INVOICES ---
-  WebDev.ReportingRepo.query!("INSERT INTO invoices (customer_id, total_amount, status, inserted_at, updated_at) VALUES
+  # Reporting Invoices
+  WebDev.PostgresRepo.query!("INSERT INTO reporting.invoices (customer_id, total_amount, status, inserted_at, updated_at) VALUES
     (1, 199.99, 'open',     now(), now()),
     (1, 500.00, 'paid',     now(), now()),
     (2, 250.00, 'overdue',  now(), now()),
     (3, 1000.00,'paid',     now(), now()),
     (4, 75.00,  'open',     now(), now())
   ")
+
+  # --- MYSQL DATA ---
+
+  # Products
+  WebDev.MySQLRepo.query!("INSERT INTO products (name, price, category, in_stock, inserted_at, updated_at) VALUES
+    ('Laptop Pro', 1299.99, 'Electronics', 1, UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    ('Wireless Mouse', 29.99, 'Electronics', 1, UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    ('Office Chair', 199.50, 'Furniture', 0, UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    ('Coffee Mug', 12.99, 'Kitchen', 1, UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    ('Notebook', 5.99, 'Stationery', 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+  ")
+
+  # Get product IDs
+  %{rows: product_rows} = WebDev.MySQLRepo.query!("SELECT id FROM products ORDER BY id")
+  [laptop_id, mouse_id, chair_id, mug_id, notebook_id] = Enum.map(product_rows, &List.first/1)
+
+  # Sales
+  WebDev.MySQLRepo.query!("INSERT INTO sales (product_id, quantity, total_price, sale_date, inserted_at, updated_at) VALUES
+    (#{laptop_id}, 2, 2599.98, '2024-01-15 10:30:00', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    (#{mouse_id}, 5, 149.95, '2024-01-16 14:22:00', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    (#{mug_id}, 10, 129.90, '2024-01-17 09:45:00', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    (#{notebook_id}, 3, 17.97, '2024-01-18 16:10:00', UTC_TIMESTAMP(), UTC_TIMESTAMP()),
+    (#{laptop_id}, 1, 1299.99, '2024-01-19 11:00:00', UTC_TIMESTAMP(), UTC_TIMESTAMP())
+  ")
+
+  IO.puts("✅ Database setup complete!")
+  IO.puts("🐘 PostgreSQL (localhost:2346): public & reporting schemas")
+  IO.puts("🐬 MySQL (localhost:3308): products & sales tables")
+  IO.puts("🌐 Web server running on http://localhost:#{port}/lotus")
+  IO.puts("🔧 Adminer available at http://localhost:8087")
 
   Process.sleep(:infinity)
 end)
