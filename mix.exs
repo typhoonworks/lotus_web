@@ -46,7 +46,7 @@ defmodule Lotus.Web.MixProject do
 
       # Lotus
       # {:lotus, "~> 0.7.0"},
-      {:lotus, path: "../lotus"},
+      {:lotus, git: "git@github.com:typhoonworks/lotus.git", branch: "git"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
