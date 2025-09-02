@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Added
+
+- **Light/Dark Mode Theme System** - Complete theming with persistent storage across sessions
+
+## [0.3.1] - 2025-09-01
+
+### Added
+
 - **Variables and Widgets System** - Complete support for dynamic SQL queries with `{{variable}}` syntax
   - Variable detection and highlighting in SQL editor with CodeMirror plugin
   - Automatic toolbar widget generation for detected variables
@@ -17,6 +24,7 @@
   - Schema explorer component with improved UX
   - Results component with better formatting
 - **New LiveView Components**
+  - Theme selector dropdown component with icon-based triggers
   - Date picker component for date variables
   - Select component for dropdown widgets
   - Variable settings component with tabs and configuration options
@@ -27,6 +35,9 @@
   - README updated to reflect completed variables feature
 
 ### Changed
+- Enhanced Tailwind CSS configuration with dark mode support and custom color palette
+- Updated all UI components with comprehensive dark mode variants
+- Improved CodeMirror editor styling for both light and dark themes
 - Upgraded to Lotus v0.5.4 for enhanced variable support
 - Improved aside panel toggling UX and scrolling behavior
 - Enhanced JavaScript editor integration with variables plugin

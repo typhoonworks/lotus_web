@@ -9,7 +9,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <div
       class={[
-        "absolute top-0 right-0 h-full w-80 bg-white border-l border-gray-200 z-10 transition-transform duration-300 ease-in-out overflow-hidden",
+        "absolute top-0 right-0 h-full w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 z-10 transition-transform duration-300 ease-in-out overflow-hidden",
         if(@visible, do: "translate-x-0", else: "translate-x-full")
       ]}
     >
@@ -25,7 +25,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   defp header(assigns) do
     ~H"""
-    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
       <div class="flex items-center justify-between">
         <.header_title {assigns} />
         <.close_button parent={@parent} />
@@ -39,16 +39,16 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <%= case @view_mode do %>
       <% :databases -> %>
-        <h3 class="text-sm font-medium text-gray-900">Data Reference</h3>
+        <h3 class="text-sm font-medium text-text-light dark:text-text-dark">Data Reference</h3>
       <% :tables -> %>
         <div class="flex items-center">
           <.back_button target={@myself} />
-          <h3 class="text-sm font-medium text-gray-900"><%= @current_database %></h3>
+          <h3 class="text-sm font-medium text-text-light dark:text-text-dark"><%= @current_database %></h3>
         </div>
       <% :columns -> %>
         <div class="flex items-center">
           <.back_button target={@myself} />
-          <h3 class="text-sm font-medium text-gray-900"><%= @current_table %></h3>
+          <h3 class="text-sm font-medium text-text-light dark:text-text-dark"><%= @current_table %></h3>
         </div>
     <% end %>
     """
@@ -60,7 +60,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
       type="button"
       phx-click="navigate_back"
       phx-target={@target}
-      class="p-1 mr-2 text-gray-400 hover:text-gray-600"
+      class="p-1 mr-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
     >
       <Icons.chevron_left class="h-3 w-3" />
     </button>
@@ -73,7 +73,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
       type="button"
       phx-click="close_schema_explorer"
       phx-target={@parent}
-      class="p-1 text-gray-400 hover:text-gray-600"
+      class="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
     >
       <Icons.x_mark class="h-4 w-4" />
     </button>
@@ -84,15 +84,15 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <%= case @view_mode do %>
       <% :databases -> %>
-        <p class="text-xs text-gray-500 mt-1">Browse the contents of your databases, tables, and columns. Pick a database to get started.</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Browse the contents of your databases, tables, and columns. Pick a database to get started.</p>
       <% :tables -> %>
-        <div class="flex items-center mt-2 text-xs text-gray-600">
+        <div class="flex items-center mt-2 text-xs text-gray-600 dark:text-gray-400">
           <Icons.tables class="h-3 w-3 mr-1" />
           <%= length(@tables) %> tables
         </div>
       <% :columns -> %>
-        <p class="text-xs text-gray-500 mt-1">No description</p>
-        <div class="flex items-center mt-2 text-xs text-gray-600">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">No description</p>
+        <div class="flex items-center mt-2 text-xs text-gray-600 dark:text-gray-400">
           <Icons.tables class="h-3 w-3 mr-1" />
           <%= length(@columns) %> columns
         </div>
@@ -118,11 +118,11 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   defp databases_list(assigns) do
     ~H"""
     <div class="p-2">
-      <div :for={database <- @databases} class="flex items-center py-2 px-2 text-sm text-gray-700 hover:bg-gray-50 rounded cursor-pointer" phx-click="select_database" phx-value-database={database} phx-target={@target}>
+      <div :for={database <- @databases} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer" phx-click="select_database" phx-value-database={database} phx-target={@target}>
         <div class="flex-shrink-0 mr-3">
           <Icons.database class="h-4 w-4 text-blue-500" />
         </div>
-        <span class="text-blue-600 font-mono text-sm"><%= database %></span>
+        <span class="text-blue-600 dark:text-blue-400 font-mono text-sm"><%= database %></span>
       </div>
     </div>
     """
@@ -131,7 +131,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   defp tables_list(assigns) do
     ~H"""
     <div class="p-2">
-      <div :for={{schema, table} <- @tables} class="flex items-center py-2 px-2 text-sm text-gray-700 hover:bg-gray-50 rounded cursor-pointer" phx-click="select_table" phx-value-schema={schema} phx-value-table={table} phx-target={@target}>
+      <div :for={{schema, table} <- @tables} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer" phx-click="select_table" phx-value-schema={schema} phx-value-table={table} phx-target={@target}>
         <div class="flex-shrink-0 mr-3">
           <Icons.tables class="h-4 w-4 text-green-500" />
         </div>
@@ -144,7 +144,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   defp columns_list(assigns) do
     ~H"""
     <div class="p-2">
-      <div :for={column <- @columns} class="flex items-center py-2 px-2 text-sm text-gray-700 hover:bg-gray-50 rounded cursor-pointer">
+      <div :for={column <- @columns} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer">
         <div class="flex-shrink-0 mr-3">
           <.column_icon column={column} />
         </div>

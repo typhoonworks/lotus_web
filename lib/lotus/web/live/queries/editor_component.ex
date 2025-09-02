@@ -20,7 +20,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   def editor(assigns) do
     ~H"""
     <.form for={@form} phx-submit="run_query" phx-target={@target} phx-change="validate">
-      <div class="bg-slate-100">
+      <div class="bg-editor-light dark:bg-editor-dark">
         <.render_toolbar
           form={@form}
           data_repo_names={@data_repo_names}
@@ -33,7 +33,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         />
 
         <div class={["relative", if(@minimized, do: "hidden", else: "")]}>
-          <div id="editor" phx-update="ignore" class="w-full bg-slate-100" style="min-height: 300px;"></div>
+          <div id="editor" phx-update="ignore" class="w-full bg-editor-light dark:bg-editor-dark" style="min-height: 300px;"></div>
           <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" style="display: none;" />
           <div
             data-editor-schema={Lotus.JSON.encode!(@schema || %{})}
@@ -79,7 +79,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
   def render_toolbar(assigns) do
     ~H"""
-    <div class="flex items-center w-full px-6 py-3 border-b border-gray-200 gap-4">
+    <div class="flex items-center w-full px-6 py-3 border-b border-gray-200 dark:border-gray-700 gap-4">
       <div class="w-48">
         <Toolbar.input
           type="select"
@@ -91,7 +91,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         />
       </div>
 
-      <div class="w-px self-stretch bg-gray-300"></div>
+      <div class="w-px self-stretch bg-gray-300 dark:bg-gray-600"></div>
 
       <div class="flex-1 flex flex-wrap gap-3 items-center">
         <%= for v <- @variables do %>
@@ -125,7 +125,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           "p-2 transition-colors",
           if(@variable_settings_visible,
             do: "text-pink-600 hover:text-pink-700",
-            else: "text-gray-400 hover:text-gray-600"
+            else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
         title="Variable settings"
@@ -140,7 +140,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           "p-2 transition-colors",
           if(@schema_explorer_visible,
             do: "text-pink-600 hover:text-pink-700",
-            else: "text-gray-400 hover:text-gray-600"
+            else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
         title="Browse tables"
@@ -152,7 +152,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         type="button"
         phx-click="toggle_editor"
         phx-target={@target}
-        class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+        class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
         title={if @minimized, do: "Expand editor", else: "Minimize editor"}
       >
         <%= if @minimized do %>

@@ -48,10 +48,10 @@ defmodule Lotus.Web.SelectComponent do
   defp render_fieldset_trigger(assigns) do
     ~H"""
     <fieldset class={[
-      "border border-gray-300 rounded-md bg-white focus-within:border-2 focus-within:border-pink-600",
+      "border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-input-dark focus-within:border-2 focus-within:border-pink-600",
       @errors != [] && "border-rose-400 focus-within:border-rose-500"
     ]}>
-      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700">
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
         <%= @label %>
       </legend>
 
@@ -68,7 +68,7 @@ defmodule Lotus.Web.SelectComponent do
           aria-expanded={@open}
           disabled={@disabled}
           class={[
-            "border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm flex items-center justify-between",
+            "border-0 bg-transparent px-3 py-1.5 text-left text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-0 sm:text-sm flex items-center justify-between",
             @class || "w-full"
           ]}
         >
@@ -76,7 +76,7 @@ defmodule Lotus.Web.SelectComponent do
             <%= selected_label(@options, @value) || @prompt || "Select…" %>
           </span>
           <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"
-              class="size-5 text-gray-500 sm:size-4">
+              class="size-5 text-gray-500 dark:text-gray-400 sm:size-4">
             <path fill-rule="evenodd" clip-rule="evenodd"
               d="M5.22 10.22a.75.75 0 0 1 1.06 0L8 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06ZM10.78 5.78a.75.75 0 0 1-1.06 0L8 4.06 6.28 5.78a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06Z" />
           </svg>
@@ -105,9 +105,9 @@ defmodule Lotus.Web.SelectComponent do
         aria-expanded={@open}
         disabled={@disabled}
         class={[
-          "grid cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900",
+          "grid cursor-default grid-cols-1 rounded-md bg-white dark:bg-input-dark py-1.5 pl-3 pr-2 text-left text-gray-900 dark:text-gray-100",
           "outline outline-1 -outline-offset-1",
-          @errors == [] && "outline-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-600",
+          @errors == [] && "outline-gray-300 dark:outline-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-600",
           @errors != [] && "outline-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-rose-500",
           "sm:text-sm/6",
           @class || "w-full"
@@ -117,7 +117,7 @@ defmodule Lotus.Web.SelectComponent do
           <%= selected_label(@options, @value) || @prompt || "Select…" %>
         </span>
         <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"
-            class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4">
+            class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 dark:text-gray-400 sm:size-4">
           <path fill-rule="evenodd" clip-rule="evenodd"
             d="M5.22 10.22a.75.75 0 0 1 1.06 0L8 11.94l1.72-1.72a.75.75 0 1 1 1.06 1.06l-2.25 2.25a.75.75 0 0 1-1.06 0l-2.25-2.25a.75.75 0 0 1 0-1.06ZM10.78 5.78a.75.75 0 0 1-1.06 0L8 4.06 6.28 5.78a.75.75 0 0 1-1.06-1.06l2.25-2.25a.75.75 0 0 1 1.06 0l2.25 2.25a.75.75 0 0 1 0 1.06Z" />
         </svg>
@@ -136,7 +136,7 @@ defmodule Lotus.Web.SelectComponent do
       aria-labelledby={@id}
       tabindex="0"
       class={[
-        "absolute w-full z-50 mt-1 max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg outline outline-1 outline-black/5 sm:text-sm",
+        "absolute w-full z-50 mt-1 max-h-60 overflow-auto rounded-md bg-white dark:bg-input-dark py-1 text-base shadow-lg outline outline-1 outline-black/5 dark:outline-gray-600 sm:text-sm",
         (!@open) && "hidden"
       ]}
       phx-keydown="listbox_keydown"
@@ -149,7 +149,7 @@ defmodule Lotus.Web.SelectComponent do
           aria-selected={@value == value}
           data-value={value}
           class={[
-            "group/option relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900",
+            "group/option relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 dark:text-gray-100",
             if(@active_value == value, do: "bg-pink-600 text-white", else: "hover:bg-pink-600 hover:text-white")
           ]}
           phx-click={

@@ -46,6 +46,8 @@ defmodule Lotus.Web.Layouts do
     """
   end
 
+  attr(:rest, :global)
+
   def footer(assigns) do
     assigns =
       assign(assigns,
@@ -54,7 +56,7 @@ defmodule Lotus.Web.Layouts do
       )
 
     ~H"""
-    <footer class="flex flex-col px-3 pb-3 text-sm justify-center items-center md:flex-row">
+    <footer class={["flex flex-col px-3 pb-3 text-sm justify-center items-center md:flex-row", @rest[:class] || ""]}>
       <.version name="Lotus" version={@oss_version} />
       <.version name="Lotus.Web" version={@web_version} />
     </footer>
@@ -66,7 +68,7 @@ defmodule Lotus.Web.Layouts do
 
   defp version(assigns) do
     ~H"""
-    <span class="text-gray-600 tabular mr-0 mb-1 md:mr-3 md:mb-0">
+    <span class="text-gray-600 dark:text-gray-400 tabular mr-0 mb-1 md:mr-3 md:mb-0">
       {@name} {if @version, do: "v#{@version}", else: "–"}
     </span>
     """

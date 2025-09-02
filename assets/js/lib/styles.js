@@ -14,6 +14,20 @@ const editorStyles = {
     outline: "2px solid #3b82f6",
     outlineOffset: "-1px",
   },
+  ".cm-gutters": {
+    backgroundColor: "#F2F5F9",
+    borderRight: "1px solid #E5E7EB",
+  },
+  ".cm-lineNumbers .cm-gutterElement": {
+    color: "#6B7280",
+  },
+  ".dark .cm-gutters": {
+    backgroundColor: "#27272A !important",
+    borderRight: "1px solid #404040 !important",
+  },
+  ".dark .cm-lineNumbers .cm-gutterElement": {
+    color: "#6B7280 !important",
+  },
 };
 
 const completionStyles = {

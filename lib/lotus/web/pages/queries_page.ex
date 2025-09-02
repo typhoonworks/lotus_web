@@ -10,19 +10,19 @@ defmodule Lotus.Web.QueriesPage do
     ~H"""
       <div id="queries-page" class="flex flex-col h-full overflow-hidden">
         <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full">
-          <div class="bg-white shadow rounded-lg h-full overflow-y-auto">
-            <div class="px-6 py-4 border-b border-gray-200">
-              <h2 class="text-lg font-semibold">Queries</h2>
+          <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-full overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 class="text-lg font-semibold text-text-light dark:text-text-dark">Queries</h2>
             </div>
             <div class="px-4 sm:px-6 lg:px-8">
               <%= if @queries == [] do %>
-                <div class="py-12 text-center text-gray-500">
+                <div class="py-12 text-center text-gray-500 dark:text-gray-400">
                   <p>No saved queries yet.</p>
                 </div>
               <% else %>
                 <.table id="queries-table" rows={@queries}>
                   <:col :let={query} label="Name">
-                    <.link navigate={lotus_path(["queries", query.id])} class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    <.link navigate={lotus_path(["queries", query.id])} class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                       <%= query.name %>
                     </.link>
                   </:col>

@@ -3,6 +3,24 @@ import topbar from "topbar";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
 import EditorForm from "./hooks/editor_form";
 import PlatformScout from "./hooks/platform_scout";
+import ThemeSelector from "./hooks/theme_selector";
+import { load } from "./lib/settings";
+
+function initializeTheme() {
+  const wantsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = load("theme") || "system";
+
+  if (
+    theme === "dark" ||
+    (theme === "system" && wantsDark)
+  ) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+}
+
+initializeTheme();
 
 let topBarScheduled = undefined;
 
@@ -27,6 +45,7 @@ const hooks = {
   DispatchChangeOnUpdate,
   EditorForm,
   PlatformScout,
+  ThemeSelector,
 };
 
 const csrfToken = document
