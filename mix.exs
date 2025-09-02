@@ -45,8 +45,7 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_ecto, "~> 4.5"},
 
       # Lotus
-      # {:lotus, "~> 0.7.0"},
-      {:lotus, git: "git@github.com:typhoonworks/lotus.git", branch: "git"},
+      {:lotus, "~> 0.8.0"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
