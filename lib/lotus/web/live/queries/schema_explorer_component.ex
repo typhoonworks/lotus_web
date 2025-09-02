@@ -1,8 +1,15 @@
 defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   @moduledoc """
-  A drawer component for browsing database tables and columns.
+  A drawer component for browsing data source schemas.
   """
   use Lotus.Web, :live_component
+
+  alias Lotus.Web.SourcesMap
+
+  # Props:
+  # - visible: boolean - whether the drawer is visible
+  # - parent: Phoenix.LiveComponent.CID - parent component
+  # - initial_db: string - initial database to show
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
@@ -43,7 +50,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
       <% :tables -> %>
         <div class="flex items-center">
           <.back_button target={@myself} />
-          <h3 class="text-sm font-medium text-text-light dark:text-text-dark"><%= @current_database %></h3>
+          <h3 class="text-sm font-medium text-text-light dark:text-text-dark"><%= @current_db %></h3>
         </div>
       <% :columns -> %>
         <div class="flex items-center">
@@ -86,16 +93,39 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
       <% :databases -> %>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Browse the contents of your databases, tables, and columns. Pick a database to get started.</p>
       <% :tables -> %>
-        <div class="flex items-center mt-2 text-xs text-gray-600 dark:text-gray-400">
-          <Icons.tables class="h-3 w-3 mr-1" />
-          <%= length(@tables) %> tables
-        </div>
+        <%= if @current_db do %>
+          <div class="flex items-center gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <%= if @current_db_info && @current_db_info.supports_schemas do %>
+              <div class="flex items-center">
+                <Icons.layers class="h-3 w-3 mr-1" />
+                <%= SourcesMap.get_schema_count(@current_db_info) %> schemas
+              </div>
+            <% end %>
+            <div class="flex items-center">
+              <Icons.tables class="h-3 w-3 mr-1" />
+              <%= if @current_db_info, do: SourcesMap.get_table_count(@current_db_info), else: 0 %> tables
+            </div>
+          </div>
+        <% end %>
       <% :columns -> %>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">No description</p>
-        <div class="flex items-center mt-2 text-xs text-gray-600 dark:text-gray-400">
-          <Icons.tables class="h-3 w-3 mr-1" />
-          <%= length(@columns) %> columns
-        </div>
+        <%= if @current_db do %>
+          <div class="flex items-center gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <div class="flex items-center">
+              <Icons.database class="h-3 w-3 mr-1" />
+              <%= @current_db %>
+            </div>
+            <%= if @current_db_info && @current_db_info.supports_schemas && @current_schema != "default" do %>
+              <div class="flex items-center">
+                <Icons.layers class="h-3 w-3 mr-1" />
+                <%= @current_schema %>
+              </div>
+            <% end %>
+            <div class="flex items-center">
+              <Icons.tables class="h-3 w-3 mr-1" />
+              <%= length(@columns) %> columns
+            </div>
+          </div>
+        <% end %>
     <% end %>
     """
   end
@@ -105,9 +135,9 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     <div class="flex-1 overflow-y-auto">
       <%= case @view_mode do %>
         <% :databases -> %>
-          <.databases_list databases={@databases} target={@myself} />
+          <.databases_list sources_map={@sources_map} target={@myself} />
         <% :tables -> %>
-          <.tables_list tables={@tables} target={@myself} />
+          <.tables_list sources_map={@sources_map} current_db={@current_db} current_db_info={@current_db_info} target={@myself} />
         <% :columns -> %>
           <.columns_list columns={@columns} />
       <% end %>
@@ -118,11 +148,11 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   defp databases_list(assigns) do
     ~H"""
     <div class="p-2">
-      <div :for={database <- @databases} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer" phx-click="select_database" phx-value-database={database} phx-target={@target}>
+      <div :for={database <- @sources_map.databases} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer" phx-click="select_database" phx-value-database={database.name} phx-target={@target}>
         <div class="flex-shrink-0 mr-3">
           <Icons.database class="h-4 w-4 text-blue-500" />
         </div>
-        <span class="text-blue-600 dark:text-blue-400 font-mono text-sm"><%= database %></span>
+        <span class="text-blue-600 dark:text-blue-400 font-mono text-sm"><%= database.name %></span>
       </div>
     </div>
     """
@@ -130,14 +160,37 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   defp tables_list(assigns) do
     ~H"""
-    <div class="p-2">
-      <div :for={{schema, table} <- @tables} class="flex items-center py-2 px-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer" phx-click="select_table" phx-value-schema={schema} phx-value-table={table} phx-target={@target}>
-        <div class="flex-shrink-0 mr-3">
-          <Icons.tables class="h-4 w-4 text-green-500" />
+    <%= if @current_db_info do %>
+      <div class="p-2">
+        <div :for={schema <- @current_db_info.schemas}>
+          <span class="sr-only">Schema Header</span>
+          <%= if @current_db_info.supports_schemas do %>
+            <div class="flex items-center py-2 px-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              <div class="flex-shrink-0 mr-2">
+                <Icons.layers class="h-3 w-3" />
+              </div>
+              <div class="flex items-center gap-2 flex-1">
+                <span><%= schema.display_name %></span>
+                <%= if schema.is_default do %>
+                  <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded lowercase">default</span>
+                <% end %>
+              </div>
+              <span class="text-xs text-gray-400"><%= length(schema.tables) %></span>
+            </div>
+          <% end %>
+
+          <span class="sr-only">Tables in Schema</span>
+          <div class={["ml-5", if(@current_db_info.supports_schemas, do: "border-l border-gray-200 dark:border-gray-700", else: "ml-0")]}>
+            <div :for={table <- schema.tables} class="flex items-center py-1.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r cursor-pointer" phx-click="select_table" phx-value-schema={schema.name} phx-value-table={table} phx-target={@target}>
+              <div class="flex-shrink-0 mr-3">
+                <Icons.tables class="h-4 w-4 text-green-500" />
+              </div>
+              <span class="text-blue-600 dark:text-blue-400 font-mono text-sm"><%= table %></span>
+            </div>
+          </div>
         </div>
-        <span class="text-blue-600 font-mono text-sm"><%= table %></span>
       </div>
-    </div>
+    <% end %>
     """
   end
 
@@ -177,123 +230,119 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   @impl Phoenix.LiveComponent
   def mount(socket) do
-    databases = Lotus.list_data_repo_names()
-
     socket =
       socket
       |> assign(visible: false)
       |> assign(view_mode: :databases)
-      |> assign(databases: databases)
-      |> assign(tables: [])
-      |> assign(columns: [])
-      |> assign(current_database: nil)
-      |> assign(current_table: nil)
-      |> assign(current_schema: nil)
+      |> assign(sources_map: SourcesMap.build())
+      |> clear_db_state()
+      |> clear_table_state()
+      |> refresh_current_db_info()
 
     {:ok, socket}
   end
 
   @impl Phoenix.LiveComponent
-  def update(assigns, socket) do
-    socket = assign(socket, assigns)
+  def update(params, socket) do
+    socket = 
+      socket
+      |> assign(params)
+      |> maybe_navigate_to_database(params[:initial_db])
+      |> refresh_current_db_info()
 
-    # If initial_database is provided and it's different from current database, navigate to tables view
-    initial_database = Map.get(assigns, :initial_database)
-
-    if initial_database && initial_database != socket.assigns.current_database &&
-         initial_database != "" do
-      case Lotus.list_tables(initial_database) do
-        {:ok, tables} ->
-          socket =
-            socket
-            |> assign(view_mode: :tables)
-            |> assign(current_database: initial_database)
-            |> assign(tables: tables)
-            |> assign(columns: [])
-            |> assign(current_table: nil)
-            |> assign(current_schema: nil)
-
-          {:ok, socket}
-
-        {:error, _reason} ->
-          {:ok, socket}
-      end
-    else
-      {:ok, socket}
-    end
+    {:ok, socket}
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("select_database", %{"database" => database}, socket) do
-    case Lotus.list_tables(database) do
-      {:ok, tables} ->
-        socket =
-          socket
-          |> assign(view_mode: :tables)
-          |> assign(current_database: database)
-          |> assign(tables: tables)
-          |> assign(columns: [])
-          |> assign(current_table: nil)
-          |> assign(current_schema: nil)
-
-        {:noreply, socket}
-
-      {:error, _reason} ->
-        {:noreply, socket}
-    end
+  def handle_event("select_database", %{"database" => database_name}, socket) do
+    socket = navigate_to_database(socket, database_name)
+    {:noreply, socket}
   end
 
   def handle_event("select_table", %{"schema" => schema, "table" => table}, socket) do
-    case Lotus.get_table_schema(socket.assigns.current_database, table) do
-      {:ok, columns} ->
-        socket =
-          socket
-          |> assign(view_mode: :columns)
-          |> assign(current_table: table)
-          |> assign(current_schema: schema)
-          |> assign(columns: columns)
-
-        {:noreply, socket}
-
-      {:error, _reason} ->
-        {:noreply, socket}
-    end
+    socket = navigate_to_table(socket, schema, table)
+    {:noreply, socket}
   end
 
   def handle_event("navigate_back", _params, socket) do
+    {:noreply, navigate_back(socket)}
+  end
+
+  defp maybe_navigate_to_database(socket, nil), do: socket
+  defp maybe_navigate_to_database(socket, ""), do: socket
+  defp maybe_navigate_to_database(socket, initial_db) do
+    if initial_db != socket.assigns.current_db do
+      navigate_to_database(socket, initial_db)
+    else
+      socket
+    end
+  end
+
+  defp refresh_current_db_info(socket) do
+    current_db_info =
+      SourcesMap.get_database(socket.assigns.sources_map, socket.assigns.current_db)
+
+    assign(socket, current_db_info: current_db_info)
+  end
+
+  defp navigate_to_database(socket, database_name) do
+    case SourcesMap.get_database(socket.assigns.sources_map, database_name) do
+      nil ->
+        socket
+
+      database ->
+        socket
+        |> assign(view_mode: :tables)
+        |> assign(current_db: database_name)
+        |> assign(current_db_info: database)
+        |> clear_table_state()
+    end
+  end
+
+  defp navigate_to_table(socket, schema, table) do
+    opts = if schema != "default", do: [search_path: schema], else: []
+
+    case Lotus.get_table_schema(socket.assigns.current_db, table, opts) do
+      {:ok, columns} ->
+        socket
+        |> assign(view_mode: :columns)
+        |> assign(current_table: table)
+        |> assign(current_schema: schema)
+        |> assign(columns: columns)
+
+      {:error, _reason} ->
+        socket
+    end
+  end
+
+  defp navigate_back(socket) do
     case socket.assigns.view_mode do
       :tables ->
-        databases = Lotus.list_data_repo_names()
-
-        socket =
-          socket
-          |> assign(view_mode: :databases)
-          |> assign(databases: databases)
-          |> assign(current_database: nil)
-          |> assign(tables: [])
-
-        {:noreply, socket}
+        socket
+        |> assign(view_mode: :databases)
+        |> clear_db_state()
 
       :columns ->
-        case Lotus.list_tables(socket.assigns.current_database) do
-          {:ok, tables} ->
-            socket =
-              socket
-              |> assign(view_mode: :tables)
-              |> assign(tables: tables)
-              |> assign(current_table: nil)
-              |> assign(current_schema: nil)
-              |> assign(columns: [])
-
-            {:noreply, socket}
-
-          {:error, _reason} ->
-            {:noreply, socket}
-        end
+        socket
+        |> assign(view_mode: :tables)
+        |> clear_table_state()
 
       _ ->
-        {:noreply, socket}
+        socket
     end
+  end
+
+  defp clear_db_state(socket) do
+    socket
+    |> assign(current_db: nil)
+    |> assign(current_db_info: nil)
+  end
+
+  defp clear_table_state(socket) do
+    socket
+    |> assign(columns: [])
+    |> assign(current_table: nil)
+    |> assign(current_schema: nil)
   end
 
   defp get_column_icon_type(column) do
