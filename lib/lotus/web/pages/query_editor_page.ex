@@ -345,6 +345,16 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("expand_editor", _params, socket) do
+    {:noreply, assign(socket, editor_minimized: false)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("minimize_editor", _params, socket) do
+    {:noreply, assign(socket, editor_minimized: true)}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("toggle_schema_explorer", _params, socket) do
     socket =
       socket

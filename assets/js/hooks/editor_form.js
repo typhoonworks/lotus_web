@@ -57,6 +57,54 @@ export default {
         event.preventDefault();
         onRunQuery();
       },
+      "Meta+c": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "copy_query",
+          {},
+        );
+      },
+      "Control+c": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "copy_query",
+          {},
+        );
+      },
+      "Meta+ArrowDown": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "expand_editor",
+          {},
+        );
+      },
+      "Control+ArrowDown": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "expand_editor",
+          {},
+        );
+      },
+      "Meta+ArrowUp": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "minimize_editor",
+          {},
+        );
+      },
+      "Control+ArrowUp": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "minimize_editor",
+          {},
+        );
+      },
     });
 
     this.el.form?.addEventListener("submit", () => {
