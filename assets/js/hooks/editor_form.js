@@ -73,6 +73,38 @@ export default {
           {},
         );
       },
+      "Meta+x": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "toggle_variable_settings",
+          {},
+        );
+      },
+      "Control+x": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "toggle_variable_settings",
+          {},
+        );
+      },
+      "Meta+e": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "toggle_schema_explorer",
+          {},
+        );
+      },
+      "Control+e": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "toggle_schema_explorer",
+          {},
+        );
+      },
       "Meta+ArrowDown": (event) => {
         event.preventDefault();
         this.pushEventTo(
