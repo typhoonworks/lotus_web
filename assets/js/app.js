@@ -6,6 +6,7 @@ import EditorForm from "./hooks/editor_form";
 import MultiSelectSearch from "./hooks/multi_select_search";
 import PlatformScout from "./hooks/platform_scout";
 import ThemeSelector from "./hooks/theme_selector";
+import Tippy from "./hooks/tippy";
 import { load } from "./lib/settings";
 import { initGlobalShortcuts } from "./lib/global_shortcuts";
 
@@ -52,6 +53,7 @@ const hooks = {
   MultiSelectSearch,
   PlatformScout,
   ThemeSelector,
+  Tippy,
 };
 
 const csrfToken = document

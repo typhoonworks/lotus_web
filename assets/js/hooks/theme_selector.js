@@ -11,6 +11,10 @@ export default {
       document.documentElement.classList.remove("dark");
     }
 
+    window.dispatchEvent(
+      new CustomEvent("lotus:theme-changed", { detail: { theme } }),
+    );
+
     this.updateTriggerIcon(theme);
   },
 
