@@ -68,6 +68,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <% end %>
 
           <button
+            id="run-query-btn"
             type="submit"
             disabled={@running or @statement_empty}
             class={[
@@ -77,7 +78,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
                 else: "hover:bg-pink-500 hover:shadow-xl transform hover:scale-105"
               )
             ]}
-            title={if @statement_empty, do: "Enter SQL to run query", else: "Run Query"}
+           title={if @statement_empty, do: "Enter SQL to run query", else: "Run Query"}
           >
             <%= if @running do %>
               <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -149,15 +150,18 @@ defmodule Lotus.Web.Queries.EditorComponent do
     ~H"""
     <div class="flex items-center space-x-1">
       <button
+        id="copy-query-btn"
         type="button"
         phx-click="copy_query"
         phx-target={@target}
         class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-        title="Copy query to clipboard"
+        data-title="Copy query to clipboard"
+        phx-hook="Tippy"
       >
         <Icons.clipboard_copy class="h-5 w-5" />
       </button>
       <button
+        id="variable-settings-btn"
         type="button"
         phx-click="toggle_variable_settings"
         phx-target={@target}
@@ -168,11 +172,13 @@ defmodule Lotus.Web.Queries.EditorComponent do
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
-        title="Variable settings"
+        data-title="Variable settings"
+        phx-hook="Tippy"
       >
         <Icons.variable class="h-5 w-5" />
       </button>
       <button
+        id="schema-explorer-btn"
         type="button"
         phx-click="toggle_schema_explorer"
         phx-target={@target}
@@ -183,17 +189,20 @@ defmodule Lotus.Web.Queries.EditorComponent do
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
-        title="Browse tables"
+        data-title="Browse tables"
+        phx-hook="Tippy"
       >
         <Icons.tables class="h-5 w-5" />
       </button>
 
       <button
+        id="toggle-editor-btn"
         type="button"
         phx-click="toggle_editor"
         phx-target={@target}
         class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-        title={if @minimized, do: "Expand editor", else: "Minimize editor"}
+        data-title={if @minimized, do: "Expand editor", else: "Minimize editor"}
+        phx-hook="Tippy"
       >
         <%= if @minimized do %>
           <Icons.maximize class="h-5 w-5" />

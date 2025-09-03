@@ -8,6 +8,26 @@
         format("woff");
 }
 
+.tippy-box[data-theme~="lotus"] {
+    @apply pointer-events-none z-[9999] rounded-md text-xs leading-4 shadow-md;
+    @apply text-zinc-800 bg-white ring-1 ring-zinc-950/10;
+    @apply dark:bg-zinc-800 dark:text-zinc-200 dark:ring-white/10 dark:ring-inset;
+}
+
+.tippy-box[data-theme~="lotus"] .tippy-content {
+    @apply px-2.5 py-1.5 max-w-xs min-w-max break-words whitespace-nowrap;
+}
+
+.tippy-box[data-theme~="lotus"] {
+    @apply transition duration-100 ease-out;
+}
+.tippy-box[data-theme~="lotus"][data-state="hidden"] {
+    @apply opacity-0 scale-95;
+}
+.tippy-box[data-theme~="lotus"][data-state="visible"] {
+    @apply opacity-100 scale-100;
+}
+
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
