@@ -5,25 +5,24 @@ import { sql, PostgreSQL, MySQL, SQLite } from "@codemirror/lang-sql";
 import { editorStyles, getCompletionStyles } from "./styles";
 import { lotusVariablesPlugin } from "./plugins/lotus_variables";
 import { ContextAwareCompletion } from "./context_aware_completion";
+import { load } from "./settings";
 
 const editorTheme = EditorView.theme(editorStyles);
 const languageCompartment = new Compartment();
 const completionThemeCompartment = new Compartment();
 
 function isDarkMode() {
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-  ) {
+  const theme = load("theme") || "system";
+  
+  if (theme === "dark") {
     return true;
+  } else if (theme === "light") {
+    return false;
+  } else {
+    // theme === "system" - check system preference
+    const wantsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return wantsDark;
   }
-  if (
-    document.documentElement.classList.contains("dark") ||
-    document.body.classList.contains("dark")
-  ) {
-    return true;
-  }
-  return false;
 }
 
 function dialectFromName(name = "postgres") {
