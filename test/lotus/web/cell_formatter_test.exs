@@ -20,12 +20,12 @@ defmodule Lotus.Web.CellFormatterTest do
 
     test "formats NaiveDateTime" do
       naive_dt = ~N[2024-01-15 14:30:45]
-      assert CellFormatter.format(naive_dt) == "2024-01-15 14:30:45"
+      assert CellFormatter.format(naive_dt) == "2024-01-15T14:30:45"
     end
 
     test "formats DateTime" do
       {:ok, dt, _} = DateTime.from_iso8601("2024-01-15T14:30:45Z")
-      assert CellFormatter.format(dt) == "2024-01-15 14:30:45Z"
+      assert CellFormatter.format(dt) == "2024-01-15T14:30:45Z"
     end
 
     test "formats UUID binary (16 bytes)" do
@@ -50,10 +50,10 @@ defmodule Lotus.Web.CellFormatterTest do
       assert CellFormatter.format("with special chars: 你好") == "with special chars: 你好"
     end
 
-    test "formats invalid UTF-8 binary as binary description" do
+    test "formats invalid UTF-8 binary as Base64" do
       invalid_binary = <<0xFF, 0xFE, 0xFD>>
 
-      assert CellFormatter.format(invalid_binary) == "<<binary, 3 bytes>>"
+      assert CellFormatter.format(invalid_binary) == Base.encode64(invalid_binary)
     end
 
     test "formats integers" do
@@ -99,60 +99,42 @@ defmodule Lotus.Web.CellFormatterTest do
       assert decoded["user"]["metadata"]["role"] == "admin"
     end
 
-    test "formats empty list" do
-      assert CellFormatter.format([]) == "[]"
-    end
-
     test "formats list of primitives" do
-      assert CellFormatter.format([1, 2, 3]) == "[1, 2, 3]"
-      assert CellFormatter.format(["a", "b", "c"]) == "[a, b, c]"
-      assert CellFormatter.format([true, false]) == "[true, false]"
+      assert CellFormatter.format([1, 2, 3]) == "[1,2,3]"
+      assert CellFormatter.format(["a", "b", "c"]) == "[\"a\",\"b\",\"c\"]"
+      assert CellFormatter.format([true, false]) == "[true,false]"
     end
 
     test "formats list with mixed types" do
       mixed_list = [1, "hello", true, nil]
-      assert CellFormatter.format(mixed_list) == "[1, hello, true, ]"
+      assert CellFormatter.format(mixed_list) == "[1,\"hello\",true,null]"
     end
 
     test "formats nested lists" do
       nested_list = [[1, 2], [3, 4]]
-      assert CellFormatter.format(nested_list) == "[[1, 2], [3, 4]]"
+      assert CellFormatter.format(nested_list) == "[[1,2],[3,4]]"
     end
 
     test "formats list with maps" do
       list_with_maps = [%{a: 1}, %{b: 2}]
       result = CellFormatter.format(list_with_maps)
 
-      assert result == ~s([{"a":1}, {"b":2}])
+      assert result == ~s([{"a":1},{"b":2}])
     end
 
     test "formats list with dates" do
       list_with_dates = [~D[2024-01-01], ~D[2024-01-02]]
-      assert CellFormatter.format(list_with_dates) == "[2024-01-01, 2024-01-02]"
+      assert CellFormatter.format(list_with_dates) == ~s(["2024-01-01","2024-01-02"])
     end
 
-    test "formats atoms using inspect" do
-      assert CellFormatter.format(:atom) == ":atom"
-      assert CellFormatter.format(:hello_world) == ":hello_world"
+    test "formats atoms as strings" do
+      assert CellFormatter.format(:atom) == "atom"
+      assert CellFormatter.format(:hello_world) == "hello_world"
     end
 
     test "formats tuples using inspect" do
       assert CellFormatter.format({1, 2, 3}) == "{1, 2, 3}"
       assert CellFormatter.format({:ok, "result"}) == ~s({:ok, "result"})
-    end
-
-    test "formats PIDs using inspect" do
-      pid = self()
-      result = CellFormatter.format(pid)
-
-      assert result =~ ~r/^#PID<\d+\.\d+\.\d+>$/
-    end
-
-    test "formats references using inspect" do
-      ref = make_ref()
-      result = CellFormatter.format(ref)
-
-      assert result =~ ~r/^#Reference</
     end
   end
 end

@@ -18,6 +18,12 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                 <%= CellFormatter.format(Enum.at(row, index)) %>
               </:col>
             </.table>
+            <%= if Enum.empty?(@result.rows) do %>
+              <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+                <p class="text-base">No results found</p>
+                <p class="text-sm mt-1">Your query returned no rows</p>
+              </div>
+            <% end %>
           </div>
 
         <% is_binary(@error) and @error != "" -> %>

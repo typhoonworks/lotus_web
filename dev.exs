@@ -305,12 +305,12 @@ Task.async(fn ->
     (300.10, 'shipped',  4, now(), now())
   ")
 
-  # Reporting Customers
+  # Reporting Customers - some with matching user emails for cross-schema queries
   WebDev.PostgresRepo.query!("INSERT INTO reporting.customers (name, email, active, inserted_at, updated_at) VALUES
-    ('Acme Corp',       'contact@acme.com',       true,  now(), now()),
-    ('Globex Inc',      'info@globex.com',        true,  now(), now()),
+    ('Alice Consulting', 'alice@example.com',     true,  now(), now()),
+    ('Bob Enterprises',  'bob@example.com',       true,  now(), now()),
     ('Initech',         'hello@initech.com',      false, now(), now()),
-    ('Umbrella Corp',   'support@umbrella.com',   true,  now(), now())
+    ('Diana Corp',      'diana@example.com',      true,  now(), now())
   ")
 
   # Reporting Invoices
