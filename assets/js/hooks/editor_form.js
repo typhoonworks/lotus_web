@@ -46,6 +46,8 @@ export default {
       onVars: onVariableChange,
     });
 
+    editorContainer.lotusEditor = this.editor;
+
     this.unbindKeys = tinykeys(window, {
       "Meta+Enter": (event) => {
         event.preventDefault();
@@ -59,6 +61,26 @@ export default {
 
     this.el.form?.addEventListener("submit", () => {
       textarea.value = this.editor.getContent();
+    });
+
+    this.handleEvent("copy-editor-content", () => {
+      const content = this.editor.getContent();
+      navigator.clipboard
+        .writeText(content)
+        .then(() => {
+          this.pushEventTo(
+            this.el.closest("[data-phx-component]"),
+            "copy-to-clipboard-success",
+            {},
+          );
+        })
+        .catch((err) => {
+          this.pushEventTo(
+            this.el.closest("[data-phx-component]"),
+            "copy-to-clipboard-error",
+            { error: err.message },
+          );
+        });
     });
 
     this.requestSchema();

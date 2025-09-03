@@ -394,6 +394,21 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("copy-to-clipboard-success", _params, socket) do
+    {:noreply, put_flash(socket, :info, "Query copied to clipboard!")}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("copy-to-clipboard-error", %{"error" => error}, socket) do
+    {:noreply, put_flash(socket, :error, "Failed to copy query: #{error}")}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("copy_query", _params, socket) do
+    {:noreply, push_event(socket, "copy-editor-content", %{})}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("run_query", %{"query" => query_params} = _payload, socket) do
     changeset = build_query_changeset(socket.assigns.query, query_params)
     form = build_query_form(changeset)

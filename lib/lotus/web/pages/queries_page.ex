@@ -20,7 +20,8 @@ defmodule Lotus.Web.QueriesPage do
                   <p>No saved queries yet.</p>
                 </div>
               <% else %>
-                <.table id="queries-table" rows={@queries}>
+                <div class="mt-8">
+                  <.table id="queries-table" rows={@queries}>
                   <:col :let={query} label="Name">
                     <.link navigate={lotus_path(["queries", query.id])} class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                       <%= query.name %>
@@ -32,7 +33,8 @@ defmodule Lotus.Web.QueriesPage do
                   <:col :let={query} label="Created">
                     <%= Calendar.strftime(query.inserted_at, "%b %d, %Y") %>
                   </:col>
-                </.table>
+                  </.table>
+                </div>
               <% end %>
             </div>
           </div>

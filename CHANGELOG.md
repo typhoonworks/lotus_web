@@ -18,6 +18,18 @@
   - Built-in SQL functions and aggregate suggestions
   - Intelligent keyword detection to avoid interfering with SQL keyword completion
   - Dynamic completion theme switching that follows light/dark mode changes
+- **Enhanced Query Results UI** - Improved results display with status indicators and actions
+  - Results heading always shows when query has been executed
+  - Success/Error status badges with appropriate icons and colors
+  - Row count and execution time display below status indicators
+  - Copy query to clipboard functionality with proper formatting preservation
+  - Clipboard button in editor toolbar to copy SQL queries with line breaks preserved
+
+### Changed
+
+- **Improved Table Component** - Removed hardcoded margins from core table component for better flexibility
+  - Table margins now controlled by parent containers for consistent spacing
+  - Updated all table usages to include appropriate margin wrappers
 
 ## [0.3.1] - 2025-09-01
 

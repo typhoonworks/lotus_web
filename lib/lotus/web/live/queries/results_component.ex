@@ -12,7 +12,25 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     <div class="px-4 sm:px-6 lg:px-8">
       <%= cond do %>
         <% @result != nil -> %>
-          <div class="overflow-x-auto">
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md">
+                  <Icons.check class="w-4 h-4" />
+                  Success
+                </span>
+                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <%= @result.num_rows %> rows • <%= @result.duration_ms %>ms
+                </div>
+              </div>
+              <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
+                <Icons.download class="h-5 w-5" />
+                Export (.csv)
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto mt-2">
             <.table id="query-results" rows={@result.rows}>
               <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
                 <%= CellFormatter.format(Enum.at(row, index)) %>
@@ -27,6 +45,17 @@ defmodule Lotus.Web.Queries.ResultsComponent do
           </div>
 
         <% is_binary(@error) and @error != "" -> %>
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-md">
+                  <Icons.x_mark class="w-4 h-4" />
+                  Error
+                </span>
+              </div>
+            </div>
+          </div>
           <.render_error error={@error} />
 
         <% true -> %>
@@ -42,7 +71,6 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     ~H"""
     <div class="flex flex-col items-center justify-center py-16 text-gray-500">
       <div class="text-red-600 text-center">
-        <p class="font-medium">Error:</p>
         <p class="text-sm mt-1"><%= @error %></p>
       </div>
     </div>
