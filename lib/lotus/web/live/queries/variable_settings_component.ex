@@ -97,7 +97,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
           <.inputs_for :let={vf} field={@form[:variables]}>
             <div class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 space-y-3">
               <div>
-                <.label for={vf[:name].id}>Variable name</.label>
+                <.label>Variable name</.label>
                 <div class="mt-1 text-sm text-pink-600 dark:text-pink-400 font-mono"><%= vf.source.data.name || vf[:name].value %></div>
                 <input type="hidden" name={vf[:name].name} value={vf[:name].value} />
               </div>
@@ -109,9 +109,13 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                       placeholder={"Label for #{vf[:name].value}"} />
 
               <%= if vf[:type].value != :date do %>
-                <.label>Widget type</.label>
-                <.input type="radio" field={vf[:widget]} value="input" label="Input box" checked={vf[:widget].value == :input}/>
-                <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
+                <fieldset>
+                  <legend class="block text-sm font-semibold leading-6 text-text-light dark:text-text-dark">Widget type</legend>
+                  <div class="mt-1 space-y-2">
+                    <.input type="radio" field={vf[:widget]} value="input" label="Input box" checked={vf[:widget].value == :input}/>
+                    <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
+                  </div>
+                </fieldset>
               <% end %>
 
               <%= if vf[:widget].value == :select do %>

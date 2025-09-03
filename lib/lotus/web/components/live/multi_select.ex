@@ -162,6 +162,8 @@ defmodule Lotus.Web.MultiSelectComponent do
         <Icons.search class="size-4 text-zinc-400 flex-shrink-0" />
         <input
           type="text"
+          id={@id <> "-search"}
+          name="search"
           class="w-full text-sm bg-transparent border-0 outline-0 ring-0 focus:ring-0 focus:outline-0 focus:border-0 appearance-none rounded-none shadow-none p-0"
           placeholder={@search_prompt}
         />
