@@ -15,6 +15,14 @@
           <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
             <.button type="button">New Query</.button>
           </.link>
+          <button
+            type="button"
+            phx-click={show_modal("shortcuts-modal")}
+            class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            title="Keyboard shortcuts"
+          >
+            <Icons.command class="h-5 w-5" />
+          </button>
           <.theme_selector />
         </div>
       </div>
@@ -30,4 +38,6 @@
   </main>
 
   <.footer class="dark:bg-gray-900 dark:text-gray-300" />
+
+  <.shortcuts_modal />
 </div>

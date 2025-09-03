@@ -7,6 +7,7 @@ import MultiSelectSearch from "./hooks/multi_select_search";
 import PlatformScout from "./hooks/platform_scout";
 import ThemeSelector from "./hooks/theme_selector";
 import { load } from "./lib/settings";
+import { initGlobalShortcuts } from "./lib/global_shortcuts";
 
 function initializeTheme() {
   const wantsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -23,6 +24,7 @@ function initializeTheme() {
 }
 
 initializeTheme();
+initGlobalShortcuts();
 
 let topBarScheduled = undefined;
 
