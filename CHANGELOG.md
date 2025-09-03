@@ -24,6 +24,7 @@
   - Row count and execution time display below status indicators
   - Copy query to clipboard functionality with proper formatting preservation
   - Clipboard button in editor toolbar to copy SQL queries with line breaks preserved
+  - CSV export functionality with automatic file downloads
 
 ### Changed
 

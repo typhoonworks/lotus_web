@@ -6,6 +6,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   attr(:result, :any, default: nil)
   attr(:error, :string, default: nil)
   attr(:os, :atom, default: :unknown)
+  attr(:target, Phoenix.LiveComponent.CID, default: nil)
 
   def render_result(assigns) do
     ~H"""
@@ -24,7 +25,10 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   <%= @result.num_rows %> rows • <%= @result.duration_ms %>ms
                 </div>
               </div>
-              <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
+              <button 
+                phx-click="export_csv"
+                phx-target={@target}
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
                 <Icons.download class="h-5 w-5" />
                 Export (.csv)
               </button>

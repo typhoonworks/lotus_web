@@ -17,7 +17,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <div id="query-editor-page" class="flex flex-col h-full overflow-hidden">
+    <div id="query-editor-page" phx-hook="Download" class="flex flex-col h-full overflow-hidden">
       <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full flex flex-col">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-full flex flex-col overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
@@ -63,7 +63,7 @@ defmodule Lotus.Web.QueryEditorPage do
                 variables={@query.variables}
                 variable_values={Map.get(assigns, :variable_values, %{})}
               />
-              <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} />
+              <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} target={@myself} />
 
             </div>
           </div>
@@ -406,6 +406,39 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("copy_query", _params, socket) do
     {:noreply, push_event(socket, "copy-editor-content", %{})}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("export_csv", _params, socket) do
+    case socket.assigns.result do
+      nil ->
+        {:noreply, put_flash(socket, :error, "No query results to export")}
+
+      result ->
+        csv_data = Lotus.Export.to_csv(result)
+        csv_binary = IO.iodata_to_binary(csv_data)
+        timestamp = DateTime.utc_now() |> DateTime.to_iso8601(:basic)
+
+        base_name =
+          case socket.assigns.query.name do
+            name when is_binary(name) and name != "" ->
+              name
+              |> String.trim()
+              |> String.replace(~r/[^\w\s-]/, "")
+              |> String.replace(~r/\s+/, "_")
+              |> String.downcase()
+
+            _ ->
+              "query_results"
+          end
+
+        filename = "#{base_name}_#{timestamp}.csv"
+
+        {:noreply,
+         socket
+         |> put_flash(:info, "CSV export ready for download")
+         |> push_event("download-csv", %{data: csv_binary, filename: filename})}
+    end
   end
 
   @impl Phoenix.LiveComponent
