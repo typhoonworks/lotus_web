@@ -157,6 +157,9 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
   - 2 columns: first is value, second is label  
   - 3+ columns: uses first two columns
 
+  Values are formatted using Lotus.Value.to_display_string/1 to handle
+  UUIDs and other binary data types properly.
+
   ## Examples
 
       iex> result = %{columns: ["name"], rows: [["Alice"], ["Bob"]]}
@@ -174,16 +177,21 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
     Enum.map(rows, fn row ->
       case column_count do
         1 ->
-          value = List.first(row)
-          %{value: value, label: value}
+          raw_value = List.first(row)
+          formatted_value = Lotus.Value.to_display_string(raw_value)
+          %{value: formatted_value, label: formatted_value}
 
         2 ->
-          [value, label] = row
-          %{value: value, label: label}
+          [raw_value, raw_label] = row
+          formatted_value = Lotus.Value.to_display_string(raw_value)
+          formatted_label = Lotus.Value.to_display_string(raw_label)
+          %{value: formatted_value, label: formatted_label}
 
         _ ->
-          [value, label | _] = row
-          %{value: value, label: label}
+          [raw_value, raw_label | _] = row
+          formatted_value = Lotus.Value.to_display_string(raw_value)
+          formatted_label = Lotus.Value.to_display_string(raw_label)
+          %{value: formatted_value, label: formatted_label}
       end
     end)
   end
