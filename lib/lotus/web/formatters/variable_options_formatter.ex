@@ -149,6 +149,47 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
   
   def to_select_options(_), do: []
 
+  @doc """
+  Converts Lotus query result to option maps format.
+  
+  Handles results with:
+  - 1 column: uses value for both value and label
+  - 2 columns: first is value, second is label  
+  - 3+ columns: uses first two columns
+  
+  ## Examples
+  
+      iex> result = %{columns: ["name"], rows: [["Alice"], ["Bob"]]}
+      iex> VariableOptionsFormatter.from_lotus_result(result)
+      [%{value: "Alice", label: "Alice"}, %{value: "Bob", label: "Bob"}]
+      
+      iex> result = %{columns: ["id", "name"], rows: [[1, "Alice"], [2, "Bob"]]}
+      iex> VariableOptionsFormatter.from_lotus_result(result)
+      [%{value: 1, label: "Alice"}, %{value: 2, label: "Bob"}]
+  """
+  @spec from_lotus_result(map()) :: [map()]
+  def from_lotus_result(%{columns: columns, rows: rows}) do
+    column_count = length(columns)
+    
+    Enum.map(rows, fn row ->
+      case column_count do
+        1 ->
+          value = List.first(row)
+          %{value: value, label: value}
+          
+        2 ->
+          [value, label] = row
+          %{value: value, label: label}
+          
+        _ ->
+          [value, label | _] = row
+          %{value: value, label: label}
+      end
+    end)
+  end
+  
+  def from_lotus_result(_), do: []
+
   defp normalize_single_option(nil), do: nil
 
   defp normalize_single_option(option) do
