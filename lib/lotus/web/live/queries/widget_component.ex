@@ -1,22 +1,26 @@
 defmodule Lotus.Web.Queries.WidgetComponent do
   use Lotus.Web, :html
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
+  alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
   @moduledoc """
   Renders a single variable widget for the toolbar.
 
   Props:
-    * var          - %QueryVariable{} or map with keys:
-                     :name, :type (:text|:number|:date),
-                     :widget (:input|:select|:date),
-                     :label, :default, :static_options
-    * value        - current value override (from @variable_values); falls back to var.default
-    * class        - extra classes for outer wrapper
+    * var               - %QueryVariable{} or map with keys:
+                          :name, :type (:text|:number|:date),
+                          :widget (:input|:select|:date),
+                          :label, :default, :static_options
+    * value             - current value override (from @variable_values); falls back to var.default
+    * class             - extra classes for outer wrapper
+    * resolved_options  - pre-resolved Phoenix select options [{label, value}] for SQL-based dropdowns;
+                          takes precedence over static_options when provided
   """
 
   attr(:var, :map, required: true)
   attr(:value, :any, default: nil)
   attr(:class, :string, default: nil)
+  attr(:resolved_options, :list, default: nil)
 
   def widget(assigns) do
     assigns =
@@ -26,7 +30,13 @@ defmodule Lotus.Web.Queries.WidgetComponent do
       |> assign_new(:id, fn -> "variable_#{assigns.var.name}" end)
       |> assign_new(:value, fn -> assigns.value || assigns.var.default end)
       |> assign_new(:widget, fn -> widget_type(assigns.var) end)
-      |> assign_new(:options, fn -> to_select_options(assigns.var.static_options) end)
+      |> assign_new(:options, fn ->
+        if assigns.resolved_options && assigns.resolved_options != [] do
+          assigns.resolved_options
+        else
+          OptionsFormatter.to_select_options(assigns.var.static_options)
+        end
+      end)
 
     ~H"""
     <div class={["flex items-center gap-2 min-w-32", @class]}>
@@ -72,33 +82,6 @@ defmodule Lotus.Web.Queries.WidgetComponent do
   defp widget_type(%{type: :date}), do: :date
   defp widget_type(%{widget: :select}), do: :select
   defp widget_type(_), do: :input
-
-  # Accepts:
-  #   * [{"Label","value"}, ...]
-  #   * [{"Label", 123}, ...]
-  #   * ["value", ...]                    -> {value, value}
-  #   * ["value | label", ...]            -> {label, value}
-  defp to_select_options(nil), do: []
-
-  defp to_select_options(list) when is_list(list) do
-    list
-    |> Enum.reduce([], fn
-      {label, value}, acc ->
-        [{to_string(label), to_string(value)} | acc]
-
-      s, acc when is_binary(s) ->
-        case String.split(s, "|", parts: 2) do
-          [value, label] -> [{String.trim(label), String.trim(value)} | acc]
-          [value] -> [{value, value} | acc]
-        end
-
-      _, acc ->
-        acc
-    end)
-    |> Enum.reverse()
-  end
-
-  defp to_select_options(_), do: []
 
   defp format_label(name) when is_binary(name) do
     name |> String.split("_") |> Enum.map(&String.capitalize/1) |> Enum.join(" ")

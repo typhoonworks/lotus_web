@@ -124,6 +124,31 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
 
   def static_options_to_storage(_), do: []
 
+  @doc """
+  Converts static options to Phoenix select format: [{label, value}, ...].
+  
+  ## Examples
+  
+      iex> options = [%{"value" => "bob", "label" => "Bob"}, %{"value" => "alice", "label" => "Alice"}]
+      iex> VariableOptionsFormatter.to_select_options(options)
+      [{"Bob", "bob"}, {"Alice", "alice"}]
+      
+      iex> VariableOptionsFormatter.to_select_options(nil)
+      []
+  """
+  @spec to_select_options([map()] | nil) :: [{String.t(), String.t()}]
+  def to_select_options(nil), do: []
+  
+  def to_select_options(static_options) when is_list(static_options) do
+    static_options
+    |> normalize_to_maps()
+    |> Enum.map(fn %{"value" => value, "label" => label} ->
+      {label, value}
+    end)
+  end
+  
+  def to_select_options(_), do: []
+
   defp normalize_single_option(nil), do: nil
 
   defp normalize_single_option(option) do
