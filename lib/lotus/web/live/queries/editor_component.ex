@@ -16,6 +16,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:dialect, :string, default: "postgres")
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
+  attr(:resolved_variable_options, :map, default: %{})
 
   def editor(assigns) do
     search_path_field = assigns.form[:search_path]
@@ -47,6 +48,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           minimized={@minimized}
           variables={@variables}
           variable_values={@variable_values}
+          resolved_variable_options={@resolved_variable_options}
         />
 
         <div class={["relative pb-8", if(@minimized, do: "hidden", else: "")]}>
@@ -103,6 +105,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:minimized, :boolean, default: false)
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
+  attr(:resolved_variable_options, :map, default: %{})
 
   def render_toolbar(assigns) do
     ~H"""
@@ -126,7 +129,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
         <div class="flex-1 flex flex-wrap gap-3 items-center">
           <%= for v <- @variables do %>
-            <.widget var={v} value={Map.get(@variable_values, v.name, v.default)} />
+            <.widget
+              var={v}
+              value={Map.get(@variable_values, v.name, v.default)}
+              resolved_options={get_variable_options(@resolved_variable_options, v.name)}
+            />
           <% end %>
         </div>
 
@@ -212,5 +219,9 @@ defmodule Lotus.Web.Queries.EditorComponent do
       </button>
     </div>
     """
+  end
+
+  defp get_variable_options(options, variable_name) do
+    Map.get(options, variable_name)
   end
 end

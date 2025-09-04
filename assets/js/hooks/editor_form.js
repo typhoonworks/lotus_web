@@ -57,7 +57,7 @@ export default {
         event.preventDefault();
         onRunQuery();
       },
-      "Meta+c": (event) => {
+      "Meta+Shift+c": (event) => {
         event.preventDefault();
         this.pushEventTo(
           this.el.closest("[data-phx-component]"),
@@ -65,7 +65,7 @@ export default {
           {},
         );
       },
-      "Control+c": (event) => {
+      "Control+Shift+c": (event) => {
         event.preventDefault();
         this.pushEventTo(
           this.el.closest("[data-phx-component]"),

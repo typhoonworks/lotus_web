@@ -56,7 +56,7 @@ WHERE status = {{order_status}}
 ### Dropdown Widgets
 - **Best for**: Predefined lists of options  
 - **Available for**: Text and Number variables
-- **Configuration**: Static options (one per line)
+- **Configuration**: Custom list or SQL query options
 
 #### Static Options Format
 
@@ -67,6 +67,35 @@ pending
 completed
 cancelled
 ```
+
+**Value and label pairs** (using `|` separator):
+```
+active | Active
+pending | Pending  
+completed | Completed
+cancelled | Cancelled
+```
+
+#### SQL Query Options
+
+**Dynamic dropdown options** populated from database queries:
+
+**Single column query** (value = label):
+```sql
+SELECT status FROM orders GROUP BY status ORDER BY status
+```
+
+**Two column query** (first = value, second = label):
+```sql
+SELECT user_id, email FROM users WHERE active = true ORDER BY email
+```
+
+**Query requirements**:
+- Must return 1 or 2 columns
+- If 2+ columns, first is used as value, second as label
+- Results are cached for performance
+- Queries executed with current data source and search path
+- Built-in "Test Query" button validates before saving
 
 ### Date Picker Widgets
 - **Automatic**: All date variables use date picker
@@ -114,7 +143,7 @@ ORDER BY date DESC
 ```
 
 **Variable Configuration**:
-- `order_status`: Text, Dropdown with options: "active|Active", "pending|Pending", "completed|Completed"
+- `order_status`: Text, Dropdown with static options: "active|Active", "pending|Pending", "completed|Completed"
 - `start_date`: Date (automatic date picker)
 - `end_date`: Date (automatic date picker)  
 - `min_amount`: Number, Input with default value "0"
@@ -138,6 +167,24 @@ ORDER BY order_count DESC
 - `user_email`: Text, Input with label "Search Email", default value ""
 - `min_orders`: Number, Input with default value "1"
 
+### Dynamic Category Analysis Query
+```sql
+SELECT 
+  c.name as category_name,
+  COUNT(p.id) as product_count,
+  AVG(p.price) as avg_price
+FROM categories c
+LEFT JOIN products p ON c.id = p.category_id
+WHERE c.id = {{category_id}}
+  AND p.active = {{product_status}}
+GROUP BY c.id, c.name
+ORDER BY product_count DESC
+```
+
+**Variable Configuration**:
+- `category_id`: Number, Dropdown with SQL query: `SELECT id, name FROM categories WHERE active = true ORDER BY name`
+- `product_status`: Text, Dropdown with static options: "true|Active", "false|Inactive"
+
 ## Best Practices
 
 ### Naming Conventions
@@ -152,14 +199,18 @@ ORDER BY order_count DESC
 - **Set defaults if you want queries to auto-run** - widgets start empty unless defaults are configured
 
 ### Widget Selection
-- **Use Dropdowns** for:
+- **Use Static Dropdowns** for:
   - Status fields with known values
-  - Category selections  
   - Boolean-like choices (Active/Inactive)
+  - Small, fixed lists that rarely change
+- **Use SQL Query Dropdowns** for:
+  - User lists, category selections
+  - Dynamic lookups from database tables
+  - Lists that change frequently
 - **Use Input fields** for:
   - Free-form text search
   - Numeric thresholds
-  - User IDs or custom values
+  - Custom values not in predefined lists
 
 ### Query Design
 - Design queries to handle empty/null variables gracefully
@@ -191,20 +242,29 @@ ORDER BY order_count DESC
 - **Refresh editor**: Sometimes requires re-typing the variable
 
 ### Dropdown Options Not Working
-- **Format**: One option per line in static options
-- **Labels**: Use `value | label` format for custom labels
+- **Static options format**: One option per line
+- **Custom options**: Either `value` (doubles as value/label) or `value | label` syntax
 - **Empty lines**: Remove empty lines between options
+- **SQL queries**: Use "Test Query" button to validate before saving
+- **Query columns**: Must return 1 or 2 columns (value, label)
 
 ### Date Variables Issues
 - **Widget type**: Date variables always use date picker (no input/dropdown)
 - **Format**: Outputs ISO date format (YYYY-MM-DD)
 - **Timezone**: Uses browser's local timezone for date picker
 
-## Future Enhancements
+## Configuration Modal
 
-### SQL Query Options (Coming Soon)
-- **Dynamic dropdowns**: Populate dropdown options from SQL queries
-- **Format**: `SELECT value_column, label_column FROM table_name`
-- **Use cases**: User lists, category tables, dynamic lookups
+### Accessing Dropdown Options Configuration
+1. Set a variable to use a Dropdown widget in Variable Settings
+2. Click the "Configure options" button next to the dropdown widget selection
+3. Choose between "Custom list" or "From SQL" in the configuration modal
+
+### Modal Features
+- **Custom list**: Text area for entering static options (one per line)
+- **From SQL**: Text area for SQL queries with syntax highlighting
+- **Test Query**: Validate SQL queries and preview first 3 results before saving
+- **Live preview**: Shows how options will appear in the dropdown
+- **Error handling**: Clear error messages for invalid queries or syntax
 
 

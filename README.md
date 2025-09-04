@@ -50,7 +50,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - 📊 **Results visualization** - clean, tabular display of query results
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
-- ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax and configurable widgets
+- ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
 
 ## What's planned?
 - [ ] **Export functionality** - CSV, JSON, and Excel export options
@@ -60,6 +60,7 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 - [ ] **Advanced permissions** - role-based access to queries and databases
 - [ ] **Charts** - render charts from queries
 - [x] **Smart variables** - parameterized queries with `{{variable}}` syntax
+- [x] **SQL query-based dropdown options** - populate variable dropdowns from database queries
 - [x] **Schema exploration** - interactive database schema browser
 
 ## Installation

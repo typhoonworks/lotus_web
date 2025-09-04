@@ -10,6 +10,8 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.SourcesMap
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
+  alias Lotus.Web.Queries.DropdownOptionsModal
+  alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
   import Lotus.Web.Queries.EditorComponent
   import Lotus.Web.Queries.ResultsComponent
@@ -62,6 +64,7 @@ defmodule Lotus.Web.QueryEditorPage do
                 variable_settings_visible={@variable_settings_visible}
                 variables={@query.variables}
                 variable_values={Map.get(assigns, :variable_values, %{})}
+                resolved_variable_options={@resolved_variable_options}
               />
               <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} target={@myself} />
 
@@ -72,6 +75,16 @@ defmodule Lotus.Web.QueryEditorPage do
 
       <.save_modal query_form={@query_form} target={@myself} />
       <.delete_modal :if={@page.mode == :edit} target={@myself} />
+
+      <%= if @dropdown_options_modal_visible do %>
+        <.live_component
+          module={DropdownOptionsModal}
+          id="dropdown_options_modal"
+          variable_name={@dropdown_options_variable_name}
+          variable_data={get_variable_data(@query_form, @dropdown_options_variable_name)}
+          parent={@myself}
+        />
+      <% end %>
     </div>
     """
   end
@@ -386,6 +399,15 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("open_dropdown_options_modal", %{"variable" => variable_name}, socket) do
+    {:noreply,
+     assign(socket,
+       dropdown_options_modal_visible: true,
+       dropdown_options_variable_name: variable_name
+     )}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("request_editor_schema", _params, socket) do
     data_repo = socket.assigns.query.data_repo
     socket = maybe_update_editor_schema(socket, data_repo)
@@ -499,6 +521,47 @@ defmodule Lotus.Web.QueryEditorPage do
 
   def handle_info(_msg, socket), do: {:noreply, socket}
 
+  @impl Phoenix.LiveComponent
+  def update(%{action: :close_dropdown_options_modal}, socket) do
+    {:ok,
+     assign(socket, dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)}
+  end
+
+  def update(%{action: :save_dropdown_options} = assigns, socket) do
+    socket =
+      socket
+      |> update_variable_options(assigns.variable_name, assigns.options_data)
+      |> assign(dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)
+
+    {:ok, socket}
+  end
+
+  def update(%{action: :test_dropdown_query} = assigns, socket) do
+    repo = socket.assigns.query.data_repo || socket.assigns.default_repo
+    search_path = socket.assigns.query.search_path
+
+    # No cache for modal testing - users want fresh results
+    case fetch_dropdown_options(assigns.sql_query, repo, search_path, limit: 3, cache: false) do
+      {:ok, results} ->
+        send_update(DropdownOptionsModal,
+          id: "dropdown_options_modal",
+          query_test_result: {:ok, results}
+        )
+
+      {:error, error} ->
+        send_update(DropdownOptionsModal,
+          id: "dropdown_options_modal",
+          query_test_result: {:error, error}
+        )
+    end
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket) do
+    {:ok, assign(socket, assigns)}
+  end
+
   defp assign_data_repos(socket) do
     data_repo_names = Lotus.list_data_repo_names()
     {default_repo, _module} = Lotus.default_data_repo()
@@ -518,15 +581,19 @@ defmodule Lotus.Web.QueryEditorPage do
       schema_explorer_visible: false,
       variable_settings_visible: false,
       variable_settings_active_tab: nil,
+      dropdown_options_modal_visible: false,
+      dropdown_options_variable_name: nil,
       editor_schema: nil,
       editor_dialect: nil,
       detected_variables: [],
-      variable_form: to_form(%{}, as: "variables")
+      variable_form: to_form(%{}, as: "variables"),
+      resolved_variable_options: %{}
     )
   end
 
   defp assign_query_changeset(socket, %Query{} = query) do
     changeset = Query.update(query, %{})
+    resolved_options = resolve_variable_options(query)
 
     variable_values =
       case Map.get(socket.assigns, :variable_values) do
@@ -544,7 +611,8 @@ defmodule Lotus.Web.QueryEditorPage do
       query_changeset: changeset,
       query_form: to_form(changeset, as: "query"),
       statement_empty: String.trim(query.statement) == "",
-      variable_values: variable_values
+      variable_values: variable_values,
+      resolved_variable_options: resolved_options
     )
   end
 
@@ -607,9 +675,13 @@ defmodule Lotus.Web.QueryEditorPage do
       "widget" => v.widget,
       "label" => v.label,
       "default" => v.default,
-      "static_options" => v.static_options,
+      "static_options" => static_options_to_params(v.static_options),
       "options_query" => v.options_query
     }
+  end
+
+  defp static_options_to_params(static_options) do
+    OptionsFormatter.static_options_to_storage(static_options)
   end
 
   defp format_variable_label(var_name) when is_binary(var_name) do
@@ -645,17 +717,15 @@ defmodule Lotus.Web.QueryEditorPage do
   defp normalize_variable_attrs(attrs) when is_map(attrs) do
     case Map.get(attrs, "static_options") do
       options_string when is_binary(options_string) and options_string != "" ->
-        options_array =
-          options_string
-          |> String.split("\n")
-          |> Enum.map(&String.trim/1)
-          |> Enum.reject(&(&1 == ""))
-
-        result = Map.put(attrs, "static_options", options_array)
-        result
+        options_maps = OptionsFormatter.from_display_format(options_string)
+        Map.put(attrs, "static_options", options_maps)
 
       "" ->
         Map.put(attrs, "static_options", [])
+
+      options_list when is_list(options_list) ->
+        normalized_options = OptionsFormatter.normalize_to_maps(options_list)
+        Map.put(attrs, "static_options", normalized_options)
 
       _ ->
         attrs
@@ -794,5 +864,130 @@ defmodule Lotus.Web.QueryEditorPage do
       %{mode: :new} ->
         Lotus.create_query(query_attrs)
     end
+  end
+
+  defp get_variable_data(form, variable_name) do
+    variables = form[:variables].value || []
+
+    case Enum.find(variables, fn var ->
+           case var do
+             %Ecto.Changeset{} = changeset ->
+               Ecto.Changeset.get_field(changeset, :name) == variable_name
+
+             %{name: name} ->
+               name == variable_name
+
+             _ ->
+               false
+           end
+         end) do
+      nil ->
+        %{}
+
+      %Ecto.Changeset{} = changeset ->
+        Ecto.Changeset.apply_changes(changeset)
+
+      variable ->
+        variable
+    end
+  end
+
+  defp update_variable_options(socket, variable_name, options_data) do
+    current_query = socket.assigns.query
+
+    updated_variables =
+      Enum.map(current_query.variables, fn var ->
+        if var.name == variable_name do
+          %{
+            var
+            | static_options: options_data.static_options,
+              options_query: options_data.options_query
+          }
+        else
+          var
+        end
+      end)
+
+    updated_query = %{current_query | variables: updated_variables}
+    params = %{"variables" => Enum.map(updated_variables, &variable_to_params/1)}
+    changeset = build_query_changeset(updated_query, params)
+
+    resolved_options = resolve_variable_options(updated_query)
+
+    socket
+    |> update_query_state(changeset, [])
+    |> assign(:resolved_variable_options, resolved_options)
+  end
+
+  defp fetch_dropdown_options(sql_query, repo, search_path, opts \\ []) do
+    limit = Keyword.get(opts, :limit)
+    use_cache = Keyword.get(opts, :cache, true)
+
+    try do
+      limited_query =
+        if limit do
+          "SELECT * FROM (#{sql_query}) AS test_query LIMIT #{limit}"
+        else
+          sql_query
+        end
+
+      run_opts = [repo: repo]
+
+      run_opts =
+        if search_path && String.trim(search_path) != "" do
+          Keyword.put(run_opts, :search_path, search_path)
+        else
+          run_opts
+        end
+
+      run_opts =
+        if use_cache do
+          Keyword.put(run_opts, :cache, profile: :options)
+        else
+          run_opts
+        end
+
+      case Lotus.run_sql(limited_query, [], run_opts) do
+        {:ok, result} ->
+          formatted_results = OptionsFormatter.from_lotus_result(result)
+          {:ok, formatted_results}
+
+        {:error, error} ->
+          {:error, to_string(error)}
+      end
+    rescue
+      error ->
+        {:error, "Query execution failed: #{Exception.message(error)}"}
+    end
+  end
+
+  defp resolve_variable_options(%{data_repo: nil}), do: %{}
+  defp resolve_variable_options(%{data_repo: ""}), do: %{}
+
+  defp resolve_variable_options(%{
+         data_repo: repo,
+         search_path: search_path,
+         variables: variables
+       }) do
+    variables
+    |> Enum.reduce(%{}, fn var, acc ->
+      case var.options_query do
+        nil ->
+          acc
+
+        "" ->
+          acc
+
+        sql_query when is_binary(sql_query) ->
+          case fetch_dropdown_options(sql_query, repo, search_path) do
+            {:ok, results} ->
+              options = OptionsFormatter.to_select_options(results)
+              Map.put(acc, var.name, options)
+
+            {:error, _error} ->
+              Map.put(acc, var.name, [])
+          end
+      end
+    end)
   end
 end
