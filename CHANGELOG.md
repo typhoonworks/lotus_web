@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Dynamic Variable Options Configuration** - Configure query variable dropdown options from SQL queries
+  - New dropdown options modal for configuring variable options with SQL queries
+  - Support for fetching and testing variable options dynamically
+  - Smart formatting that handles both simple string lists and value/label pairs
+  - `VariableOptionsFormatter` module for converting between display and storage formats
+  - Enhanced variable settings component with improved options handling
 - **Multi-Database Schema Support** - Full support for PostgreSQL schemas and MySQL databases
   - Segmented data source selector with automatic schema detection
   - PostgreSQL search_path support with visual indicator in editor
@@ -31,6 +37,8 @@
 - **Improved Table Component** - Removed hardcoded margins from core table component for better flexibility
   - Table margins now controlled by parent containers for consistent spacing
   - Updated all table usages to include appropriate margin wrappers
+- **Updated Dependencies** - Enforced Lotus dependency to version 0.9.0
+- **Enhanced Copy to Clipboard** - Updated copy to clipboard keyboard shortcut functionality
 
 ## [0.3.1] - 2025-09-01
 
