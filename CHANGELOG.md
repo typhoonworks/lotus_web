@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## [0.4.1] - 2025-09-04
+
+### Fixed
+
+- **UUID Formatting in Dropdown Variables** - Fixed 500 error when using UUIDs in dropdown variable SQL queries
+  - Applied `Lotus.Value.to_display_string/1` formatting to query results to properly handle binary UUID data
+  - Fixed unreadable HTML entity placeholders in dropdown options modal
+  - Improved placeholder text clarity by showing only simple value format
+
+## [0.4.0] - 2025-09-04
+
 ### Added
 
 - **Dynamic Variable Options Configuration** - Configure query variable dropdown options from SQL queries

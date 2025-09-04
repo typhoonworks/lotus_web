@@ -18,7 +18,21 @@
 
 LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly in your Phoenix application. Perfect for technical and non-technical users who need to run SQL queries, create reports, and explore data without the complexity of a full BI solution.
 
->🚧 This library is in its infancy so you should treat all versions as early pre-release versions. We'll make the best effort to give heads up about breaking changes; however we can't guarantee backwards compatibility for every change.
+>🚧 While LotusWeb already has a solid feature set and its API surface is stabilizing, it’s still evolving. We’ll make a best effort to announce breaking changes, but we can’t guarantee backwards compatibility yet — especially as Lotus broadens its `Source` abstraction to support more than SQL-backed data sources.
+
+## Production Use and UUID Caveats
+
+LotusWeb is generally safe to use in production. It relies on Lotus’s read-only execution and session safety. We are running it in [Accomplish](https://accomplish.dev) successfully in production today, notwithanding being affected by the limitation described below.
+
+If your application uses UUIDs or mixed ID formats, there are current limitations that affect how variables work in the LotusWeb UI:
+
+- Variable binding around UUID columns is constrained across different storage types and databases:
+  - PostgreSQL `uuid`
+  - MySQL `BINARY(16)` vs `CHAR(36|32)`
+  - SQLite `TEXT` vs `BLOB`
+- You can still get a lot of value from the UI, but filtering on UUID columns with `{{var}}` will likely not work in Postgres as it warrants a special binary format that is not UI friendly (we convert to String for the UI but currently have no way to cast it back with runtime column inference).
+
+We plan to improve this with column‑aware binding (Lotus will use schema metadata to deterministically cast/shape values). Once available, LotusWeb will take advantage of it automatically.
 
 ## Why LotusWeb?
 
@@ -70,7 +84,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.3.0"}
+    {:lotus_web, "~> 0.4.1"}
   ]
 end
 ```
@@ -85,8 +99,8 @@ end
 
 | LotusWeb Version | Required Lotus Version | Notes |
 |------------------|------------------------|-------|
-| 0.3.x            | 0.6.0+                | Latest stable release |
-| 0.1.x            | 0.3.0+                | Legacy version |
+| 0.4.x            | 0.9.0+                | Latest stable release |
+| 0.3.x            | 0.6.0+                | Legacy version |
 
 > The dependency constraint in `mix.exs` automatically ensures compatible versions are installed together.
 

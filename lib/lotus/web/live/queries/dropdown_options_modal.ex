@@ -103,7 +103,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
     ~H"""
     <div>
       <.modal id="dropdown-options-modal" show={true} on_cancel={JS.push("close_modal", target: @myself)}>
-        <h3 class="text-lg font-semibold mb-4">Dropdown values for <span class="text-pink-600 dark:text-pink-400 font-mono"><%= @variable_name %></span></h3>
+        <h3 class="text-lg font-semibold mb-4">Dropdown values for the <span class="text-pink-600 dark:text-pink-400 font-mono"><%= @variable_name %></span> widget</h3>
 
         <div class="grid grid-cols-5 gap-6">
           <div class="col-span-1 space-y-3">
@@ -141,15 +141,15 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 ]}
                 placeholder={
                   if @option_source == :static do
-                    "Option 1&#10;option2 | Display Label 2&#10;option3"
+                    "Option 1\nOption 2\nOption 3"
                   else
-                    "SELECT value_column, label_column FROM table_name&#10;-- OR --&#10;SELECT value_column FROM table_name"
+                    "SELECT value_column, label_column FROM table_name\n-- OR --\nSELECT value_column FROM table_name"
                   end
                 }
               ><%= if @option_source == :static, do: @custom_options, else: @sql_query %></textarea>
               <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 <%= if @option_source == :static do %>
-                  Enter one value per line. You can optionally give each value a display label after a comma.
+                  Enter one value per line. Use "value | label" format to add display labels.
                 <% else %>
                   Write a SQL query that returns value and label columns (or just a value column).
                 <% end %>
