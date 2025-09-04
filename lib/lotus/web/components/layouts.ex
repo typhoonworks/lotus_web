@@ -102,8 +102,8 @@ defmodule Lotus.Web.Layouts do
               />
               <.shortcut_item
                 description="Copy query to clipboard"
-                keys={["⌘", "C"]}
-                alt_keys={["Ctrl", "C"]}
+                keys={["⌘", "Shift", "C"]}
+                alt_keys={["Ctrl", "Shift", "C"]}
               />
               <.shortcut_item
                 description="Toggle Schema Explorer"
