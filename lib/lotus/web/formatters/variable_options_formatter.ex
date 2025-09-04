@@ -126,9 +126,9 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
 
   @doc """
   Converts static options to Phoenix select format: [{label, value}, ...].
-  
+
   ## Examples
-  
+
       iex> options = [%{"value" => "bob", "label" => "Bob"}, %{"value" => "alice", "label" => "Alice"}]
       iex> VariableOptionsFormatter.to_select_options(options)
       [{"Bob", "bob"}, {"Alice", "alice"}]
@@ -138,7 +138,7 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
   """
   @spec to_select_options([map()] | nil) :: [{String.t(), String.t()}]
   def to_select_options(nil), do: []
-  
+
   def to_select_options(static_options) when is_list(static_options) do
     static_options
     |> normalize_to_maps()
@@ -146,19 +146,19 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
       {label, value}
     end)
   end
-  
+
   def to_select_options(_), do: []
 
   @doc """
   Converts Lotus query result to option maps format.
-  
+
   Handles results with:
   - 1 column: uses value for both value and label
   - 2 columns: first is value, second is label  
   - 3+ columns: uses first two columns
-  
+
   ## Examples
-  
+
       iex> result = %{columns: ["name"], rows: [["Alice"], ["Bob"]]}
       iex> VariableOptionsFormatter.from_lotus_result(result)
       [%{value: "Alice", label: "Alice"}, %{value: "Bob", label: "Bob"}]
@@ -170,24 +170,24 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
   @spec from_lotus_result(map()) :: [map()]
   def from_lotus_result(%{columns: columns, rows: rows}) do
     column_count = length(columns)
-    
+
     Enum.map(rows, fn row ->
       case column_count do
         1 ->
           value = List.first(row)
           %{value: value, label: value}
-          
+
         2 ->
           [value, label] = row
           %{value: value, label: label}
-          
+
         _ ->
           [value, label | _] = row
           %{value: value, label: label}
       end
     end)
   end
-  
+
   def from_lotus_result(_), do: []
 
   defp normalize_single_option(nil), do: nil

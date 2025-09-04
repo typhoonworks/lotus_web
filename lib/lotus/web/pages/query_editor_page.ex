@@ -519,8 +519,10 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
   @impl Phoenix.LiveComponent
-  def update(%{action: :close_dropdown_options_modal} = assigns, socket) do
+  def update(%{action: :close_dropdown_options_modal}, socket) do
     {:ok,
      assign(socket, dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)}
   end
@@ -559,8 +561,6 @@ defmodule Lotus.Web.QueryEditorPage do
   def update(assigns, socket) do
     {:ok, assign(socket, assigns)}
   end
-
-  def handle_info(_msg, socket), do: {:noreply, socket}
 
   defp assign_data_repos(socket) do
     data_repo_names = Lotus.list_data_repo_names()

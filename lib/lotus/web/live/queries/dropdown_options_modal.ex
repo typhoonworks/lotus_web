@@ -279,7 +279,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
   def update(assigns, socket) do
     variable_data = assigns.variable_data || %{}
     option_source = QueryVariable.get_option_source(variable_data)
-    custom_options = OptionsFormatter.to_display_format(variable_data.static_options || [])
+    custom_options = OptionsFormatter.to_display_format(variable_data.static_options)
     sql_query = variable_data.options_query || ""
 
     {:ok,
