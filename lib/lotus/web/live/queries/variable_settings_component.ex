@@ -5,8 +5,6 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
 
   use Lotus.Web, :live_component
 
-  alias Lotus.Storage.QueryVariable
-
   @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok, assign(socket, active_tab: nil)}
@@ -113,13 +111,26 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                   <legend class="block text-sm font-semibold leading-6 text-text-light dark:text-text-dark">Widget type</legend>
                   <div class="mt-1 space-y-2">
                     <.input type="radio" field={vf[:widget]} value="input" label="Input box" checked={vf[:widget].value == :input}/>
-                    <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
+                    <div class="flex items-center justify-between">
+                      <.input type="radio" field={vf[:widget]} value="select" label="Dropdown list" checked={vf[:widget].value == :select}/>
+                      <%= if vf[:widget].value == :select do %>
+                        <button
+                          type="button"
+                          phx-click="open_dropdown_options_modal"
+                          phx-value-variable={vf[:name].value}
+                          phx-target={@parent}
+                          class="text-sm text-pink-600 dark:text-pink-400 hover:text-pink-800 dark:hover:text-pink-300 font-medium"
+                        >
+                          Edit
+                        </button>
+                      <% end %>
+                    </div>
                   </div>
                 </fieldset>
               <% end %>
 
               <%= if vf[:widget].value == :select do %>
-                  <.select_options_configuration vf={vf} />
+                  <.select_options_configuration vf={vf} parent={@parent} />
               <% end %>
 
               <.input type="text" field={vf[:default]} label="Default value"
@@ -133,27 +144,14 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
 
   defp select_options_configuration(assigns) do
     ~H"""
-    <.label>Options</.label>
-    <.input type="radio" name={"#{@vf[:name].name}_option_source"} value="static" label="Static values"
-            checked={QueryVariable.get_option_source(@vf.source.data) == :static}/>
-    <.input type="radio" name={"#{@vf[:name].name}_option_source"} value="query" label="SQL query (coming soon)"
-            checked={QueryVariable.get_option_source(@vf.source.data) == :query} disabled={true}/>
-
-    <%= if QueryVariable.get_option_source(@vf.source.data) == :static do %>
-      <div>
-        <textarea
-          id={"#{@vf[:static_options].name}_textarea"}
-          name={@vf[:static_options].name}
-          rows="3"
-          placeholder="One option per line"
-          class="mt-2 block w-full rounded-lg text-sm min-h-[6rem] text-text-light dark:text-text-dark dark:bg-input-dark border-zinc-300 dark:border-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-500 focus:ring-0"
-        ><%= (@vf[:static_options].value || []) |> Enum.join("\n") %></textarea>
-      </div>
-    <% else %>
-      <.input type="textarea" field={@vf[:options_query]} rows="3"
-              placeholder="SELECT value_column, label_column FROM table_name"/>
-    <% end %>
+    <input type="hidden" name={@vf[:static_options].name} value={format_static_options_for_form(@vf[:static_options].value)} />
+    <input type="hidden" name={@vf[:options_query].name} value={@vf[:options_query].value || ""} />
     """
+  end
+
+  defp format_static_options_for_form(static_options) do
+    alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
+    OptionsFormatter.to_display_format(static_options || [])
   end
 
   defp variable_settings_help(assigns) do
@@ -196,7 +194,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                 one per line. <code class="font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded">value</code>.
               </li>
               <li>
-                <span class="font-medium">SQL query</span> <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded">coming soon</span> –
+                <span class="font-medium">SQL query</span> –
                 return columns as <code class="font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded">value, label</code>
                 (or a single <code class="font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded">value</code> column).
               </li>
