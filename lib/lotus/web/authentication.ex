@@ -8,7 +8,7 @@ defmodule Lotus.Web.Authentication do
     resolver = Map.get(session, "resolver")
     user = Map.get(session, "user")
     access = Map.get(session, "access", :all)
-    
+
     socket = assign(socket, resolver: resolver, user: user, access: access)
 
     case access do

@@ -93,7 +93,7 @@ defmodule Lotus.Web.Router do
   @doc false
   def __session__(conn, prefix, live_path, live_transport, csp_key, resolver) do
     csp_keys = expand_csp_nonce_keys(csp_key)
-    
+
     user = Lotus.Web.Resolver.call_with_fallback(resolver, :resolve_user, [conn])
     access = Lotus.Web.Resolver.call_with_fallback(resolver, :resolve_access, [user])
 

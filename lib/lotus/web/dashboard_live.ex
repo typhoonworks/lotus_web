@@ -68,6 +68,10 @@ defmodule Lotus.Web.DashboardLive do
     {:noreply, clear_flash(socket)}
   end
 
+  def handle_info({:put_flash, [type, message]}, socket) do
+    {:noreply, put_flash(socket, type, message)}
+  end
+
   def handle_info(message, socket) do
     socket.assigns.page.comp.handle_info(message, socket)
   end
