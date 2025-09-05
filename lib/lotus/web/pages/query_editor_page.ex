@@ -550,7 +550,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
   def handle_info(_msg, socket), do: {:noreply, socket}
 
-  @impl Page
+  @impl Phoenix.LiveComponent
   def handle_async(:query_execution, {:ok, {:ok, result}}, socket) do
     {:noreply, assign(socket, result: result, error: nil, running: false)}
   end
