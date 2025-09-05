@@ -208,7 +208,7 @@ defmodule Lotus.Web.QueryEditorPage do
           nil ->
             {:noreply,
              socket
-             |> put_flash(:error, "Query not found")
+             |> put_flash_with_clear(:error, "Query not found")
              |> push_navigate(to: lotus_path(:queries))}
 
           %Query{} = query ->
@@ -304,51 +304,67 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("save_query", %{"query" => save_params}, socket) do
-    query_attrs = build_query_attrs(save_params, socket.assigns.query)
-    result = perform_save_operation(socket.assigns.page, query_attrs)
+    IO.inspect(socket.assigns[:access], label: "COMPONENT ACCESS LEVEL")
+    
+    if socket.assigns[:access] == :read_only do
+      {:noreply,
+       socket
+       |> put_flash_with_clear(:error, "You don't have permission to save queries")
+       |> push_event("close-modal", %{id: "save-query-modal"})}
+    else
+      query_attrs = build_query_attrs(save_params, socket.assigns.query)
+      result = perform_save_operation(socket.assigns.page, query_attrs)
 
-    case result do
-      {:ok, query} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Query saved successfully!")
-         |> push_patch(to: lotus_path(["queries", query.id]), replace: true)
-         |> assign(query: query)
-         |> assign_query_changeset(query)}
+      case result do
+        {:ok, query} ->
+          {:noreply,
+           socket
+           |> put_flash_with_clear(:info, "Query saved successfully!")
+           |> push_patch(to: lotus_path(["queries", query.id]), replace: true)
+           |> assign(query: query)
+           |> assign_query_changeset(query)}
 
-      {:error, %Ecto.Changeset{} = cs} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Failed to save query")
-         |> assign(query_changeset: cs, query_form: to_form(cs, as: "query"))}
+        {:error, %Ecto.Changeset{} = cs} ->
+          {:noreply,
+           socket
+           |> put_flash_with_clear(:error, "Failed to save query")
+           |> assign(query_changeset: cs, query_form: to_form(cs, as: "query"))}
+      end
     end
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("delete_query", _params, socket) do
-    query_id = socket.assigns.page.id
+    if socket.assigns[:access] == :read_only do
+      {:noreply,
+       socket
+       |> put_flash_with_clear(:error, "You don't have permission to delete queries")
+       |> push_event("close-modal", %{id: "delete-query-modal"})}
+    else
+      query_id = socket.assigns.page.id
 
-    case Lotus.get_query(query_id) do
-      nil ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "Query not found")
-         |> push_navigate(to: lotus_path(:queries), replace: true)}
+      case Lotus.get_query(query_id) do
+        nil ->
+          {:noreply,
+           socket
+           |> put_flash_with_clear(:error, "Query not found")
+           |> push_navigate(to: lotus_path(:queries), replace: true)}
 
-      query ->
-        case Lotus.delete_query(query) do
-          {:ok, _} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, "Query deleted successfully")
-             |> push_navigate(to: lotus_path(:queries), replace: true)}
+        query ->
+          case Lotus.delete_query(query) do
+            {:ok, _} ->
+              {:noreply,
+               socket
+               |> put_flash_with_clear(:info, "Query deleted successfully")
+               |> push_navigate(to: lotus_path(:queries), replace: true)}
 
-          {:error, _} ->
-            {:noreply,
-             socket
-             |> put_flash(:error, "Failed to delete query")
-             |> push_event("close-modal", %{id: "delete-query-modal"})}
-        end
+            {:error, _} ->
+              {:noreply,
+               socket
+               |> put_flash_with_clear(:error, "Failed to delete query")
+               |> push_event("close-modal", %{id: "delete-query-modal"})}
+          end
+      end
     end
   end
 
@@ -427,12 +443,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-success", _params, socket) do
-    {:noreply, put_flash(socket, :info, "Query copied to clipboard!")}
+    {:noreply, put_flash_with_clear(socket, :info, "Query copied to clipboard!")}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-error", %{"error" => error}, socket) do
-    {:noreply, put_flash(socket, :error, "Failed to copy query: #{error}")}
+    {:noreply, put_flash_with_clear(socket, :error, "Failed to copy query: #{error}")}
   end
 
   @impl Phoenix.LiveComponent
@@ -444,7 +460,7 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("export_csv", _params, socket) do
     case socket.assigns.result do
       nil ->
-        {:noreply, put_flash(socket, :error, "No query results to export")}
+        {:noreply, put_flash_with_clear(socket, :error, "No query results to export")}
 
       result ->
         csv_data = Lotus.Export.to_csv(result)
@@ -468,7 +484,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
         {:noreply,
          socket
-         |> put_flash(:info, "CSV export ready for download")
+         |> put_flash_with_clear(:info, "CSV export ready for download")
          |> push_event("download-csv", %{data: csv_binary, filename: filename})}
     end
   end

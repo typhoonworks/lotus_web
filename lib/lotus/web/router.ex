@@ -4,7 +4,8 @@ defmodule Lotus.Web.Router do
   @default_opts [
     socket_path: "/live",
     transport: "websocket",
-    csp_nonce_assign_key: nil
+    csp_nonce_assign_key: nil,
+    resolver: Lotus.Web.Resolver
   ]
 
   @transport_values ~w(longpoll websocket)
@@ -24,6 +25,9 @@ defmodule Lotus.Web.Router do
 
   * `:transport` — a phoenix socket transport, either `"websocket"` or `"longpoll"`, defaults to
     `"websocket"`.
+
+  * `:resolver` — a module implementing the `Lotus.Web.Resolver` behaviour for custom authentication
+    and access control.
 
   ## Examples
 
@@ -65,13 +69,14 @@ defmodule Lotus.Web.Router do
 
     Enum.each(opts, &validate_opt!/1)
 
-    on_mount = Keyword.get(opts, :on_mount, [])
+    on_mount = Keyword.get(opts, :on_mount, []) ++ [Lotus.Web.Authentication]
 
     session_args = [
       prefix,
       opts[:socket_path],
       opts[:transport],
-      opts[:csp_nonce_assign_key]
+      opts[:csp_nonce_assign_key],
+      opts[:resolver]
     ]
 
     session_opts = [
@@ -86,13 +91,19 @@ defmodule Lotus.Web.Router do
   end
 
   @doc false
-  def __session__(conn, prefix, live_path, live_transport, csp_key) do
+  def __session__(conn, prefix, live_path, live_transport, csp_key, resolver) do
     csp_keys = expand_csp_nonce_keys(csp_key)
+    
+    user = Lotus.Web.Resolver.call_with_fallback(resolver, :resolve_user, [conn])
+    access = Lotus.Web.Resolver.call_with_fallback(resolver, :resolve_access, [user])
 
     %{
       "prefix" => prefix,
       "live_path" => live_path,
       "live_transport" => live_transport,
+      "resolver" => resolver,
+      "user" => user,
+      "access" => access,
       "csp_nonces" => %{
         style: conn.assigns[csp_keys[:style]],
         script: conn.assigns[csp_keys[:script]]
@@ -119,6 +130,9 @@ defmodule Lotus.Web.Router do
         :ok
 
       :csp_nonce_assign_key ->
+        :ok
+
+      :resolver when is_atom(value) or is_nil(value) ->
         :ok
 
       {key, value} ->

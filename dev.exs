@@ -335,7 +335,7 @@ Task.async(fn ->
 
   # Get product IDs
   %{rows: product_rows} = WebDev.MySQLRepo.query!("SELECT id FROM products ORDER BY id")
-  [laptop_id, mouse_id, chair_id, mug_id, notebook_id] = Enum.map(product_rows, &List.first/1)
+  [laptop_id, mouse_id, _chair_id, mug_id, notebook_id] = Enum.map(product_rows, &List.first/1)
 
   # Sales
   WebDev.MySQLRepo.query!("INSERT INTO sales (product_id, quantity, total_price, sale_date, inserted_at, updated_at) VALUES

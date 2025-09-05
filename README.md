@@ -148,7 +148,46 @@ Run the migration:
 mix ecto.migrate
 ```
 
-### 3. Mount LotusWeb in your router
+### 3. Configure Caching (Optional but Recommended)
+
+Lotus supports result caching to improve query performance. To enable caching:
+
+#### Add Lotus to your supervision tree:
+
+```elixir
+# lib/my_app/application.ex
+def start(_type, _args) do
+  children = [
+    MyApp.Repo,
+    # Add Lotus for caching support
+    Lotus,
+    MyAppWeb.Endpoint
+  ]
+  
+  opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+  Supervisor.start_link(children, opts)
+end
+```
+
+#### Configure cache settings:
+
+```elixir
+# config/config.exs
+config :lotus,
+  cache: [
+    adapter: Lotus.Cache.ETS,
+    namespace: "my_app_cache",
+    profiles: %{
+      results: [ttl_ms: 60_000],      # Cache query results for 1 minute
+      schema: [ttl_ms: 3_600_000],    # Cache schemas for 1 hour
+      options: [ttl_ms: 300_000]      # Cache dropdown options for 5 minutes
+    }
+  ]
+```
+
+**Note**: Without adding Lotus to your supervision tree, all query functions will work normally but caching will be disabled.
+
+### 4. Mount LotusWeb in your router
 
 ```elixir
 defmodule MyAppWeb.Router do
@@ -294,6 +333,18 @@ mix test
 ```
 
 ### Development Server
+
+For initial setup when cloning the repository:
+
+```bash
+# Create required asset files and install dependencies
+mkdir -p priv/static
+touch priv/static/app.css && touch priv/static/app.js
+npm install --prefix assets
+mix dev
+```
+
+For subsequent runs:
 
 ```bash
 mix dev
