@@ -401,6 +401,11 @@ defmodule Lotus.Web.CoreComponents do
   attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
   attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
 
+  attr(:sticky_header, :boolean,
+    default: false,
+    doc: "if true, keeps header visible while body scrolls"
+  )
+
   attr(:row_item, :any,
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col slots"
@@ -417,16 +422,30 @@ defmodule Lotus.Web.CoreComponents do
       end
 
     ~H"""
-    <div class="flow-root">
-      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+    <div class={[
+      "flow-root",
+      @sticky_header && "h-full"
+    ]}>
+      <div class={[
+        "-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8",
+        @sticky_header && "overflow-y-auto h-full"
+      ]}>
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <table class="relative min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-            <thead>
+          <table class={[
+            "relative min-w-full",
+            !@sticky_header && "divide-y divide-gray-300 dark:divide-gray-600"
+          ]}>
+            <thead class={[
+              @sticky_header && "sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-[0_1px_0_0] shadow-gray-300 dark:shadow-gray-600"
+            ]}>
               <tr>
                 <th
                   :for={col <- @col}
                   scope="col"
-                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3"
+                  class={[
+                    "py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3",
+                    @sticky_header && "bg-white dark:bg-gray-800"
+                  ]}
                 >
                   {col[:label]}
                 </th>

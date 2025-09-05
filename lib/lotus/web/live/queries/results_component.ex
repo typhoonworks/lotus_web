@@ -34,8 +34,8 @@ defmodule Lotus.Web.Queries.ResultsComponent do
               </button>
             </div>
           </div>
-          <div class="overflow-auto mt-2 flex-1 min-h-0">
-            <.table id="query-results" rows={@result.rows}>
+          <div class="mt-2 flex-1 min-h-0">
+            <.table id="query-results" rows={@result.rows} sticky_header={true}>
               <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
                 <%= CellFormatter.format(Enum.at(row, index)) %>
               </:col>
