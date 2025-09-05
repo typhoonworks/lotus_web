@@ -56,4 +56,7 @@ defmodule Lotus.Web.QueriesPage do
 
   @impl Page
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+  @impl Page
+  def handle_async(_name, _result, socket), do: {:noreply, socket}
 end

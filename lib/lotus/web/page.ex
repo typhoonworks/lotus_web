@@ -18,4 +18,10 @@ defmodule Lotus.Web.Page do
   Called by parent live view on info messages.
   """
   @callback handle_info(message :: term(), socket :: Socket.t()) :: {:noreply, Socket.t()}
+
+  @doc """
+  Called by parent live view for async operations.
+  """
+  @callback handle_async(name :: atom(), async_fun_result :: term(), socket :: Socket.t()) ::
+              {:noreply, Socket.t()}
 end
