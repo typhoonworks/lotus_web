@@ -43,7 +43,7 @@ defmodule Lotus.Web.QueryEditorPage do
             />
 
             <div class={[
-              "transition-all duration-300 ease-in-out",
+              "transition-all duration-300 ease-in-out h-full flex flex-col overflow-hidden",
               cond do
                 @schema_explorer_visible -> "mr-80"
                 @variable_settings_visible -> "mr-80"
@@ -66,7 +66,9 @@ defmodule Lotus.Web.QueryEditorPage do
                 variable_values={Map.get(assigns, :variable_values, %{})}
                 resolved_variable_options={@resolved_variable_options}
               />
-              <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} target={@myself} />
+              <div class="flex-1 overflow-y-auto min-h-0">
+                <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} target={@myself} />
+              </div>
 
             </div>
           </div>

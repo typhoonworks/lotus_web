@@ -10,10 +10,10 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   def render_result(assigns) do
     ~H"""
-    <div class="px-4 sm:px-6 lg:px-8">
+    <div class="px-4 sm:px-6 lg:px-8 h-full flex flex-col">
       <%= cond do %>
         <% @result != nil -> %>
-          <div class="mt-6">
+          <div class="mt-6 flex-shrink-0">
             <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
             <div class="flex items-center justify-between">
               <div>
@@ -34,7 +34,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
               </button>
             </div>
           </div>
-          <div class="overflow-x-auto mt-2">
+          <div class="overflow-auto mt-2 flex-1 min-h-0">
             <.table id="query-results" rows={@result.rows}>
               <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
                 <%= CellFormatter.format(Enum.at(row, index)) %>
