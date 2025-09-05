@@ -26,16 +26,36 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   Success
                 </span>
                 <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  <%= @result.num_rows %> rows • <%= @result.duration_ms %>ms
+                  <%= info_text(@result) %>
                 </div>
               </div>
-              <button 
-                phx-click="export_csv"
-                phx-target={@target}
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
-                <Icons.download class="h-5 w-5" />
-                Export (.csv)
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  phx-click="prev_page"
+                  phx-target={@target}
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
+                  disabled={not can_prev(@result)}
+                >
+                  <Icons.chevron_left class="h-5 w-5" />
+                  Prev
+                </button>
+                <button
+                  phx-click="next_page"
+                  phx-target={@target}
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
+                  disabled={not can_next(@result)}
+                >
+                  Next
+                  <Icons.chevron_right class="h-5 w-5" />
+                </button>
+                <button 
+                  phx-click="export_csv"
+                  phx-target={@target}
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
+                  <Icons.download class="h-5 w-5" />
+                  Export (.csv)
+                </button>
+              </div>
             </div>
           </div>
           <div class="mt-2 flex-1 min-h-0">
@@ -72,6 +92,55 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     </div>
     """
   end
+
+  defp info_text(%{num_rows: n, duration_ms: ms, meta: meta}) do
+    {range_text, total_text} =
+      case meta do
+        %{} ->
+          win = Map.get(meta, :window)
+          total = Map.get(meta, :total_count)
+
+          if is_map(win) do
+            offset = Map.get(win, :offset, 0)
+            from = if n > 0, do: offset + 1, else: 0
+            to_ = offset + n
+            range = if n > 0, do: "Showing #{from}–#{to_}", else: "Showing 0"
+            total_part = if is_integer(total), do: " of #{total} rows", else: " rows"
+            {range, total_part}
+          else
+            {"#{n} rows", ""}
+          end
+
+        _ ->
+          {"#{n} rows", ""}
+      end
+
+    range_text <> total_text <> " • " <> to_string(ms) <> "ms"
+  end
+
+  defp can_prev(%{meta: %{} = meta}) do
+    case Map.get(meta, :window) do
+      %{} = win -> Map.get(win, :offset, 0) > 0
+      _ -> false
+    end
+  end
+
+  defp can_prev(_), do: false
+
+  defp can_next(%{num_rows: n, meta: %{} = meta}) when is_integer(n) do
+    win = Map.get(meta, :window, %{})
+    page = Map.get(win, :limit)
+    offset = Map.get(win, :offset, 0)
+    total = Map.get(meta, :total_count)
+
+    cond do
+      is_integer(total) -> offset + n < total
+      is_integer(page) -> n == page
+      true -> false
+    end
+  end
+
+  defp can_next(_), do: false
 
   attr(:error, :string, required: true)
 

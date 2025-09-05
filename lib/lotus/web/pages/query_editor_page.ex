@@ -3,6 +3,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   use Lotus.Web, :live_component
 
+  @default_page_size 1000
+
   alias Lotus.Web.Page
   alias Lotus.Storage.Query
   alias Lotus.Storage.QueryVariable
@@ -516,8 +518,64 @@ defmodule Lotus.Web.QueryEditorPage do
       socket =
         socket
         |> update_query_state(changeset, [])
+        |> assign(page_index: 0)
 
       {:noreply, execute_query(socket, query)}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("next_page", _params, socket) do
+    case socket.assigns[:result] do
+      %{} = result ->
+        meta = Map.get(result, :meta, %{})
+        total = Map.get(meta, :total_count)
+        page_size = socket.assigns.page_size || @default_page_size
+        page_index = socket.assigns.page_index || 0
+
+        can_next =
+          cond do
+            is_integer(total) -> (page_index + 1) * page_size < total
+            true -> length(result.rows || []) == page_size
+          end
+
+        if can_next do
+          {:noreply,
+           socket
+           |> assign(page_index: page_index + 1)
+           |> execute_query(socket.assigns.query)}
+        else
+          {:noreply, socket}
+        end
+
+      _ ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("prev_page", _params, socket) do
+    current = socket.assigns.page_index || 0
+    new_index = max(current - 1, 0)
+
+    if new_index != current do
+      {:noreply,
+       socket
+       |> assign(page_index: new_index)
+       |> execute_query(socket.assigns.query)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("goto_page", %{"index" => idx}, socket) do
+    case Integer.parse(to_string(idx)) do
+      {n, ""} when n >= 0 ->
+        {:noreply, socket |> assign(page_index: n) |> execute_query(socket.assigns.query)}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
@@ -618,6 +676,8 @@ defmodule Lotus.Web.QueryEditorPage do
       result: nil,
       error: nil,
       running: false,
+      page_size: @default_page_size,
+      page_index: 0,
       editor_minimized: false,
       schema_explorer_visible: false,
       variable_settings_visible: false,
@@ -813,7 +873,14 @@ defmodule Lotus.Web.QueryEditorPage do
   defp execute_query(socket, query) do
     vars = Map.get(socket.assigns, :variable_values, %{})
     repo = query.data_repo || socket.assigns.default_repo
-    opts = [repo: repo, vars: vars]
+    page_size = socket.assigns.page_size || @default_page_size
+    page_index = socket.assigns.page_index || 0
+
+    opts = [
+      repo: repo,
+      vars: vars,
+      window: [limit: page_size, offset: page_index * page_size, count: :exact]
+    ]
 
     opts =
       if query.search_path && String.trim(query.search_path) != "" do

@@ -295,7 +295,17 @@ defmodule Lotus.Web.Components.Icons do
   def chevron_left(assigns) do
     ~H"""
     <.svg_outline {@rest}>
-      <polyline points="15,18 9,12 15,6"/>
+      <path d="m15 18-6-6 6-6"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chevron_right(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="m9 18 6-6-6-6"/>
     </.svg_outline>
     """
   end
