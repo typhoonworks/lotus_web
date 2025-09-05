@@ -10,6 +10,11 @@
 
 - **Enhanced Flash Message System** - Redesigned flash notifications with improved UX
 
+### Fixed
+
+- Make schema explorer and variable settings asides sticky
+- Fix scrolling issues
+
 ## [0.4.1] - 2025-09-04
 
 ### Fixed
