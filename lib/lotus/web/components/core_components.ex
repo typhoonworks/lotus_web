@@ -345,12 +345,42 @@ defmodule Lotus.Web.CoreComponents do
 
     ~H"""
     <%= if @msg do %>
-      <div class={[
-        "rounded-md p-4 mb-4",
-        @kind == :info && "bg-blue-50 text-blue-800",
-        @kind == :error && "bg-red-50 text-red-800"
-      ]}>
-        <p class="text-sm"><%= @msg %></p>
+      <div
+        id={"flash-#{@kind}"}
+        phx-hook="Flash"
+        class={[
+          "fixed bottom-4 right-4 p-4 z-50 shadow-lg max-w-md",
+          @kind == :info && "border-l-4 border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-500/10",
+          @kind == :error && "border-l-4 border-yellow-400 bg-yellow-50 dark:border-yellow-500 dark:bg-yellow-500/10"
+        ]}
+      >
+        <div class="flex items-center">
+          <div class="shrink-0">
+            <%= if @kind == :info do %>
+              <Icons.information_circle class="size-5 text-blue-400 dark:text-blue-500" />
+            <% else %>
+              <Icons.exclamation_triangle class="size-5 text-yellow-400 dark:text-yellow-500" />
+            <% end %>
+          </div>
+          <div class="ml-3 flex-1">
+            <p class={[
+              "text-sm",
+              @kind == :info && "text-blue-700 dark:text-blue-300",
+              @kind == :error && "text-yellow-700 dark:text-yellow-300"
+            ]}>
+              <%= @msg %>
+            </p>
+          </div>
+          <div class="ml-auto pl-3">
+            <button
+              type="button"
+              class="inline-flex p-1.5 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
+              aria-label="Dismiss"
+            >
+              <Icons.x_mark class="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
     <% end %>
     """

@@ -9,6 +9,10 @@ defmodule Lotus.Web.DashboardLive do
     %{"live_path" => live_path, "live_transport" => live_transport} = session
     %{"csp_nonces" => csp_nonces} = session
 
+    resolver = Map.get(session, "resolver")
+    user = Map.get(session, "user")
+    access = Map.get(session, "access", :all)
+
     page = resolve_page(params)
 
     Process.put(:routing, {socket, prefix})
@@ -19,6 +23,9 @@ defmodule Lotus.Web.DashboardLive do
       |> assign(live_path: live_path, live_transport: live_transport)
       |> assign(:page_title, "Lotus Dashboard")
       |> assign(:csp_nonces, csp_nonces)
+      |> assign(:resolver, resolver)
+      |> assign(:user, user)
+      |> assign(:access, access)
       |> page.comp.handle_mount()
 
     {:ok, socket}
@@ -57,6 +64,14 @@ defmodule Lotus.Web.DashboardLive do
   end
 
   @impl Phoenix.LiveView
+  def handle_info(:clear_flash, socket) do
+    {:noreply, clear_flash(socket)}
+  end
+
+  def handle_info({:put_flash, [type, message]}, socket) do
+    {:noreply, put_flash(socket, type, message)}
+  end
+
   def handle_info(message, socket) do
     socket.assigns.page.comp.handle_info(message, socket)
   end

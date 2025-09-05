@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- New `Lotus.Web.Resolver` behavior for customizing user resolution and access control
+
+### Improved
+
+- **Enhanced Flash Message System** - Redesigned flash notifications with improved UX
+
 ## [0.4.1] - 2025-09-04
 
 ### Fixed
