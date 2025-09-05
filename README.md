@@ -1,6 +1,6 @@
 # LotusWeb
 
-![Lotus](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/screenshot.png)
+![Lotus](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/banner.png)
 
 <p>
   <a href="https://hex.pm/packages/lotus_web">
@@ -163,7 +163,7 @@ def start(_type, _args) do
     Lotus,
     MyAppWeb.Endpoint
   ]
-  
+
   opts = [strategy: :one_for_one, name: MyApp.Supervisor]
   Supervisor.start_link(children, opts)
 end
