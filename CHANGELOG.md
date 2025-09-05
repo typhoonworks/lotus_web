@@ -5,10 +5,16 @@
 ### Added
 
 - New `Lotus.Web.Resolver` behavior for customizing user resolution and access control
+- **Async Query Execution with LiveView** - Non-blocking query execution using LiveView's async assigns
 
 ### Improved
 
 - **Enhanced Flash Message System** - Redesigned flash notifications with improved UX
+
+### Fixed
+
+- Make schema explorer and variable settings asides sticky
+- Fix scrolling issues
 
 ## [0.4.1] - 2025-09-04
 

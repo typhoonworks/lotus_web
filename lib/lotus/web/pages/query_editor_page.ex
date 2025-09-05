@@ -43,7 +43,7 @@ defmodule Lotus.Web.QueryEditorPage do
             />
 
             <div class={[
-              "transition-all duration-300 ease-in-out",
+              "transition-all duration-300 ease-in-out h-full flex flex-col overflow-hidden",
               cond do
                 @schema_explorer_visible -> "mr-80"
                 @variable_settings_visible -> "mr-80"
@@ -66,7 +66,9 @@ defmodule Lotus.Web.QueryEditorPage do
                 variable_values={Map.get(assigns, :variable_values, %{})}
                 resolved_variable_options={@resolved_variable_options}
               />
-              <.render_result result={@result} error={@error} os={Map.get(assigns, :os, :unknown)} target={@myself} />
+              <div class="flex-1 overflow-y-auto min-h-0">
+                <.render_result result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} />
+              </div>
 
             </div>
           </div>
@@ -549,6 +551,19 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
+  def handle_async(:query_execution, {:ok, {:ok, result}}, socket) do
+    {:noreply, assign(socket, result: result, error: nil, running: false)}
+  end
+
+  def handle_async(:query_execution, {:ok, {:error, error_msg}}, socket) do
+    {:noreply, assign(socket, error: to_string(error_msg), result: nil, running: false)}
+  end
+
+  def handle_async(:query_execution, {:exit, _reason}, socket) do
+    {:noreply, assign(socket, error: "Query execution failed", result: nil, running: false)}
+  end
+
+  @impl Phoenix.LiveComponent
   def update(%{action: :close_dropdown_options_modal}, socket) do
     {:ok,
      assign(socket, dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)}
@@ -807,15 +822,11 @@ defmodule Lotus.Web.QueryEditorPage do
         opts
       end
 
-    socket = assign(socket, running: true, error: nil)
-
-    case Lotus.run_query(query, opts) do
-      {:ok, result} ->
-        assign(socket, result: result, error: nil, running: false)
-
-      {:error, error_msg} ->
-        assign(socket, error: to_string(error_msg), result: nil, running: false)
-    end
+    socket
+    |> assign(running: true, error: nil, result: nil)
+    |> start_async(:query_execution, fn ->
+      Lotus.run_query(query, opts)
+    end)
   end
 
   defp build_ordered_variables(names, existing_variables) do
