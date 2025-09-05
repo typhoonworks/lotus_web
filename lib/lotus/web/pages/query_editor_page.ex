@@ -3,6 +3,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   use Lotus.Web, :live_component
 
+  @default_page_size 1000
+
   alias Lotus.Web.Page
   alias Lotus.Storage.Query
   alias Lotus.Storage.QueryVariable
@@ -528,7 +530,7 @@ defmodule Lotus.Web.QueryEditorPage do
       %{} = result ->
         meta = Map.get(result, :meta, %{})
         total = Map.get(meta, :total_count)
-        page_size = socket.assigns.page_size || 1000
+        page_size = socket.assigns.page_size || @default_page_size
         page_index = socket.assigns.page_index || 0
 
         can_next =
@@ -674,7 +676,7 @@ defmodule Lotus.Web.QueryEditorPage do
       result: nil,
       error: nil,
       running: false,
-      page_size: 1000,
+      page_size: @default_page_size,
       page_index: 0,
       editor_minimized: false,
       schema_explorer_visible: false,
@@ -871,7 +873,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp execute_query(socket, query) do
     vars = Map.get(socket.assigns, :variable_values, %{})
     repo = query.data_repo || socket.assigns.default_repo
-    page_size = socket.assigns.page_size || 1000
+    page_size = socket.assigns.page_size || @default_page_size
     page_index = socket.assigns.page_index || 0
 
     opts = [
