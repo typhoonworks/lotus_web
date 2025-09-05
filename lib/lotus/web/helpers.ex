@@ -1,7 +1,7 @@
 defmodule Lotus.Web.Helpers do
   @moduledoc false
 
-  alias Phoenix.{LiveView, VerifiedRoutes}
+  alias Phoenix.VerifiedRoutes
 
   # Routing Helpers
 
@@ -90,14 +90,5 @@ defmodule Lotus.Web.Helpers do
     |> Map.get(key, [])
     |> List.wrap()
     |> Enum.member?(to_string(value))
-  end
-
-  @doc """
-  Put a flash message that will clear automatically after a timeout.
-  """
-  def put_flash_with_clear(socket, mode, message, timing \\ 5_000) do
-    Process.send_after(self(), :clear_flash, timing)
-
-    LiveView.put_flash(socket, mode, message)
   end
 end

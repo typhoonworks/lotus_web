@@ -5,6 +5,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   attr(:result, :any, default: nil)
   attr(:error, :string, default: nil)
+  attr(:running, :boolean, default: false)
   attr(:os, :atom, default: :unknown)
   attr(:target, Phoenix.LiveComponent.CID, default: nil)
 
@@ -12,6 +13,9 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     ~H"""
     <div class="px-4 sm:px-6 lg:px-8 h-full flex flex-col">
       <%= cond do %>
+        <% @running == true -> %>
+          <.loading_spinner />
+
         <% @result != nil -> %>
           <div class="mt-6 flex-shrink-0">
             <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
@@ -107,6 +111,17 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       <p class="text-sm text-gray-500">
         Here's where your results will appear
       </p>
+    </div>
+    """
+  end
+
+  defp loading_spinner(assigns) do
+    ~H"""
+    <div class="mt-6 flex-shrink-0">
+      <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+      <div class="grid min-h-[140px] w-full place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
+        <.spinner />
+      </div>
     </div>
     """
   end

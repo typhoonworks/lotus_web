@@ -64,16 +64,17 @@ defmodule Lotus.Web.DashboardLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_info(:clear_flash, socket) do
-    {:noreply, clear_flash(socket)}
-  end
-
   def handle_info({:put_flash, [type, message]}, socket) do
     {:noreply, put_flash(socket, type, message)}
   end
 
   def handle_info(message, socket) do
     socket.assigns.page.comp.handle_info(message, socket)
+  end
+
+  @impl Phoenix.LiveView
+  def handle_async(name, async_fun_result, socket) do
+    socket.assigns.page.comp.handle_async(name, async_fun_result, socket)
   end
 
   ## Render Helpers
