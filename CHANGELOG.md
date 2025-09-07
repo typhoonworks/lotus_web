@@ -7,6 +7,7 @@
 - New `Lotus.Web.Resolver` behavior for customizing user resolution and access control
 - **Async Query Execution with LiveView** - Non-blocking query execution using LiveView's async assigns
 - **Query Pagination** - Cap rows at 1000 to avoid performance degration
+- **Streaming CSV Export** - Memory-efficient CSV export using `Lotus.Export.stream_csv/2`
 
 ### Improved
 

@@ -13,6 +13,7 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
   alias Lotus.Web.Queries.DropdownOptionsModal
+  alias Lotus.Web.Queries.ExportCompleteModal
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
   import Lotus.Web.Queries.EditorComponent
@@ -86,6 +87,17 @@ defmodule Lotus.Web.QueryEditorPage do
           id="dropdown_options_modal"
           variable_name={@dropdown_options_variable_name}
           variable_data={get_variable_data(@query_form, @dropdown_options_variable_name)}
+          parent={@myself}
+        />
+      <% end %>
+
+      <%= if @export_modal_visible do %>
+        <.live_component
+          module={ExportCompleteModal}
+          id="export_complete_modal"
+          filename={@export_filename}
+          file_path={@export_file_path}
+          error={@export_error}
           parent={@myself}
         />
       <% end %>
@@ -473,35 +485,57 @@ defmodule Lotus.Web.QueryEditorPage do
         send(self(), {:put_flash, [:error, "No query results to export"]})
         {:noreply, socket}
 
-      %{rows: []} ->
+      %{rows: [], meta: _} ->
         send(self(), {:put_flash, [:error, "No query results to export"]})
         {:noreply, socket}
 
-      result ->
-        csv_data = Lotus.Export.to_csv(result)
-        csv_binary = IO.iodata_to_binary(csv_data)
-        timestamp = DateTime.utc_now() |> DateTime.to_iso8601(:basic)
-
-        base_name =
-          case socket.assigns.query.name do
-            name when is_binary(name) and name != "" ->
-              name
-              |> String.trim()
-              |> String.replace(~r/[^\w\s-]/, "")
-              |> String.replace(~r/\s+/, "_")
-              |> String.downcase()
-
-            _ ->
-              "query_results"
-          end
-
-        filename = "#{base_name}_#{timestamp}.csv"
-
-        {:noreply,
-         socket
-         |> put_flash(:info, "CSV export ready for download")
-         |> push_event("download-csv", %{data: csv_binary, filename: filename})}
+      _result ->
+        {:noreply, start_streaming_export(socket)}
     end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("close_export_modal", _params, socket) do
+    {:noreply,
+     assign(socket,
+       export_modal_visible: false,
+       export_filename: nil,
+       export_file_path: nil,
+       export_error: nil
+     )}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("reveal_in_finder", %{"path" => file_path}, socket) do
+    case :os.type() do
+      {:unix, :darwin} ->
+        System.cmd("open", ["-R", file_path])
+
+      {:win32, _} ->
+        System.cmd("explorer", ["/select,", file_path])
+
+      _ ->
+        dir = Path.dirname(file_path)
+        System.cmd("xdg-open", [dir])
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("open_file", %{"path" => file_path}, socket) do
+    case :os.type() do
+      {:unix, :darwin} ->
+        System.cmd("open", [file_path])
+
+      {:win32, _} ->
+        System.cmd("cmd", ["/c", "start", "", file_path])
+
+      _ ->
+        System.cmd("xdg-open", [file_path])
+    end
+
+    {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
@@ -606,6 +640,20 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
+  def handle_info({:trigger_download, file_path}, socket) do
+    case File.read(file_path) do
+      {:ok, content} ->
+        {:noreply,
+         push_event(socket, "download-csv", %{
+           data: content,
+           filename: socket.assigns.export_filename
+         })}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
@@ -619,6 +667,37 @@ defmodule Lotus.Web.QueryEditorPage do
 
   def handle_async(:query_execution, {:exit, _reason}, socket) do
     {:noreply, assign(socket, error: "Query execution failed", result: nil, running: false)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_async(:csv_export, {:ok, {:ok, file_path}}, socket) do
+    filename = Path.basename(file_path)
+
+    {:noreply,
+     assign(socket,
+       export_modal_visible: true,
+       export_filename: filename,
+       export_file_path: file_path,
+       export_task: nil
+     )}
+  end
+
+  def handle_async(:csv_export, {:ok, {:error, error}}, socket) do
+    {:noreply,
+     assign(socket,
+       export_error: to_string(error),
+       export_task: nil,
+       export_modal_visible: true
+     )}
+  end
+
+  def handle_async(:csv_export, {:exit, _reason}, socket) do
+    {:noreply,
+     assign(socket,
+       export_error: "Export failed unexpectedly",
+       export_task: nil,
+       export_modal_visible: true
+     )}
   end
 
   @impl Phoenix.LiveComponent
@@ -688,7 +767,12 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_dialect: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
-      resolved_variable_options: %{}
+      resolved_variable_options: %{},
+      export_modal_visible: false,
+      export_filename: nil,
+      export_file_path: nil,
+      export_error: nil,
+      export_task: nil
     )
   end
 
@@ -1093,5 +1177,82 @@ defmodule Lotus.Web.QueryEditorPage do
           end
       end
     end)
+  end
+
+  defp start_streaming_export(socket) do
+    query = socket.assigns.query
+    vars = Map.get(socket.assigns, :variable_values, %{})
+    repo = query.data_repo || socket.assigns.default_repo
+
+    timestamp =
+      DateTime.utc_now()
+      |> DateTime.to_naive()
+      |> Calendar.strftime("%Y%m%d%H%M%S")
+
+    base_name =
+      case query.name do
+        name when is_binary(name) and name != "" ->
+          name
+          |> String.trim()
+          |> String.replace(~r/[^\w\s-]/, "")
+          |> String.replace(~r/\s+/, "_")
+          |> String.downcase()
+
+        _ ->
+          "query_results"
+      end
+
+    filename = "#{timestamp}_#{base_name}.csv"
+
+    temp_dir = System.tmp_dir!()
+    file_path = Path.join(temp_dir, filename)
+
+    # Don't show modal yet - will show when complete
+    socket =
+      assign(socket,
+        export_modal_visible: false,
+        export_filename: filename,
+        export_file_path: file_path,
+        export_error: nil
+      )
+
+    start_async(socket, :csv_export, fn ->
+      perform_streaming_export(query, repo, vars, file_path, self())
+    end)
+  end
+
+  defp perform_streaming_export(query, repo, vars, file_path, parent_pid) do
+    opts = [
+      repo: repo,
+      vars: vars,
+      page_size: @default_page_size
+    ]
+
+    opts =
+      if query.search_path && String.trim(query.search_path) != "" do
+        Keyword.put(opts, :search_path, query.search_path)
+      else
+        opts
+      end
+
+    try do
+      {:ok, file} = File.open(file_path, [:write, :utf8])
+
+      stream = Lotus.Export.stream_csv(query, opts)
+
+      stream
+      |> Enum.each(fn chunk ->
+        IO.write(file, chunk)
+      end)
+
+      File.close(file)
+
+      send(parent_pid, {:trigger_download, file_path})
+
+      {:ok, file_path}
+    rescue
+      error ->
+        {:error, Exception.message(error)}
+    end
   end
 end
