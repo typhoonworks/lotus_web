@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.5.0] - 2025-09-07
+
 ### Added
 
 - New `Lotus.Web.Resolver` behavior for customizing user resolution and access control
