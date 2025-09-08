@@ -111,23 +111,25 @@ defmodule Lotus.Web.Queries.EditorComponent do
     ~H"""
     <div class="w-full border-b border-gray-200 dark:border-gray-700">
       <span class="sr-only">Toolbar</span>
-      <div class="flex items-center w-full px-6 py-3 gap-4">
-        <.live_component
-          module={SegmentedDataSelectorComponent}
-          id="data-selector"
-          source_field={@form[:data_repo]}
-          schema_field={@form[:search_path]}
-          source_options={Enum.map(@data_repo_names, &{&1, &1})}
-          source_id="source-selector"
-          schema_id="schema-selector"
-          target_field="data_repo"
-          parent={@target}
-          disabled={false}
-        />
+      <div class="flex flex-col sm:flex-row sm:items-center w-full px-3 sm:px-6 py-3 gap-3 sm:gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
+          <.live_component
+            module={SegmentedDataSelectorComponent}
+            id="data-selector"
+            source_field={@form[:data_repo]}
+            schema_field={@form[:search_path]}
+            source_options={Enum.map(@data_repo_names, &{&1, &1})}
+            source_id="source-selector"
+            schema_id="schema-selector"
+            target_field="data_repo"
+            parent={@target}
+            disabled={false}
+          />
+        </div>
 
-        <div class="w-px self-stretch bg-gray-300 dark:bg-gray-600"></div>
+        <div class="hidden sm:block w-px self-stretch bg-gray-300 dark:bg-gray-600"></div>
 
-        <div class="flex-1 flex flex-wrap gap-3 items-center">
+        <div class="flex-1 flex flex-wrap gap-2 sm:gap-3 items-center">
           <%= for v <- @variables do %>
             <.widget
               var={v}
@@ -137,12 +139,14 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <% end %>
         </div>
 
-        <.render_actions
-          target={@target}
-          schema_explorer_visible={@schema_explorer_visible}
-          variable_settings_visible={@variable_settings_visible}
-          minimized={@minimized}
-        />
+        <div class="flex justify-end sm:justify-start">
+          <.render_actions
+            target={@target}
+            schema_explorer_visible={@schema_explorer_visible}
+            variable_settings_visible={@variable_settings_visible}
+            minimized={@minimized}
+          />
+        </div>
       </div>
     </div>
     """

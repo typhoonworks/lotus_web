@@ -31,7 +31,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
     ~H"""
     <div
       class={[
-        "absolute top-0 right-0 h-full w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 z-10 transition-transform duration-300 ease-in-out overflow-hidden",
+        "fixed sm:absolute top-0 right-0 h-full w-full sm:w-80 bg-white dark:bg-gray-800 border-l-0 sm:border-l border-gray-200 dark:border-gray-700 z-20 transition-transform duration-300 ease-in-out overflow-hidden",
         if(@visible, do: "translate-x-0", else: "translate-x-full")
       ]}
     >

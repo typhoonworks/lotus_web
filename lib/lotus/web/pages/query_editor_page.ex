@@ -22,12 +22,19 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <div id="query-editor-page" phx-hook="Download" class="flex flex-col h-full overflow-hidden">
-      <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full flex flex-col">
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-full flex flex-col overflow-hidden">
+    <div id="query-editor-page" phx-hook="Download" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
+      <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 min-h-full sm:h-full flex flex-col">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col sm:overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
-          <div class="relative flex-1 overflow-y-auto overflow-x-hidden">
+          <div class="relative flex-1 sm:overflow-y-auto sm:overflow-x-hidden">
+            <%= if @schema_explorer_visible or @variable_settings_visible do %>
+              <div class="fixed inset-0 bg-black/50 z-10 sm:hidden" 
+                   phx-click={if @schema_explorer_visible, do: "close_schema_explorer", else: "close_variable_settings"} 
+                   phx-target={@myself}>
+              </div>
+            <% end %>
+            
             <.live_component
               module={SchemaExplorerComponent}
               id="schema-explorer"
@@ -46,10 +53,10 @@ defmodule Lotus.Web.QueryEditorPage do
             />
 
             <div class={[
-              "transition-all duration-300 ease-in-out h-full flex flex-col overflow-hidden",
+              "transition-all duration-300 ease-in-out h-full sm:h-full flex flex-col sm:overflow-hidden",
               cond do
-                @schema_explorer_visible -> "mr-80"
-                @variable_settings_visible -> "mr-80"
+                @schema_explorer_visible -> "sm:mr-80"
+                @variable_settings_visible -> "sm:mr-80"
                 true -> "mr-0"
               end
             ]}>
@@ -69,7 +76,7 @@ defmodule Lotus.Web.QueryEditorPage do
                 variable_values={Map.get(assigns, :variable_values, %{})}
                 resolved_variable_options={@resolved_variable_options}
               />
-              <div class="flex-1 overflow-y-auto min-h-0">
+              <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
                 <.render_result result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} />
               </div>
 

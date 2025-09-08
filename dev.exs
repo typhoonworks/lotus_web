@@ -230,6 +230,10 @@ Application.put_env(:lotus, :cache, %{
 })
 
 Task.async(fn ->
+  # Start esbuild and tailwind applications first
+  {:ok, _} = Application.ensure_all_started(:esbuild)
+  {:ok, _} = Application.ensure_all_started(:tailwind)
+  
   children = [
     {Phoenix.PubSub, [name: WebDev.PubSub, adapter: Phoenix.PubSub.PG2]},
     {WebDev.PostgresRepo, []},

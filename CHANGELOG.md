@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## [0.5.1] - 2025-09-08
+
+- Adds adjustments for mobile browsing
+
 ## [0.5.0] - 2025-09-07
 
 ### Added
