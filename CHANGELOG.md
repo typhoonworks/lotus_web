@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## [0.5.2] - 2025-09-08
+
+- Allow live view deps up to 1.2
+
 ## [0.5.1] - 2025-09-08
 
 - Adds adjustments for mobile browsing
