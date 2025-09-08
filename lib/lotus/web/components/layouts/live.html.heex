@@ -1,7 +1,7 @@
 <meta name="live-transport" content={@live_transport} />
 <meta name="live-path" content={@live_path} />
 
-<div class="flex flex-col h-screen overflow-hidden bg-red-50 dark:bg-gray-900">
+<div class="flex flex-col min-h-screen sm:h-screen sm:overflow-hidden bg-red-50 dark:bg-gray-900">
   <div id="platform-scout" phx-hook="PlatformScout" style="display: none;"></div>
   <nav class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,14 +11,14 @@
             <.logo />
           </div>
         </div>
-        <div class="sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+        <div class="flex items-center space-x-2 sm:space-x-4">
           <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
-            <.button type="button">New Query</.button>
+            <.button type="button" class="text-sm sm:text-base">New Query</.button>
           </.link>
           <button
             type="button"
             phx-click={show_modal("shortcuts-modal")}
-            class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            class="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
             title="Keyboard shortcuts"
           >
             <Icons.command class="h-5 w-5" />
@@ -32,7 +32,7 @@
   <main class="flex-1 min-h-0">
       <.flash flash={@flash} kind={:info} />
       <.flash flash={@flash} kind={:error} />
-      <div class="h-full overflow-hidden">
+      <div class="h-full sm:overflow-hidden">
           {@inner_content}
       </div>
   </main>

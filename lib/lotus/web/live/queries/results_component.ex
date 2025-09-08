@@ -19,7 +19,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
         <% @result != nil -> %>
           <div class="mt-6 flex-shrink-0">
             <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md">
                   <Icons.check class="w-4 h-4" />
@@ -75,7 +75,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
         <% is_binary(@error) and @error != "" -> %>
           <div class="mt-6">
             <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-md">
                   <Icons.x_mark class="w-4 h-4" />

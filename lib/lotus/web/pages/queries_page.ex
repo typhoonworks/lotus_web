@@ -9,7 +9,7 @@ defmodule Lotus.Web.QueriesPage do
   def render(assigns) do
     ~H"""
       <div id="queries-page" class="flex flex-col h-full overflow-hidden">
-        <div class="mx-auto w-full px-4 sm:px-0 lg:px-6 py-6 h-full">
+        <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 h-full">
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg h-full overflow-y-auto">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-lg font-semibold text-text-light dark:text-text-dark">Queries</h2>
