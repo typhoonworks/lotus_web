@@ -18,6 +18,34 @@
 
 **A beautiful, lightweight web interface for [Lotus](https://github.com/typhoonworks/lotus) - the SQL query runner and storage library for Elixir applications.**
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Production Use and UUID Caveats](#production-use-and-uuid-caveats)
+- [Why LotusWeb?](#why-lotusweb)
+- [Current Features](#current-features)
+- [What's planned?](#whats-planned)
+- [Installation](#installation)
+- [Requirements](#requirements)
+- [Quick Setup](#quick-setup)
+- [Usage](#usage)
+- [Configuration Options](#configuration-options)
+- [Security Best Practices](#security-best-practices)
+- [Comparison with Alternatives](#comparison-with-alternatives)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
+
+> ⚠️ **Branch & Release Policy**
+>
+> - **Use tagged releases** when adding this package as a dependency.
+>   Example: `{:lotus, "~> 0.9.2"}` and `{:lotus_web, "~> 0.5.2"}`
+> - The `main` branch is **development-only** and may not compile or run outside this repo.
+> - Release docs live on HexDocs (links above). The README on `main` may describe unreleased changes.
+
+## Overview
+
 LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly in your Phoenix application. Perfect for technical and non-technical users who need to run SQL queries, create reports, and explore data without the complexity of a full BI solution.
 
 >🚧 While LotusWeb already has a solid feature set and its API surface is stabilizing, it’s still evolving. We’ll make a best effort to announce breaking changes, but we can’t guarantee backwards compatibility yet — especially as Lotus broadens its `Source` abstraction to support more than SQL-backed data sources.
@@ -336,13 +364,20 @@ mix test
 
 ### Development Server
 
-For initial setup when cloning the repository:
+For local development, ensure dependencies and placeholder assets exist, then run the dev server:
 
 ```bash
-# Create required asset files and install dependencies
+# From the repo root
+mix deps.get
+
+# Ensure placeholder assets exist for local dev compilation
 mkdir -p priv/static
 touch priv/static/app.css && touch priv/static/app.js
+
+# Install frontend deps for the demo/dev server
 npm install --prefix assets
+
+# Start the dev server / watcher
 mix dev
 ```
 
@@ -362,6 +397,12 @@ Common ways to help:
 - 📚 Improve documentation
 - 🎨 Enhance UI/UX
 - ⚡ Performance improvements
+
+When reporting a bug, please include:
+- Your Elixir & OTP versions
+- The dependency lines from your `mix.exs` (lotus / lotus_web, phoenix, live_view)
+- Whether you’re on a **tagged release** or using a Git ref/branch
+- Steps to reproduce (commands run, stacktrace, etc.)
 
 ## Acknowledgments
 
