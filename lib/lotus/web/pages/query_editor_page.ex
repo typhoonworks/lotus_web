@@ -1,4 +1,6 @@
 defmodule Lotus.Web.QueryEditorPage do
+  @moduledoc false
+
   @behaviour Lotus.Web.Page
 
   use Lotus.Web, :live_component
@@ -29,12 +31,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
           <div class="relative flex-1 sm:overflow-y-auto sm:overflow-x-hidden">
             <%= if @schema_explorer_visible or @variable_settings_visible do %>
-              <div class="fixed inset-0 bg-black/50 z-10 sm:hidden" 
-                   phx-click={if @schema_explorer_visible, do: "close_schema_explorer", else: "close_variable_settings"} 
+              <div class="fixed inset-0 bg-black/50 z-10 sm:hidden"
+                   phx-click={if @schema_explorer_visible, do: "close_schema_explorer", else: "close_variable_settings"}
                    phx-target={@myself}>
               </div>
             <% end %>
-            
+
             <.live_component
               module={SchemaExplorerComponent}
               id="schema-explorer"
@@ -327,8 +329,6 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("save_query", %{"query" => save_params}, socket) do
-    IO.inspect(socket.assigns[:access], label: "COMPONENT ACCESS LEVEL")
-
     if socket.assigns[:access] == :read_only do
       send(self(), {:put_flash, [:error, "You don't have permission to save queries"]})
 
@@ -367,31 +367,7 @@ defmodule Lotus.Web.QueryEditorPage do
        socket
        |> push_event("close-modal", %{id: "delete-query-modal"})}
     else
-      query_id = socket.assigns.page.id
-
-      case Lotus.get_query(query_id) do
-        nil ->
-          {:noreply,
-           socket
-           |> put_flash(:error, "Query not found")
-           |> push_navigate(to: lotus_path(:queries), replace: true)}
-
-        query ->
-          case Lotus.delete_query(query) do
-            {:ok, _} ->
-              {:noreply,
-               socket
-               |> put_flash(:info, "Query deleted successfully")
-               |> push_navigate(to: lotus_path(:queries), replace: true)}
-
-            {:error, _} ->
-              send(self(), {:put_flash, [:error, "Failed to delete query"]})
-
-              {:noreply,
-               socket
-               |> push_event("close-modal", %{id: "delete-query-modal"})}
-          end
-      end
+      delete_query(socket)
     end
   end
 
@@ -575,9 +551,10 @@ defmodule Lotus.Web.QueryEditorPage do
         page_index = socket.assigns.page_index || 0
 
         can_next =
-          cond do
-            is_integer(total) -> (page_index + 1) * page_size < total
-            true -> length(result.rows || []) == page_size
+          if is_integer(total) do
+            (page_index + 1) * page_size < total
+          else
+            length(result.rows || []) == page_size
           end
 
         if can_next do
@@ -1064,18 +1041,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp get_variable_data(form, variable_name) do
     variables = form[:variables].value || []
 
-    case Enum.find(variables, fn var ->
-           case var do
-             %Ecto.Changeset{} = changeset ->
-               Ecto.Changeset.get_field(changeset, :name) == variable_name
-
-             %{name: name} ->
-               name == variable_name
-
-             _ ->
-               false
-           end
-         end) do
+    case Enum.find(variables, &variable_matches_name?(&1, variable_name)) do
       nil ->
         %{}
 
@@ -1084,6 +1050,19 @@ defmodule Lotus.Web.QueryEditorPage do
 
       variable ->
         variable
+    end
+  end
+
+  defp variable_matches_name?(var, variable_name) do
+    case var do
+      %Ecto.Changeset{} = changeset ->
+        Ecto.Changeset.get_field(changeset, :name) == variable_name
+
+      %{name: name} ->
+        name == variable_name
+
+      _ ->
+        false
     end
   end
 
@@ -1166,24 +1145,28 @@ defmodule Lotus.Web.QueryEditorPage do
        }) do
     variables
     |> Enum.reduce(%{}, fn var, acc ->
-      case var.options_query do
-        nil ->
-          acc
-
-        "" ->
-          acc
-
-        sql_query when is_binary(sql_query) ->
-          case fetch_dropdown_options(sql_query, repo, search_path) do
-            {:ok, results} ->
-              options = OptionsFormatter.to_select_options(results)
-              Map.put(acc, var.name, options)
-
-            {:error, _error} ->
-              Map.put(acc, var.name, [])
-          end
-      end
+      process_variable_options(var, acc, repo, search_path)
     end)
+  end
+
+  defp process_variable_options(var, acc, repo, search_path) do
+    case var.options_query do
+      nil ->
+        acc
+
+      "" ->
+        acc
+
+      sql_query when is_binary(sql_query) ->
+        case fetch_dropdown_options(sql_query, repo, search_path) do
+          {:ok, results} ->
+            options = OptionsFormatter.to_select_options(results)
+            Map.put(acc, var.name, options)
+
+          {:error, _error} ->
+            Map.put(acc, var.name, [])
+        end
+    end
   end
 
   defp start_streaming_export(socket) do
@@ -1260,6 +1243,34 @@ defmodule Lotus.Web.QueryEditorPage do
     rescue
       error ->
         {:error, Exception.message(error)}
+    end
+  end
+
+  defp delete_query(socket) do
+    query_id = socket.assigns.page.id
+
+    case Lotus.get_query(query_id) do
+      nil ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Query not found")
+         |> push_navigate(to: lotus_path(:queries), replace: true)}
+
+      query ->
+        case Lotus.delete_query(query) do
+          {:ok, _} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Query deleted successfully")
+             |> push_navigate(to: lotus_path(:queries), replace: true)}
+
+          {:error, _} ->
+            send(self(), {:put_flash, [:error, "Failed to delete query"]})
+
+            {:noreply,
+             socket
+             |> push_event("close-modal", %{id: "delete-query-modal"})}
+        end
     end
   end
 end

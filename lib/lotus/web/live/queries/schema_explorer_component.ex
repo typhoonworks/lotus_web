@@ -348,31 +348,40 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
 
   defp get_column_icon_type(column) do
     cond do
-      column.primary_key ->
-        :id
-
-      String.contains?(column.name, "_id") and not column.primary_key ->
-        :foreign_key
-
-      String.contains?(column.type, "timestamp") or String.contains?(column.type, "date") ->
-        :datetime
-
-      String.contains?(column.type, "boolean") ->
-        :boolean
-
-      String.contains?(column.type, "numeric") or String.contains?(column.type, "decimal") ->
-        :decimal
-
-      String.contains?(column.type, "int") or String.contains?(column.type, "bigint") ->
-        :number
-
-      String.contains?(column.type, "varchar") or String.contains?(column.type, "text") or
-          String.contains?(column.type, "character") ->
-        :text
-
-      true ->
-        :text
+      column.primary_key -> :id
+      foreign_key?(column) -> :foreign_key
+      datetime_type?(column.type) -> :datetime
+      boolean_type?(column.type) -> :boolean
+      decimal_type?(column.type) -> :decimal
+      integer_type?(column.type) -> :number
+      text_type?(column.type) -> :text
+      true -> :text
     end
+  end
+
+  defp foreign_key?(column) do
+    String.contains?(column.name, "_id") and not column.primary_key
+  end
+
+  defp datetime_type?(type) do
+    String.contains?(type, "timestamp") or String.contains?(type, "date")
+  end
+
+  defp boolean_type?(type) do
+    String.contains?(type, "boolean")
+  end
+
+  defp decimal_type?(type) do
+    String.contains?(type, "numeric") or String.contains?(type, "decimal")
+  end
+
+  defp integer_type?(type) do
+    String.contains?(type, "int") or String.contains?(type, "bigint")
+  end
+
+  defp text_type?(type) do
+    String.contains?(type, "varchar") or String.contains?(type, "text") or
+      String.contains?(type, "character")
   end
 
   def show(socket) do

@@ -6,10 +6,14 @@ defmodule Lotus.Web.SourcesMap do
   defstruct databases: []
 
   defmodule Database do
+    @moduledoc false
+
     defstruct [:name, :adapter, :supports_schemas, schemas: []]
   end
 
   defmodule Schema do
+    @moduledoc false
+
     defstruct [:name, :is_default, :display_name, tables: []]
   end
 
@@ -73,11 +77,7 @@ defmodule Lotus.Web.SourcesMap do
   defp load_simple_tables(db_name) do
     case Lotus.list_tables(db_name) do
       {:ok, tables} ->
-        table_names =
-          case List.first(tables) do
-            {_schema, _table} -> Enum.map(tables, fn {_schema, table} -> table end)
-            _table -> tables
-          end
+        table_names = extract_table_names(tables)
 
         [
           %Schema{
@@ -90,6 +90,13 @@ defmodule Lotus.Web.SourcesMap do
 
       _ ->
         []
+    end
+  end
+
+  defp extract_table_names(tables) do
+    case List.first(tables) do
+      {_schema, _table} -> Enum.map(tables, fn {_schema, table} -> table end)
+      _table -> tables
     end
   end
 

@@ -84,7 +84,9 @@ defmodule Lotus.Web.Queries.WidgetComponent do
   defp widget_type(_), do: :input
 
   defp format_label(name) when is_binary(name) do
-    name |> String.split("_") |> Enum.map(&String.capitalize/1) |> Enum.join(" ")
+    name
+    |> String.split("_")
+    |> Enum.map_join(" ", &String.capitalize/1)
   end
 
   defp format_label(name), do: to_string(name)

@@ -231,17 +231,49 @@ defmodule Lotus.Web.SelectComponent do
 
   defp navigate(%{options: options, value: value, active_value: active, open: open}, key) do
     values = Enum.map(options, fn {_l, v} -> v end)
-    cur = active || value || List.first(values)
-    idx = Enum.find_index(values, &(to_string(&1) == to_string(cur))) || 0
+    cur = get_current_value(active, value, values)
+    idx = get_current_index(values, cur)
 
     case key do
-      "ArrowDown" -> {Enum.at(values, min(idx + 1, length(values) - 1)), true}
-      "ArrowUp" -> {Enum.at(values, max(idx - 1, 0)), true}
-      "Home" -> {List.first(values), true}
-      "End" -> {List.last(values), true}
-      "Enter" -> {cur, false}
-      "Escape" -> {cur, false}
-      _ -> {cur, open}
+      "ArrowDown" -> navigate_down(values, idx)
+      "ArrowUp" -> navigate_up(values, idx)
+      "Home" -> navigate_home(values)
+      "End" -> navigate_end(values)
+      "Enter" -> close_with_current(cur)
+      "Escape" -> close_with_current(cur)
+      _ -> keep_current(cur, open)
     end
+  end
+
+  defp navigate_down(values, idx) do
+    {Enum.at(values, min(idx + 1, length(values) - 1)), true}
+  end
+
+  defp navigate_up(values, idx) do
+    {Enum.at(values, max(idx - 1, 0)), true}
+  end
+
+  defp navigate_home(values) do
+    {List.first(values), true}
+  end
+
+  defp navigate_end(values) do
+    {List.last(values), true}
+  end
+
+  defp close_with_current(cur) do
+    {cur, false}
+  end
+
+  defp keep_current(cur, open) do
+    {cur, open}
+  end
+
+  defp get_current_value(active, value, values) do
+    active || value || List.first(values)
+  end
+
+  defp get_current_index(values, cur) do
+    Enum.find_index(values, &(to_string(&1) == to_string(cur))) || 0
   end
 end

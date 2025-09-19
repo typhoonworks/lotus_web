@@ -47,13 +47,9 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
     normalized_options = normalize_to_maps(options)
 
     if all_same_value_label?(normalized_options) do
-      normalized_options
-      |> Enum.map(& &1["value"])
-      |> Enum.join("\n")
+      Enum.map_join(normalized_options, "\n", & &1["value"])
     else
-      normalized_options
-      |> Enum.map(&"#{&1["value"]} | #{&1["label"]}")
-      |> Enum.join("\n")
+      Enum.map_join(normalized_options, "\n", &"#{&1["value"]} | #{&1["label"]}")
     end
   end
 
@@ -208,32 +204,46 @@ defmodule Lotus.Web.Formatters.VariableOptionsFormatter do
 
       # StaticOption struct format
       %{value: value, label: label} ->
-        %{"value" => to_string(value), "label" => to_string(label)}
+        normalize_struct_option(value, label)
 
       %Ecto.Changeset{} = changeset ->
-        case Ecto.Changeset.apply_changes(changeset) do
-          %{value: value, label: label} ->
-            %{"value" => to_string(value), "label" => to_string(label)}
-
-          other ->
-            string_value = inspect(other)
-            %{"value" => string_value, "label" => string_value}
-        end
+        normalize_changeset_option(changeset)
 
       # String format
       option_string when is_binary(option_string) ->
         parse_option_line(option_string)
 
       other ->
-        string_value =
-          cond do
-            is_binary(other) -> other
-            is_atom(other) -> Atom.to_string(other)
-            is_number(other) -> to_string(other)
-            true -> inspect(other)
-          end
+        normalize_unknown_option(other)
+    end
+  end
 
+  defp normalize_struct_option(value, label) do
+    %{"value" => to_string(value), "label" => to_string(label)}
+  end
+
+  defp normalize_changeset_option(changeset) do
+    case Ecto.Changeset.apply_changes(changeset) do
+      %{value: value, label: label} ->
+        normalize_struct_option(value, label)
+
+      other ->
+        string_value = inspect(other)
         %{"value" => string_value, "label" => string_value}
+    end
+  end
+
+  defp normalize_unknown_option(other) do
+    string_value = convert_to_string(other)
+    %{"value" => string_value, "label" => string_value}
+  end
+
+  defp convert_to_string(value) do
+    cond do
+      is_binary(value) -> value
+      is_atom(value) -> Atom.to_string(value)
+      is_number(value) -> to_string(value)
+      true -> inspect(value)
     end
   end
 

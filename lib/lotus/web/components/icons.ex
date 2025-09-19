@@ -1,4 +1,6 @@
 defmodule Lotus.Web.Components.Icons do
+  @moduledoc false
+
   use Lotus.Web, :html
 
   attr(:rest, :global,

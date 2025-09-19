@@ -1,4 +1,6 @@
 defmodule Lotus.Web.Queries.EditorComponent do
+  @moduledoc false
+
   use Lotus.Web, :html
 
   alias Lotus.Web.Queries.SegmentedDataSelectorComponent

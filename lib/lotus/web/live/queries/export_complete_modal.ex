@@ -1,4 +1,6 @@
 defmodule Lotus.Web.Queries.ExportCompleteModal do
+  @moduledoc false
+
   use Lotus.Web, :live_component
 
   @impl Phoenix.LiveComponent

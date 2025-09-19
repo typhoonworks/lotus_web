@@ -61,6 +61,7 @@ defmodule Lotus.Web.MixProject do
       {:tailwind, "~> 0.3", only: :dev, runtime: false},
 
       # Tooling
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false}
     ]
