@@ -1,4 +1,6 @@
 defmodule Lotus.Web.QueriesPage do
+  @moduledoc false
+
   @behaviour Lotus.Web.Page
 
   use Lotus.Web, :live_component

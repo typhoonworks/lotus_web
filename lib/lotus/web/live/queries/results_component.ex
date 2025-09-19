@@ -1,4 +1,6 @@
 defmodule Lotus.Web.Queries.ResultsComponent do
+  @moduledoc false
+
   use Lotus.Web, :html
 
   alias Lotus.Web.CellFormatter
@@ -101,12 +103,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
           total = Map.get(meta, :total_count)
 
           if is_map(win) do
-            offset = Map.get(win, :offset, 0)
-            from = if n > 0, do: offset + 1, else: 0
-            to_ = offset + n
-            range = if n > 0, do: "Showing #{from}–#{to_}", else: "Showing 0"
-            total_part = if is_integer(total), do: " of #{total} rows", else: " rows"
-            {range, total_part}
+            format_window_text(n, win, total)
           else
             {"#{n} rows", ""}
           end
@@ -116,6 +113,15 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       end
 
     range_text <> total_text <> " • " <> to_string(ms) <> "ms"
+  end
+
+  defp format_window_text(n, win, total) do
+    offset = Map.get(win, :offset, 0)
+    from = if n > 0, do: offset + 1, else: 0
+    to_ = offset + n
+    range = if n > 0, do: "Showing #{from}–#{to_}", else: "Showing 0"
+    total_part = if is_integer(total), do: " of #{total} rows", else: " rows"
+    {range, total_part}
   end
 
   defp can_prev(%{meta: %{} = meta}) do

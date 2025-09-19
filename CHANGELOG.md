@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+
+- **INTERNAL:** Comprehensive Credo-based code quality improvements:
+  - Added Credo static code analysis tool with custom configuration
+  - Eliminated deeply nested functions by extracting helper functions across components
+  - Reduced cyclomatic complexity in multiple modules (raised max to 10 for complex validation functions)
+  - Improved predicate function naming conventions (e.g., `is_text_type?` → `text_type?`)
+  - Refactored complex case statements and conditional logic for better readability
+  - Added `@moduledoc false` annotations to internal modules
+  - Configured selective exclusions for `MapJoin` warnings where pipe readability is prioritized
+  - Enhanced code maintainability and testability without changing public APIs
+
 ## [0.5.2] - 2025-09-08
 
 - Allow live view deps up to 1.2

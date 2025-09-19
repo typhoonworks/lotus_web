@@ -237,8 +237,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
   defp format_label(label) when is_binary(label) do
     label
     |> String.split("_")
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", &String.capitalize/1)
   end
 
   defp format_label(label), do: to_string(label)

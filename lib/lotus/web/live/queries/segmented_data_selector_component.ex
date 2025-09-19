@@ -105,45 +105,47 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
     if source && source != "" do
       case get_adapter_info(source) do
         %{show: false} ->
-          assign(socket,
-            schema_visible: false,
-            schema_loading: false,
-            schema_options: [],
-            schema_label: "Schema",
-            schema_multiple: false
-          )
+          assign_hidden_schema(socket)
 
         %{type: _adapter_type, label: label, multiple: multiple, show: true} ->
-          case Lotus.list_schemas(source) do
-            {:ok, schemas} ->
-              options = Enum.map(schemas, &{&1, &1})
-
-              assign(socket,
-                schema_visible: true,
-                schema_loading: false,
-                schema_options: options,
-                schema_label: label,
-                schema_multiple: multiple
-              )
-
-            {:error, _} ->
-              assign(socket,
-                schema_visible: true,
-                schema_loading: false,
-                schema_options: [],
-                schema_label: label,
-                schema_multiple: multiple
-              )
-          end
+          load_schemas_for_source(socket, source, label, multiple)
       end
     else
-      assign(socket,
-        schema_visible: false,
-        schema_loading: false,
-        schema_options: [],
-        schema_label: "Schema",
-        schema_multiple: false
-      )
+      assign_hidden_schema(socket)
+    end
+  end
+
+  defp assign_hidden_schema(socket) do
+    assign(socket,
+      schema_visible: false,
+      schema_loading: false,
+      schema_options: [],
+      schema_label: "Schema",
+      schema_multiple: false
+    )
+  end
+
+  defp load_schemas_for_source(socket, source, label, multiple) do
+    case Lotus.list_schemas(source) do
+      {:ok, schemas} ->
+        options = Enum.map(schemas, &{&1, &1})
+
+        assign(socket,
+          schema_visible: true,
+          schema_loading: false,
+          schema_options: options,
+          schema_label: label,
+          schema_multiple: multiple
+        )
+
+      {:error, _} ->
+        assign(socket,
+          schema_visible: true,
+          schema_loading: false,
+          schema_options: [],
+          schema_label: label,
+          schema_multiple: multiple
+        )
     end
   end
 
