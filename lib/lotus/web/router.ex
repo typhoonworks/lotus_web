@@ -51,8 +51,12 @@ defmodule Lotus.Web.Router do
 
       scope path, alias: false, as: false do
         import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+        import Phoenix.Router, only: [get: 3]
 
         {session_name, session_opts, route_opts} = Lotus.Web.Router.__options__(prefix, opts)
+
+        # Export endpoint - does not require LiveView session
+        get("/export/csv", Lotus.Web.ExportController, :csv)
 
         live_session session_name, session_opts do
           live("/", Lotus.Web.DashboardLive, :home, route_opts)

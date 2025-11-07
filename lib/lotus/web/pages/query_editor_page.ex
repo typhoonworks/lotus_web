@@ -16,6 +16,7 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.Queries.VariableSettingsComponent
   alias Lotus.Web.Queries.DropdownOptionsModal
   alias Lotus.Web.Queries.ExportCompleteModal
+  alias Lotus.Web.ExportController
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
   import Lotus.Web.Queries.EditorComponent
@@ -24,7 +25,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <div id="query-editor-page" phx-hook="Download" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
+    <div id="query-editor-page" phx-hook="UrlOpener" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
       <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 min-h-full sm:h-full flex flex-col">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col sm:overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
@@ -473,7 +474,7 @@ defmodule Lotus.Web.QueryEditorPage do
         {:noreply, socket}
 
       _result ->
-        {:noreply, start_streaming_export(socket)}
+        {:noreply, generate_export_url(socket)}
     end
   end
 
@@ -1169,7 +1170,7 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp start_streaming_export(socket) do
+  defp generate_export_url(socket) do
     query = socket.assigns.query
     vars = Map.get(socket.assigns, :variable_values, %{})
     repo = query.data_repo || socket.assigns.default_repo
@@ -1194,56 +1195,41 @@ defmodule Lotus.Web.QueryEditorPage do
 
     filename = "#{timestamp}_#{base_name}.csv"
 
-    temp_dir = System.tmp_dir!()
-    file_path = Path.join(temp_dir, filename)
+    export_params =
+      case socket.assigns.page do
+        %{mode: :edit, id: id} ->
+          # For saved queries, just pass the query ID
+          %{
+            "query_id" => id,
+            "repo" => repo,
+            "vars" => vars,
+            "search_path" => query.search_path,
+            "filename" => filename
+          }
 
-    # Don't show modal yet - will show when complete
-    socket =
-      assign(socket,
-        export_modal_visible: false,
-        export_filename: filename,
-        export_file_path: file_path,
-        export_error: nil
-      )
-
-    start_async(socket, :csv_export, fn ->
-      perform_streaming_export(query, repo, vars, file_path, self())
-    end)
-  end
-
-  defp perform_streaming_export(query, repo, vars, file_path, parent_pid) do
-    opts = [
-      repo: repo,
-      vars: vars,
-      page_size: @default_page_size
-    ]
-
-    opts =
-      if query.search_path && String.trim(query.search_path) != "" do
-        Keyword.put(opts, :search_path, query.search_path)
-      else
-        opts
+        %{mode: :new} ->
+          # For unsaved queries, pass the query attributes
+          %{
+            "query_attrs" => %{
+              "statement" => query.statement,
+              "data_repo" => repo,
+              "search_path" => query.search_path,
+              "variables" => Enum.map(query.variables || [], &variable_to_params/1)
+            },
+            "repo" => repo,
+            "vars" => vars,
+            "search_path" => query.search_path,
+            "filename" => filename
+          }
       end
 
-    try do
-      {:ok, file} = File.open(file_path, [:write, :utf8])
+    endpoint = socket.endpoint
+    token = ExportController.generate_token(endpoint, export_params)
 
-      stream = Lotus.Export.stream_csv(query, opts)
+    prefix = socket.assigns[:prefix] || ""
+    export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
 
-      stream
-      |> Enum.each(fn chunk ->
-        IO.write(file, chunk)
-      end)
-
-      File.close(file)
-
-      send(parent_pid, {:trigger_download, file_path})
-
-      {:ok, file_path}
-    rescue
-      error ->
-        {:error, Exception.message(error)}
-    end
+    push_event(socket, "open-url", %{url: export_url})
   end
 
   defp delete_query(socket) do

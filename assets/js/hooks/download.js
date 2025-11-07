@@ -1,22 +1,9 @@
-const Download = {
+const UrlOpener = {
   mounted() {
-    this.handleEvent("download-csv", ({ data, filename }) => {
-      const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
-
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      link.style.display = "none";
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      URL.revokeObjectURL(url);
+    this.handleEvent("open-url", ({ url }) => {
+      window.open(url, '_blank');
     });
   },
 };
 
-export default Download;
+export default UrlOpener;

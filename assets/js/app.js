@@ -1,7 +1,7 @@
 import topbar from "topbar";
 
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
-import Download from "./hooks/download";
+import UrlOpener from "./hooks/download";
 import EditorForm from "./hooks/editor_form";
 import Flash from "./hooks/flash";
 import MultiSelectSearch from "./hooks/multi_select_search";
@@ -49,7 +49,7 @@ topbar.config({
 
 const hooks = {
   DispatchChangeOnUpdate,
-  Download,
+  UrlOpener,
   EditorForm,
   Flash,
   MultiSelectSearch,
