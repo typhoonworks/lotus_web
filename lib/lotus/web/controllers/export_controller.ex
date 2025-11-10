@@ -6,7 +6,6 @@ defmodule Lotus.Web.ExportController do
   use Phoenix.Controller, formats: [:csv]
 
   alias Lotus.Export
-  alias Lotus.Storage.Query
 
   plug(:fetch_query_params)
 
@@ -17,7 +16,6 @@ defmodule Lotus.Web.ExportController do
 
   Expects a signed token containing:
   - query_id: ID of the query to export
-  - query_attrs: attributes of the query (for new/unsaved queries)
   - repo: data repository name
   - vars: variable values
   - search_path: optional search path
@@ -63,28 +61,11 @@ defmodule Lotus.Web.ExportController do
     Lotus.get_query(query_id)
   end
 
-  defp build_query(%{"query_attrs" => attrs}) do
-    # Build query struct from attributes (for unsaved queries)
-    %Query{
-      statement: attrs["statement"],
-      data_repo: attrs["data_repo"],
-      search_path: attrs["search_path"],
-      variables: build_variables(attrs["variables"] || [])
-    }
-  end
-
   defp build_query(_), do: nil
-
-  defp build_variables(variables) when is_list(variables) do
-    Enum.map(variables, fn var ->
-      struct(Lotus.Storage.QueryVariable, var)
-    end)
-  end
-
-  defp build_variables(_), do: []
 
   defp stream_chunks(conn, nil, _export_params) do
     {:ok, conn} = chunk(conn, "Error: Query not found")
+
     conn
   end
 

@@ -80,7 +80,7 @@ defmodule Lotus.Web.QueryEditorPage do
                 resolved_variable_options={@resolved_variable_options}
               />
               <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
-                <.render_result result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} />
+                <.render_result result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
               </div>
 
             </div>
@@ -1195,41 +1195,28 @@ defmodule Lotus.Web.QueryEditorPage do
 
     filename = "#{timestamp}_#{base_name}.csv"
 
-    export_params =
-      case socket.assigns.page do
-        %{mode: :edit, id: id} ->
-          # For saved queries, just pass the query ID
-          %{
-            "query_id" => id,
-            "repo" => repo,
-            "vars" => vars,
-            "search_path" => query.search_path,
-            "filename" => filename
-          }
+    case socket.assigns.page do
+      %{mode: :edit, id: id} ->
+        export_params = %{
+          "query_id" => id,
+          "repo" => repo,
+          "vars" => vars,
+          "search_path" => query.search_path,
+          "filename" => filename
+        }
 
-        %{mode: :new} ->
-          # For unsaved queries, pass the query attributes
-          %{
-            "query_attrs" => %{
-              "statement" => query.statement,
-              "data_repo" => repo,
-              "search_path" => query.search_path,
-              "variables" => Enum.map(query.variables || [], &variable_to_params/1)
-            },
-            "repo" => repo,
-            "vars" => vars,
-            "search_path" => query.search_path,
-            "filename" => filename
-          }
-      end
+        endpoint = socket.endpoint
+        token = ExportController.generate_token(endpoint, export_params)
 
-    endpoint = socket.endpoint
-    token = ExportController.generate_token(endpoint, export_params)
+        prefix = socket.assigns[:prefix] || ""
+        export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
 
-    prefix = socket.assigns[:prefix] || ""
-    export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
+        push_event(socket, "open-url", %{url: export_url})
 
-    push_event(socket, "open-url", %{url: export_url})
+      %{mode: :new} ->
+        # Unsaved queries are not supported for export
+        socket
+    end
   end
 
   defp delete_query(socket) do
