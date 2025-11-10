@@ -33,12 +33,12 @@ defmodule Lotus.Web.ExportController do
       {:error, :expired} ->
         conn
         |> put_status(:unauthorized)
-        |> text("Export link has expired. Please try again.")
+        |> text("Export link has expired. Please try again")
 
       {:error, _reason} ->
         conn
         |> put_status(:unauthorized)
-        |> text("Invalid export token.")
+        |> text("Invalid export token")
     end
   end
 
@@ -102,21 +102,14 @@ defmodule Lotus.Web.ExportController do
         opts
       end
 
-    try do
-      query
-      |> Export.stream_csv(opts)
-      |> Enum.reduce_while(conn, fn chunk, conn ->
-        case chunk(conn, chunk) do
-          {:ok, conn} -> {:cont, conn}
-          {:error, :closed} -> {:halt, conn}
-        end
-      end)
-    rescue
-      error ->
-        {:ok, conn} = chunk(conn, "Export failed: #{Exception.message(error)}")
-
-        conn
-    end
+    query
+    |> Export.stream_csv(opts)
+    |> Enum.reduce_while(conn, fn chunk, conn ->
+      case chunk(conn, chunk) do
+        {:ok, conn} -> {:cont, conn}
+        {:error, :closed} -> {:halt, conn}
+      end
+    end)
   end
 
   @doc """
