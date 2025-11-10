@@ -15,7 +15,6 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
   alias Lotus.Web.Queries.DropdownOptionsModal
-  alias Lotus.Web.Queries.ExportCompleteModal
   alias Lotus.Web.ExportController
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
@@ -97,17 +96,6 @@ defmodule Lotus.Web.QueryEditorPage do
           id="dropdown_options_modal"
           variable_name={@dropdown_options_variable_name}
           variable_data={get_variable_data(@query_form, @dropdown_options_variable_name)}
-          parent={@myself}
-        />
-      <% end %>
-
-      <%= if @export_modal_visible do %>
-        <.live_component
-          module={ExportCompleteModal}
-          id="export_complete_modal"
-          filename={@export_filename}
-          file_path={@export_file_path}
-          error={@export_error}
           parent={@myself}
         />
       <% end %>
@@ -479,50 +467,6 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("close_export_modal", _params, socket) do
-    {:noreply,
-     assign(socket,
-       export_modal_visible: false,
-       export_filename: nil,
-       export_file_path: nil,
-       export_error: nil
-     )}
-  end
-
-  @impl Phoenix.LiveComponent
-  def handle_event("reveal_in_finder", %{"path" => file_path}, socket) do
-    case :os.type() do
-      {:unix, :darwin} ->
-        System.cmd("open", ["-R", file_path])
-
-      {:win32, _} ->
-        System.cmd("explorer", ["/select,", file_path])
-
-      _ ->
-        dir = Path.dirname(file_path)
-        System.cmd("xdg-open", [dir])
-    end
-
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveComponent
-  def handle_event("open_file", %{"path" => file_path}, socket) do
-    case :os.type() do
-      {:unix, :darwin} ->
-        System.cmd("open", [file_path])
-
-      {:win32, _} ->
-        System.cmd("cmd", ["/c", "start", "", file_path])
-
-      _ ->
-        System.cmd("xdg-open", [file_path])
-    end
-
-    {:noreply, socket}
-  end
-
-  @impl Phoenix.LiveComponent
   def handle_event("run_query", %{"query" => query_params} = _payload, socket) do
     changeset = build_query_changeset(socket.assigns.query, query_params)
     form = build_query_form(changeset)
@@ -625,20 +569,6 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
-  def handle_info({:trigger_download, file_path}, socket) do
-    case File.read(file_path) do
-      {:ok, content} ->
-        {:noreply,
-         push_event(socket, "download-csv", %{
-           data: content,
-           filename: socket.assigns.export_filename
-         })}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
-
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
@@ -652,37 +582,6 @@ defmodule Lotus.Web.QueryEditorPage do
 
   def handle_async(:query_execution, {:exit, _reason}, socket) do
     {:noreply, assign(socket, error: "Query execution failed", result: nil, running: false)}
-  end
-
-  @impl Phoenix.LiveComponent
-  def handle_async(:csv_export, {:ok, {:ok, file_path}}, socket) do
-    filename = Path.basename(file_path)
-
-    {:noreply,
-     assign(socket,
-       export_modal_visible: true,
-       export_filename: filename,
-       export_file_path: file_path,
-       export_task: nil
-     )}
-  end
-
-  def handle_async(:csv_export, {:ok, {:error, error}}, socket) do
-    {:noreply,
-     assign(socket,
-       export_error: to_string(error),
-       export_task: nil,
-       export_modal_visible: true
-     )}
-  end
-
-  def handle_async(:csv_export, {:exit, _reason}, socket) do
-    {:noreply,
-     assign(socket,
-       export_error: "Export failed unexpectedly",
-       export_task: nil,
-       export_modal_visible: true
-     )}
   end
 
   @impl Phoenix.LiveComponent
@@ -752,12 +651,7 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_dialect: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
-      resolved_variable_options: %{},
-      export_modal_visible: false,
-      export_filename: nil,
-      export_file_path: nil,
-      export_error: nil,
-      export_task: nil
+      resolved_variable_options: %{}
     )
   end
 
