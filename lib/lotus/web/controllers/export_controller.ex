@@ -11,7 +11,6 @@ defmodule Lotus.Web.ExportController do
   plug(:fetch_query_params)
 
   @max_age 300
-  @salt "lotus.export"
 
   @doc """
   Streams a CSV export directly to the response.
@@ -27,7 +26,7 @@ defmodule Lotus.Web.ExportController do
   def csv(conn, %{"token" => token}) do
     endpoint = Phoenix.Controller.endpoint_module(conn)
 
-    case Phoenix.Token.verify(endpoint, @salt, token, max_age: @max_age) do
+    case Phoenix.Token.verify(endpoint, salt(endpoint), token, max_age: @max_age) do
       {:ok, export_params} ->
         stream_csv_export(conn, export_params)
 
@@ -126,6 +125,8 @@ defmodule Lotus.Web.ExportController do
   Returns a signed token valid for #{@max_age} seconds.
   """
   def generate_token(endpoint, params) do
-    Phoenix.Token.sign(endpoint, @salt, params)
+    Phoenix.Token.sign(endpoint, salt(endpoint), params)
   end
+
+  defp salt(endpoint), do: endpoint.config(:live_view)[:signing_salt]
 end
