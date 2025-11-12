@@ -24,7 +24,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <div id="query-editor-page" phx-hook="UrlOpener" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
+    <div id="query-editor-page" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
       <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 min-h-full sm:h-full flex flex-col">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col sm:overflow-hidden">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
@@ -1119,7 +1119,7 @@ defmodule Lotus.Web.QueryEditorPage do
     prefix = socket.assigns[:prefix] || ""
     export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
 
-    push_event(socket, "open-url", %{url: export_url})
+    push_event(socket, "download-url", %{url: export_url})
   end
 
   defp delete_query(socket) do
