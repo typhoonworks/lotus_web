@@ -21,7 +21,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
-- [Production Use and UUID Caveats](#production-use-and-uuid-caveats)
+- [Production Use](#production-use)
 - [Why LotusWeb?](#why-lotusweb)
 - [Current Features](#current-features)
 - [What's planned?](#whats-planned)
@@ -50,9 +50,11 @@ LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly
 
 >🚧 While LotusWeb already has a solid feature set and its API surface is stabilizing, it’s still evolving. We’ll make a best effort to announce breaking changes, but we can’t guarantee backwards compatibility yet — especially as Lotus broadens its `Source` abstraction to support more than SQL-backed data sources.
 
-## Production Use and UUID Caveats
+## Production Use
 
 LotusWeb is generally safe to use in production. It relies on Lotus’s read-only execution and session safety. We are running it in [Accomplish](https://accomplish.dev) successfully in production today, notwithanding being affected by the limitation described below.
+
+### UUID Caveats
 
 If your application uses UUIDs or mixed ID formats, there are current limitations that affect how variables work in the LotusWeb UI:
 
@@ -63,6 +65,16 @@ If your application uses UUIDs or mixed ID formats, there are current limitation
 - You can still get a lot of value from the UI, but filtering on UUID columns with `{{var}}` will likely not work in Postgres as it warrants a special binary format that is not UI friendly (we convert to String for the UI but currently have no way to cast it back with runtime column inference).
 
 We plan to improve this with column‑aware binding (Lotus will use schema metadata to deterministically cast/shape values). Once available, LotusWeb will take advantage of it automatically.
+
+### File Exports
+
+Lotus Web supports CSV exports of query results for both saved and unsaved queries. Because Lotus Web is implemented with LiveView, we use a short-lived, signed, encrypted, token to authorize exports via a separate controller endpoint (`Lotus.Web.ExportController.csv/2`). This allows us to chunk large results using browser downloads.
+
+For saved queries, we pass the Query ID and any variables in the token.
+
+For unsaved queries, we pass the raw SQL query and any variables in the token.
+
+While the token (which contains this potentially sensitive data) is short-lived, signed, and encrypted, you should still take care to only expose the export functionality to trusted users, as browsers can store download URLs in history.
 
 ## Why LotusWeb?
 
