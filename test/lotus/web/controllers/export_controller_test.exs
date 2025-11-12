@@ -55,9 +55,9 @@ defmodule Lotus.Web.Controllers.ExportControllerTest do
       }
 
       expired_token =
-        Phoenix.Token.sign(
+        Phoenix.Token.encrypt(
           Lotus.Web.Endpoint,
-          Lotus.Web.Endpoint.config(:live_view)[:signing_salt],
+          "lotus:" <> Lotus.Web.Endpoint.config(:secret_key_base),
           params,
           signed_at: System.system_time(:second) - 400
         )
@@ -99,6 +99,45 @@ defmodule Lotus.Web.Controllers.ExportControllerTest do
       assert conn.resp_body =~ "alice@test.com"
       assert conn.resp_body =~ "Bob"
       assert conn.resp_body =~ "bob@test.com"
+    end
+
+    test "streams CSV with valid token for unsaved query", %{conn: conn} do
+      create_test_users()
+
+      params = %{
+        "query_attrs" => %{
+          "statement" => "SELECT * FROM test_users WHERE name = {{name}}",
+          "variables" => [
+            %{
+              "default" => nil,
+              "label" => "Name",
+              "name" => "name",
+              "options_query" => nil,
+              "static_options" => [],
+              "type" => :text,
+              "widget" => :input
+            }
+          ]
+        },
+        "repo" => "public",
+        "vars" => %{"name" => "Alice"},
+        "filename" => "unsaved_users_export.csv"
+      }
+
+      token = ExportController.generate_token(Lotus.Web.Endpoint, params)
+      conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
+
+      assert conn.status == 200
+      assert get_resp_header(conn, "content-type") == ["text/csv; charset=utf-8"]
+
+      assert get_resp_header(conn, "content-disposition") == [
+               ~s(attachment; filename="unsaved_users_export.csv")
+             ]
+
+      assert conn.resp_body =~ "name,email"
+      assert conn.resp_body =~ "Alice"
+      assert conn.resp_body =~ "alice@test.com"
+      refute conn.resp_body =~ "Bob"
     end
 
     test "returns error message when query not found", %{conn: conn} do
