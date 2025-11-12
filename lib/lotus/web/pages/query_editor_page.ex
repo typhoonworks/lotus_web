@@ -1089,28 +1089,37 @@ defmodule Lotus.Web.QueryEditorPage do
 
     filename = "#{timestamp}_#{base_name}.csv"
 
-    case socket.assigns.page do
-      %{mode: :edit, id: id} ->
-        export_params = %{
-          "query_id" => id,
-          "repo" => repo,
-          "vars" => vars,
-          "search_path" => query.search_path,
-          "filename" => filename
-        }
+    export_params =
+      case socket.assigns.page do
+        %{mode: :edit, id: id} ->
+          %{
+            "query_id" => id,
+            "repo" => repo,
+            "vars" => vars,
+            "search_path" => query.search_path,
+            "filename" => filename
+          }
 
-        endpoint = socket.endpoint
-        token = ExportController.generate_token(endpoint, export_params)
+        %{mode: :new} ->
+          %{
+            "query_attrs" => %{
+              "statement" => query.statement,
+              "variables" => Enum.map(query.variables || [], &variable_to_params/1)
+            },
+            "repo" => repo,
+            "vars" => vars,
+            "search_path" => query.search_path,
+            "filename" => filename
+          }
+      end
 
-        prefix = socket.assigns[:prefix] || ""
-        export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
+    endpoint = socket.endpoint
+    token = ExportController.generate_token(endpoint, export_params)
 
-        push_event(socket, "open-url", %{url: export_url})
+    prefix = socket.assigns[:prefix] || ""
+    export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
 
-      %{mode: :new} ->
-        # Unsaved queries are not supported for export
-        socket
-    end
+    push_event(socket, "open-url", %{url: export_url})
   end
 
   defp delete_query(socket) do

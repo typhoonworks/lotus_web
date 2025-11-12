@@ -54,8 +54,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                 <button
                   phx-click="export_csv"
                   phx-target={@target}
-                  disabled={not @is_saved_query}
-                  title={if @is_saved_query, do: "Export query results to CSV", else: "Only saved queries can be exported"}
+                  title="Export query results to CSV"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50">
                   <Icons.download class="h-5 w-5" />
                   Export (.csv)
