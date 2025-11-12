@@ -48,14 +48,21 @@ defmodule Lotus.Web.ExportController do
   end
 
   defp stream_csv_export(conn, export_params) do
-    query = build_query(export_params)
-    filename = Map.get(export_params, "filename", "export.csv")
+    case build_query(export_params) do
+      %Query{} = query ->
+        filename = Map.get(export_params, "filename", "export.csv")
 
-    conn
-    |> put_resp_content_type("text/csv")
-    |> put_resp_header("content-disposition", ~s(attachment; filename="#{filename}"))
-    |> send_chunked(200)
-    |> stream_chunks(query, export_params)
+        conn
+        |> put_resp_content_type("text/csv")
+        |> put_resp_header("content-disposition", ~s(attachment; filename="#{filename}"))
+        |> send_chunked(200)
+        |> stream_chunks(query, export_params)
+
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> text("Query not found.")
+    end
   end
 
   defp build_query(%{"query_id" => query_id}) when not is_nil(query_id) do
@@ -81,12 +88,6 @@ defmodule Lotus.Web.ExportController do
   end
 
   defp build_variables(_), do: []
-
-  defp stream_chunks(conn, nil, _export_params) do
-    {:ok, conn} = chunk(conn, "Error: Query not found")
-
-    conn
-  end
 
   defp stream_chunks(conn, query, export_params) do
     repo = export_params["repo"]

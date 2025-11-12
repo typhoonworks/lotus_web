@@ -152,8 +152,8 @@ defmodule Lotus.Web.Controllers.ExportControllerTest do
 
       conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
 
-      assert conn.status == 200
-      assert conn.resp_body == "Error: Query not found"
+      assert conn.status == 404
+      assert conn.resp_body == "Query not found."
     end
 
     test "uses default filename when not provided", %{conn: conn} do
