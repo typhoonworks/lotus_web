@@ -1,5 +1,5 @@
 defmodule Lotus.Web.DashboardLive do
-  use Phoenix.LiveView, layout: {Lotus.Web.Layouts, :live}
+  use Lotus.Web, :live_view
 
   alias Lotus.Web.{QueriesPage, QueryEditorPage}
 
@@ -15,7 +15,7 @@ defmodule Lotus.Web.DashboardLive do
 
     page = resolve_page(params)
 
-    Process.put(:routing, {socket, prefix})
+    put_router_prefix(socket, prefix)
 
     socket =
       socket

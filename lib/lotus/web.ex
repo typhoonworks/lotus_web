@@ -1,8 +1,6 @@
 defmodule Lotus.Web do
   @moduledoc false
 
-  alias Lotus.Web.Layouts
-
   def html do
     quote do
       @moduledoc false
@@ -17,7 +15,7 @@ defmodule Lotus.Web do
     quote do
       @moduledoc false
 
-      use Phoenix.LiveView, layout: {Layouts, :live}
+      use Phoenix.LiveView, layout: {Lotus.Web.Layouts, :live}
 
       unquote(html_helpers())
     end
