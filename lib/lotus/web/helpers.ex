@@ -5,6 +5,13 @@ defmodule Lotus.Web.Helpers do
 
   # Routing Helpers
 
+  @pdict_key :__lotus_web_prefix__
+
+  @doc false
+  def put_router_prefix(socket, prefix) do
+    Process.put(@pdict_key, {socket, prefix})
+  end
+
   @doc """
   Construct a path to a dashboard page with optional params.
 
@@ -25,7 +32,7 @@ defmodule Lotus.Web.Helpers do
       |> Enum.sort()
       |> encode_params()
 
-    case Process.get(:routing) do
+    case Process.get(@pdict_key) do
       {socket, prefix} ->
         VerifiedRoutes.unverified_path(socket, socket.router, "#{prefix}/#{route}", params)
 
@@ -33,7 +40,7 @@ defmodule Lotus.Web.Helpers do
         "/"
 
       nil ->
-        raise RuntimeError, "nothing stored in the :routing key"
+        raise RuntimeError, "nothing stored in the #{@pdict_key} key"
     end
   end
 

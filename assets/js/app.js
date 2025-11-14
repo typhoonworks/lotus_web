@@ -41,8 +41,8 @@ window.addEventListener("phx:page-loading-stop", (info) => {
   topbar.hide();
 });
 
-window.addEventListener("phx:download-url", (event) => {
-  window.open(event.detail.url, '_blank');
+window.addEventListener("phx:open-blank", (event) => {
+  window.open(event.detail.location, '_blank');
 });
 
 topbar.config({

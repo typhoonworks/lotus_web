@@ -1116,10 +1116,8 @@ defmodule Lotus.Web.QueryEditorPage do
     endpoint = socket.endpoint
     token = ExportController.generate_token(endpoint, export_params)
 
-    prefix = socket.assigns[:prefix] || ""
-    export_url = "#{prefix}/lotus/export/csv?token=#{URI.encode_www_form(token)}"
-
-    push_event(socket, "download-url", %{url: export_url})
+    export_path = lotus_path([:export, :csv], %{token: URI.encode_www_form(token)})
+    push_event(socket, "open-blank", %{location: export_path})
   end
 
   defp delete_query(socket) do
