@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Implement controller-based query export for chunking exports without creating a local temp file (#34):
+  - Unsaved queries can no longer be exported; only saved queries can be exported. This was done to limit the token size in the URL and avoid exposing the data model (as the SQL query would need to be transmitted with the token).
+
 - **INTERNAL:** Comprehensive Credo-based code quality improvements:
   - Added Credo static code analysis tool with custom configuration
   - Eliminated deeply nested functions by extracting helper functions across components

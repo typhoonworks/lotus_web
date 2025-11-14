@@ -10,6 +10,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   attr(:running, :boolean, default: false)
   attr(:os, :atom, default: :unknown)
   attr(:target, Phoenix.LiveComponent.CID, default: nil)
+  attr(:is_saved_query, :boolean, default: true)
 
   def render_result(assigns) do
     ~H"""
@@ -50,10 +51,11 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   Next
                   <Icons.chevron_right class="h-5 w-5" />
                 </button>
-                <button 
+                <button
                   phx-click="export_csv"
                   phx-target={@target}
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
+                  title="Export query results to CSV"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50">
                   <Icons.download class="h-5 w-5" />
                   Export (.csv)
                 </button>

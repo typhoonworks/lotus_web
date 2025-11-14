@@ -1,7 +1,6 @@
 import topbar from "topbar";
 
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
-import Download from "./hooks/download";
 import EditorForm from "./hooks/editor_form";
 import Flash from "./hooks/flash";
 import MultiSelectSearch from "./hooks/multi_select_search";
@@ -42,6 +41,10 @@ window.addEventListener("phx:page-loading-stop", (info) => {
   topbar.hide();
 });
 
+window.addEventListener("phx:download-url", (event) => {
+  window.open(event.detail.url, '_blank');
+});
+
 topbar.config({
   barColors: { 0: "#FF8086" },
   shadowColor: "rgba(0, 0, 0, .3)",
@@ -49,7 +52,6 @@ topbar.config({
 
 const hooks = {
   DispatchChangeOnUpdate,
-  Download,
   EditorForm,
   Flash,
   MultiSelectSearch,
