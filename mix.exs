@@ -2,7 +2,7 @@ defmodule Lotus.Web.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/typhoonworks/lotus_web"
-  @version "0.5.2"
+  @version "0.6.0"
 
   def project do
     [
@@ -19,7 +19,8 @@ defmodule Lotus.Web.MixProject do
       description: description(),
       source_url: @source_url,
       homepage_url: @source_url,
-      dialyzer: dialyzer()
+      dialyzer: dialyzer(),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 

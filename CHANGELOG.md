@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.6.0] - 2025-11-14
+
 ### Changed
 
 - Implement controller-based query export for chunking exports without creating a local temp file (#34):
