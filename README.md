@@ -40,7 +40,7 @@
 > ⚠️ **Branch & Release Policy**
 >
 > - **Use tagged releases** when adding this package as a dependency.
->   Example: `{:lotus, "~> 0.9.2"}` and `{:lotus_web, "~> 0.6.1"}`
+>   Example: `{:lotus, "~> 0.9.2"}` and `{:lotus_web, "~> 0.6.2"}`
 > - The `main` branch is **development-only** and may not compile or run outside this repo.
 > - Release docs live on HexDocs (links above). The README on `main` may describe unreleased changes.
 
