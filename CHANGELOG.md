@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.6.2] - 2025-11-18
+
 ### Internal
 
 - During build, ESBuild also generates a CSS, which was overriding the Tailwind CSS output, causing all the Tailwind classes to be lost. This has been fixed by updating the Tailwind args to output the CSS files to separate locations.
