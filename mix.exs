@@ -72,6 +72,13 @@ defmodule Lotus.Web.MixProject do
     [
       "assets.build": ["tailwind default", "esbuild default"],
       dev: "run --no-halt dev.exs",
+      release: [
+        "assets.build",
+        "hex.publish --yes",
+        "cmd git tag v#{@version} -f",
+        "cmd git push",
+        "cmd git push --tags"
+      ],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       "test.setup": ["ecto.drop --quiet", "ecto.create", "ecto.migrate"],

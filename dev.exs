@@ -186,7 +186,7 @@ Application.put_env(:lotus_web, WebDev.Endpoint,
   url: [host: "localhost"],
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch=always)]},
+    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]},
   ],
   live_reload: [
     patterns: [
@@ -233,7 +233,7 @@ Task.async(fn ->
   # Start esbuild and tailwind applications first
   {:ok, _} = Application.ensure_all_started(:esbuild)
   {:ok, _} = Application.ensure_all_started(:tailwind)
-  
+
   children = [
     {Phoenix.PubSub, [name: WebDev.PubSub, adapter: Phoenix.PubSub.PG2]},
     {WebDev.PostgresRepo, []},
