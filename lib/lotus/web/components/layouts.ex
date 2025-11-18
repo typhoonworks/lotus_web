@@ -12,7 +12,7 @@ defmodule Lotus.Web.Layouts do
 
   @static_path Application.app_dir(:lotus_web, ["priv", "static"])
 
-  @external_resource css_path = Path.join(@static_path, "app.css")
+  @external_resource css_path = Path.join(@static_path, "css/app.css")
   @external_resource js_path = Path.join(@static_path, "app.js")
 
   @css File.read!(css_path)
@@ -79,7 +79,7 @@ defmodule Lotus.Web.Layouts do
     <.modal id="shortcuts-modal">
       <div class="max-w-2xl">
         <h3 class="text-lg font-semibold mb-6">Keyboard Shortcuts</h3>
-        
+
         <div class="space-y-6">
           <div>
             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">General</h4>
@@ -91,7 +91,7 @@ defmodule Lotus.Web.Layouts do
               />
             </div>
           </div>
-          
+
           <div>
             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Query Editor</h4>
             <div class="space-y-2">
@@ -128,11 +128,11 @@ defmodule Lotus.Web.Layouts do
             </div>
           </div>
         </div>
-        
+
         <div class="mt-6 text-xs text-gray-500 dark:text-gray-400">
           <span class="font-medium">Note:</span> ⌘ is the Command key on Mac
         </div>
-        
+
         <div class="mt-6 flex justify-end">
           <.button
             type="button"

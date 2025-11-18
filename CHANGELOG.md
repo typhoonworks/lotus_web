@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Internal
+
+- During build, ESBuild also generates a CSS, which was overriding the Tailwind CSS output, causing all the Tailwind classes to be lost. This has been fixed by updating the Tailwind args to output the CSS files to separate locations.
+  - While ESBuild still outputs a CSS file, we don't use it because the Tailwind CSS output already contains all the CSS we need.
+
+### Fixed
+
+- Incorrect esbuild configuration was overriding the Tailwind CSS build output, causing missing styles in the published assets.
+
 ## [0.6.1] - 2025-11-18
 
 ### Internal

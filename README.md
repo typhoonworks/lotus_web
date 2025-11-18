@@ -383,8 +383,8 @@ For local development, ensure dependencies and placeholder assets exist, then ru
 mix deps.get
 
 # Ensure placeholder assets exist for local dev compilation
-mkdir -p priv/static
-touch priv/static/app.css && touch priv/static/app.js
+mkdir -p priv/static/css
+touch priv/static/css/app.css && touch priv/static/app.js
 
 # Install frontend deps for the demo/dev server
 npm install --prefix assets
