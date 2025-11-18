@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a `release` mix task for use with new releases. `release` task ensures assets are always built before publishing.
+- Changed tailwind config, removing `--watch=always` in `config.exs`, so that the `assets.build` task can be run without blocking.
+
 ## [0.6.0] - 2025-11-14
 
 ### Changed
