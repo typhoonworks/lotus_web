@@ -23,7 +23,6 @@ if config_env() == :dev do
         --minify
         --input=css/app.css
         --output=../priv/static/app.css
-        --watch=always
       ),
       cd: Path.expand("../assets", __DIR__)
     ]
