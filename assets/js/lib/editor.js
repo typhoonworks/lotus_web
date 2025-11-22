@@ -13,7 +13,7 @@ const completionThemeCompartment = new Compartment();
 
 function isDarkMode() {
   const theme = load("theme") || "system";
-  
+
   if (theme === "dark") {
     return true;
   } else if (theme === "light") {
@@ -84,6 +84,7 @@ export function createEditor({
     ),
     editorTheme,
     EditorView.lineWrapping,
+    EditorView.scrollMargins.of(() => ({ top: 80, bottom: 64 })),
     placeholder("SELECT * FROM table_name"),
   ];
 
