@@ -64,7 +64,7 @@ defmodule Lotus.Web.QueryEditorPage do
               end
             ]}>
 
-              <div id={"results-visibility-tracker-#{Map.get(@page, :id, "new")}"} phx-hook="ResultsVisibility">
+              <div id={"results-visibility-tracker-#{@page.id}"} phx-hook="ResultsVisibility">
                 <.editor
                   form={@query_form}
                   target={@myself}
@@ -81,6 +81,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   resolved_variable_options={@resolved_variable_options}
                 />
 
+<<<<<<< HEAD
                 <.results_pill
                   error={@error}
                   result={@result}
@@ -91,6 +92,38 @@ defmodule Lotus.Web.QueryEditorPage do
 
               <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
                 <.render_result query_id={Map.get(@page, :id, "new")} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
+=======
+                <%= if (@result || @error) && !Map.get(assigns, :results_visible, true) do %>
+                  <div
+                    class="fixed bottom-6 right-6 z-30 cursor-pointer"
+                    phx-click="scroll_to_results"
+                    phx-target={@myself}
+                  >
+                    <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                      <%= if @error do %>
+                        <Icons.x_mark class="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Error</span>
+                          <span class="text-xs text-gray-600 dark:text-gray-400">See details below</span>
+                        </div>
+                      <% else %>
+                        <Icons.check class="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Success</span>
+                          <span class="text-xs text-gray-600 dark:text-gray-400">
+                            <%= @result.num_rows %> <%= if @result.num_rows == 1, do: "row", else: "rows" %> • <%= @result.duration_ms %>ms
+                          </span>
+                        </div>
+                      <% end %>
+                      <Icons.chevron_down class="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
+              <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
+                <.render_result query_id={@page.id} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
+>>>>>>> 7357192 (Implement results floating pill)
               </div>
 
             </div>
@@ -276,10 +309,14 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("scroll_to_results", _params, socket) do
+<<<<<<< HEAD
     {:noreply,
      push_event(socket, "scroll-to-element", %{
        id: "query-results-#{Map.get(socket.assigns.page, :id, "new")}"
      })}
+=======
+    {:noreply, push_event(socket, "scroll-to-element", %{id: "query-results-#{socket.assigns.page.id}"})}
+>>>>>>> 7357192 (Implement results floating pill)
   end
 
   @impl Phoenix.LiveComponent
