@@ -81,18 +81,6 @@ defmodule Lotus.Web.QueryEditorPage do
                   resolved_variable_options={@resolved_variable_options}
                 />
 
-<<<<<<< HEAD
-                <.results_pill
-                  error={@error}
-                  result={@result}
-                  target={@myself}
-                  results_visible={Map.get(assigns, :results_visible, true)}
-                />
-              </div>
-
-              <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
-                <.render_result query_id={Map.get(@page, :id, "new")} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
-=======
                 <%= if (@result || @error) && !Map.get(assigns, :results_visible, true) do %>
                   <div
                     class="fixed bottom-6 right-6 z-30 cursor-pointer"
@@ -123,7 +111,6 @@ defmodule Lotus.Web.QueryEditorPage do
 
               <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
                 <.render_result query_id={@page.id} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
->>>>>>> 7357192 (Implement results floating pill)
               </div>
 
             </div>
@@ -309,14 +296,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("scroll_to_results", _params, socket) do
-<<<<<<< HEAD
     {:noreply,
-     push_event(socket, "scroll-to-element", %{
-       id: "query-results-#{Map.get(socket.assigns.page, :id, "new")}"
-     })}
-=======
-    {:noreply, push_event(socket, "scroll-to-element", %{id: "query-results-#{socket.assigns.page.id}"})}
->>>>>>> 7357192 (Implement results floating pill)
+     push_event(socket, "scroll-to-element", %{id: "query-results-#{socket.assigns.page.id}"})}
   end
 
   @impl Phoenix.LiveComponent
