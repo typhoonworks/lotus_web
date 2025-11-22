@@ -296,7 +296,9 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("scroll_to_results", _params, socket) do
     {:noreply,
-     push_event(socket, "scroll-to-element", %{id: "query-results-#{Map.get(socket.assigns.page, :id, "new")}"})}
+     push_event(socket, "scroll-to-element", %{
+       id: "query-results-#{Map.get(socket.assigns.page, :id, "new")}"
+     })}
   end
 
   @impl Phoenix.LiveComponent
