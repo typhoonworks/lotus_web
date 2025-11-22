@@ -48,6 +48,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
           variable_settings_visible={@variable_settings_visible}
           target={@target}
           minimized={@minimized}
+          running={@running}
+          statement_empty={@statement_empty}
           variables={@variables}
           variable_values={@variable_values}
           resolved_variable_options={@resolved_variable_options}
@@ -105,13 +107,15 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variable_settings_visible, :boolean, default: false)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:minimized, :boolean, default: false)
+  attr(:running, :boolean, default: false)
+  attr(:statement_empty, :boolean, default: false)
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
   attr(:resolved_variable_options, :map, default: %{})
 
   def render_toolbar(assigns) do
     ~H"""
-    <div class="w-full border-b border-gray-200 dark:border-gray-700">
+    <div class="sticky top-0 z-10 bg-editor-light dark:bg-editor-dark w-full border-b border-gray-200 dark:border-gray-700">
       <span class="sr-only">Toolbar</span>
       <div class="flex flex-col sm:flex-row sm:items-center w-full px-3 sm:px-6 py-3 gap-3 sm:gap-4">
         <div class="flex items-center gap-2 sm:gap-4">
@@ -147,6 +151,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
             schema_explorer_visible={@schema_explorer_visible}
             variable_settings_visible={@variable_settings_visible}
             minimized={@minimized}
+            running={@running}
+            statement_empty={@statement_empty}
           />
         </div>
       </div>
@@ -158,10 +164,39 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:schema_explorer_visible, :boolean, default: false)
   attr(:variable_settings_visible, :boolean, default: false)
   attr(:minimized, :boolean, default: false)
+  attr(:running, :boolean, default: false)
+  attr(:statement_empty, :boolean, default: false)
 
   def render_actions(assigns) do
     ~H"""
     <div class="flex items-center space-x-1">
+      <span
+        id="toolbar-run-query-tippy"
+        data-title={
+          cond do
+            @statement_empty -> "Enter SQL to run query"
+            @running -> "Query running..."
+            true -> "Run query"
+          end
+        }
+        phx-hook="Tippy"
+      >
+        <button
+          id="toolbar-run-query-btn"
+          type="submit"
+          disabled={@running or @statement_empty}
+          class={[
+            "p-2 transition-colors",
+            if(@running or @statement_empty,
+              do: "text-gray-300 dark:text-gray-600 cursor-not-allowed",
+              else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+            )
+          ]}
+        >
+          <Icons.play_outline class="h-5 w-5" />
+        </button>
+      </span>
+
       <button
         id="copy-query-btn"
         type="button"

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Improved
+
+- **Query Editor UX on Small Screens** - Enhanced results visibility and navigation
+  - Results accessible via scrolling on all viewport sizes (no longer forced to minimize editor)
+  - Floating pill indicator shows query success/error state when results are off-screen
+  - Click-to-scroll navigation to results section
+  - Sticky toolbar with always-accessible run button and editor controls
+  - Intelligent visibility detection using IntersectionObserver
+
 ## [0.6.2] - 2025-11-18
 
 ### Internal

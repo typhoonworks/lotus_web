@@ -5,6 +5,7 @@ import EditorForm from "./hooks/editor_form";
 import Flash from "./hooks/flash";
 import MultiSelectSearch from "./hooks/multi_select_search";
 import PlatformScout from "./hooks/platform_scout";
+import ResultsVisibility from "./hooks/results_visibility";
 import ThemeSelector from "./hooks/theme_selector";
 import Tippy from "./hooks/tippy";
 import { load } from "./lib/settings";
@@ -45,6 +46,13 @@ window.addEventListener("phx:open-blank", (event) => {
   window.open(event.detail.location, '_blank');
 });
 
+window.addEventListener("phx:scroll-to-element", (event) => {
+  const el = document.getElementById(event.detail.id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
+
 topbar.config({
   barColors: { 0: "#FF8086" },
   shadowColor: "rgba(0, 0, 0, .3)",
@@ -56,6 +64,7 @@ const hooks = {
   Flash,
   MultiSelectSearch,
   PlatformScout,
+  ResultsVisibility,
   ThemeSelector,
   Tippy,
 };
