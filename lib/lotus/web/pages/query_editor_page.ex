@@ -24,9 +24,9 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
-    <div id="query-editor-page" class="flex flex-col h-full overflow-y-auto sm:overflow-hidden">
+    <div id="query-editor-page" class="flex flex-col h-full overflow-y-auto">
       <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 min-h-full sm:h-full flex flex-col">
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col sm:overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
           <div class="relative flex-1 sm:overflow-y-auto sm:overflow-x-hidden">
@@ -55,7 +55,7 @@ defmodule Lotus.Web.QueryEditorPage do
             />
 
             <div class={[
-              "transition-all duration-300 ease-in-out h-full sm:h-full flex flex-col sm:overflow-hidden",
+              "transition-all duration-300 ease-in-out flex flex-col",
               cond do
                 @schema_explorer_visible -> "sm:mr-80"
                 @variable_settings_visible -> "sm:mr-80"
