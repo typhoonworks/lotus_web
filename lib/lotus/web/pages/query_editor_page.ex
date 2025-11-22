@@ -63,23 +63,53 @@ defmodule Lotus.Web.QueryEditorPage do
               end
             ]}>
 
-              <.editor
-                form={@query_form}
-                target={@myself}
-                minimized={@editor_minimized}
-                data_repo_names={@data_repo_names}
-                schema={@editor_schema}
-                dialect={@editor_dialect}
-                running={@running}
-                statement_empty={@statement_empty}
-                schema_explorer_visible={@schema_explorer_visible}
-                variable_settings_visible={@variable_settings_visible}
-                variables={@query.variables}
-                variable_values={Map.get(assigns, :variable_values, %{})}
-                resolved_variable_options={@resolved_variable_options}
-              />
+              <div id={"results-visibility-tracker-#{@page.id}"} phx-hook="ResultsVisibility">
+                <.editor
+                  form={@query_form}
+                  target={@myself}
+                  minimized={@editor_minimized}
+                  data_repo_names={@data_repo_names}
+                  schema={@editor_schema}
+                  dialect={@editor_dialect}
+                  running={@running}
+                  statement_empty={@statement_empty}
+                  schema_explorer_visible={@schema_explorer_visible}
+                  variable_settings_visible={@variable_settings_visible}
+                  variables={@query.variables}
+                  variable_values={Map.get(assigns, :variable_values, %{})}
+                  resolved_variable_options={@resolved_variable_options}
+                />
+
+                <%= if (@result || @error) && !Map.get(assigns, :results_visible, true) do %>
+                  <div
+                    class="fixed bottom-6 right-6 z-30 cursor-pointer"
+                    phx-click="scroll_to_results"
+                    phx-target={@myself}
+                  >
+                    <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                      <%= if @error do %>
+                        <Icons.x_mark class="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Error</span>
+                          <span class="text-xs text-gray-600 dark:text-gray-400">See details below</span>
+                        </div>
+                      <% else %>
+                        <Icons.check class="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <div class="flex flex-col">
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Success</span>
+                          <span class="text-xs text-gray-600 dark:text-gray-400">
+                            <%= @result.num_rows %> <%= if @result.num_rows == 1, do: "row", else: "rows" %> • <%= @result.duration_ms %>ms
+                          </span>
+                        </div>
+                      <% end %>
+                      <Icons.chevron_down class="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+
               <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
-                <.render_result result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
+                <.render_result query_id={@page.id} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
               </div>
 
             </div>
@@ -256,6 +286,16 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("switch_variable_tab", %{"tab" => tab}, socket) do
     active_tab = String.to_existing_atom(tab)
     {:noreply, assign(socket, variable_settings_active_tab: active_tab)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("results-visibility-changed", %{"visible" => visible}, socket) do
+    {:noreply, assign(socket, results_visible: visible)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("scroll_to_results", _params, socket) do
+    {:noreply, push_event(socket, "scroll-to-element", %{id: "query-results-#{socket.assigns.page.id}"})}
   end
 
   @impl Phoenix.LiveComponent
