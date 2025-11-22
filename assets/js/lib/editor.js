@@ -84,7 +84,6 @@ export function createEditor({
     ),
     editorTheme,
     EditorView.lineWrapping,
-    EditorView.scrollMargins.of(() => ({ top: 80, bottom: 64 })),
     placeholder("SELECT * FROM table_name"),
   ];
 

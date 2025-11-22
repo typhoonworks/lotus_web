@@ -8,6 +8,8 @@ const editorStyles = {
   ".cm-scroller": {
     fontFamily: "'Monaco','Menlo','Ubuntu Mono',monospace",
     lineHeight: "1.5",
+    scrollPaddingTop: "80px",
+    scrollPaddingBottom: "64px",
   },
   ".cm-focused": { outline: "none" },
   ".cm-editor.cm-focused": {
