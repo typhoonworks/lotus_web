@@ -44,6 +44,7 @@ defmodule Lotus.Web.MixProject do
       {:phoenix_live_view, ">= 1.0.0 and < 1.2.0"},
       {:phoenix_html, "~> 4.0"},
       {:phoenix_ecto, "~> 4.5"},
+      {:gettext, "~> 0.24"},
 
       # Lotus
       {:lotus, "~> 0.9.2"},
@@ -92,7 +93,7 @@ defmodule Lotus.Web.MixProject do
       maintainers: ["Rui Freitas"],
       licenses: ["MIT"],
       links: %{GitHub: @source_url},
-      files: ~w[lib priv/static* .formatter.exs mix.exs README* LICENSE*]
+      files: ~w[lib priv/static* priv/gettext .formatter.exs mix.exs README* LICENSE*]
     ]
   end
 

@@ -4,6 +4,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @behaviour Lotus.Web.Page
 
   use Lotus.Web, :live_component
+  use Gettext, backend: Lotus.Web.Gettext
 
   @default_page_size 1000
 
@@ -91,15 +92,17 @@ defmodule Lotus.Web.QueryEditorPage do
                       <%= if @error do %>
                         <Icons.x_mark class="w-4 h-4 text-red-600 dark:text-red-400" />
                         <div class="flex flex-col">
-                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Error</span>
-                          <span class="text-xs text-gray-600 dark:text-gray-400">See details below</span>
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= gettext("Error") %></span>
+                          <span class="text-xs text-gray-600 dark:text-gray-400"><%= gettext("See details below") %></span>
                         </div>
                       <% else %>
                         <Icons.check class="w-4 h-4 text-green-600 dark:text-green-400" />
                         <div class="flex flex-col">
-                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Success</span>
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= gettext("Success") %></span>
                           <span class="text-xs text-gray-600 dark:text-gray-400">
-                            <%= @result.num_rows %> <%= if @result.num_rows == 1, do: "row", else: "rows" %> • <%= @result.duration_ms %>ms
+                            <%= ngettext("%{count} row", "%{count} rows", @result.num_rows, count: @result.num_rows) %>
+                            <span class="mx-1 text-gray-400">•</span>
+                            <%= gettext("%{duration}ms", duration: @result.duration_ms) %>
                           </span>
                         </div>
                       <% end %>
@@ -138,7 +141,11 @@ defmodule Lotus.Web.QueryEditorPage do
     ~H"""
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
       <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
-        <%= if @mode == :new, do: "New Query", else: (@query.name || "Untitled") %>
+        <%= if @mode == :new do %>
+          <%= gettext("New Query") %>
+        <% else %>
+          <%= @query.name || gettext("Untitled") %>
+        <% end %>
       </h2>
       <div class="flex gap-3">
         <%= if @mode == :edit do %>
@@ -148,7 +155,7 @@ defmodule Lotus.Web.QueryEditorPage do
             phx-click={show_modal("delete-query-modal")}
             class="text-red-600 hover:text-red-700 border-transparent hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:border-transparent dark:hover:bg-white/10"
           >
-            Delete
+            <%= gettext("Delete") %>
           </.button>
         <% end %>
         <.button
@@ -157,7 +164,7 @@ defmodule Lotus.Web.QueryEditorPage do
           phx-click={show_modal("save-query-modal")}
           class={@statement_empty && "opacity-50 cursor-not-allowed"}
         >
-          Save
+          <%= gettext("Save") %>
         </.button>
       </div>
     </div>
@@ -167,7 +174,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp save_modal(assigns) do
     ~H"""
     <.modal id="save-query-modal">
-      <h3 class="text-lg font-semibold mb-4">Save Query</h3>
+      <h3 class="text-lg font-semibold mb-4"><%= gettext("Save Query") %></h3>
 
       <.form for={@query_form}
              phx-submit="save_query"
@@ -177,15 +184,15 @@ defmodule Lotus.Web.QueryEditorPage do
           <.input
             field={@query_form[:name]}
             type="text"
-            label="Name"
-            placeholder="Enter query name"
+            label={gettext("Name")}
+            placeholder={gettext("Enter query name")}
             required
           />
           <.input
             field={@query_form[:description]}
             type="textarea"
-            label="Description"
-            placeholder="Enter query description (optional)"
+            label={gettext("Description")}
+            placeholder={gettext("Enter query description (optional)")}
             rows="3"
           />
         </div>
@@ -195,14 +202,14 @@ defmodule Lotus.Web.QueryEditorPage do
             variant="light"
             phx-click={hide_modal("save-query-modal")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button
             type="submit"
             phx-click={hide_modal("save-query-modal")}
             disabled={String.trim(Phoenix.HTML.Form.input_value(@query_form, :name) || "") == ""}
           >
-            Save Query
+            <%= gettext("Save Query") %>
           </.button>
         </div>
       </.form>
@@ -213,9 +220,9 @@ defmodule Lotus.Web.QueryEditorPage do
   defp delete_modal(assigns) do
     ~H"""
     <.modal id="delete-query-modal">
-      <h3 class="text-lg font-semibold mb-4">Delete query</h3>
+      <h3 class="text-lg font-semibold mb-4"><%= gettext("Delete query") %></h3>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
-        Are you sure you want to delete this query? This action cannot be undone.
+        <%= gettext("Are you sure you want to delete this query? This action cannot be undone.") %>
       </p>
       <div class="flex justify-end gap-3">
         <.button
@@ -223,7 +230,7 @@ defmodule Lotus.Web.QueryEditorPage do
           variant="light"
           phx-click={hide_modal("delete-query-modal")}
         >
-          Cancel
+          <%= gettext("Cancel") %>
         </.button>
         <.button
           type="button"
@@ -231,7 +238,7 @@ defmodule Lotus.Web.QueryEditorPage do
           phx-target={@target}
           class="bg-red-600 hover:bg-red-700 focus-visible:outline-red-600"
         >
-          Delete
+          <%= gettext("Delete") %>
         </.button>
       </div>
     </.modal>
@@ -253,7 +260,7 @@ defmodule Lotus.Web.QueryEditorPage do
           nil ->
             {:noreply,
              socket
-             |> put_flash(:error, "Query not found")
+             |> put_flash(:error, gettext("Query not found"))
              |> push_navigate(to: lotus_path(:queries))}
 
           %Query{} = query ->
@@ -363,7 +370,10 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("save_query", %{"query" => save_params}, socket) do
     if socket.assigns[:access] == :read_only do
-      send(self(), {:put_flash, [:error, "You don't have permission to save queries"]})
+      send(
+        self(),
+        {:put_flash, [:error, gettext("You don't have permission to save queries")]}
+      )
 
       {:noreply,
        socket
@@ -376,13 +386,13 @@ defmodule Lotus.Web.QueryEditorPage do
         {:ok, query} ->
           {:noreply,
            socket
-           |> put_flash(:info, "Query saved successfully!")
+           |> put_flash(:info, gettext("Query saved successfully!"))
            |> push_patch(to: lotus_path(["queries", query.id]), replace: true)
            |> assign(query: query)
            |> assign_query_changeset(query)}
 
         {:error, %Ecto.Changeset{} = cs} ->
-          send(self(), {:put_flash, [:error, "Failed to save query"]})
+          send(self(), {:put_flash, [:error, gettext("Failed to save query")]})
 
           {:noreply,
            socket
@@ -394,7 +404,10 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("delete_query", _params, socket) do
     if socket.assigns[:access] == :read_only do
-      send(self(), {:put_flash, [:error, "You don't have permission to delete queries"]})
+      send(
+        self(),
+        {:put_flash, [:error, gettext("You don't have permission to delete queries")]}
+      )
 
       {:noreply,
        socket
@@ -479,13 +492,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-success", _params, socket) do
-    send(self(), {:put_flash, [:info, "Query copied to clipboard!"]})
+    send(self(), {:put_flash, [:info, gettext("Query copied to clipboard!")]})
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-error", %{"error" => _error}, socket) do
-    send(self(), {:put_flash, [:error, "Failed to copy to clipboard!"]})
+    send(self(), {:put_flash, [:error, gettext("Failed to copy to clipboard!")]})
     {:noreply, socket}
   end
 
@@ -498,11 +511,11 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("export_csv", _params, socket) do
     case socket.assigns.result do
       nil ->
-        send(self(), {:put_flash, [:error, "No query results to export"]})
+        send(self(), {:put_flash, [:error, gettext("No query results to export")]})
         {:noreply, socket}
 
       %{rows: [], meta: _} ->
-        send(self(), {:put_flash, [:error, "No query results to export"]})
+        send(self(), {:put_flash, [:error, gettext("No query results to export")]})
         {:noreply, socket}
 
       _result ->
@@ -517,7 +530,11 @@ defmodule Lotus.Web.QueryEditorPage do
 
     if check_statement_empty(form) do
       {:noreply,
-       assign(socket, error: "Please enter a SQL statement", result: nil, running: false)}
+       assign(socket,
+         error: gettext("Please enter a SQL statement"),
+         result: nil,
+         running: false
+       )}
     else
       query = Ecto.Changeset.apply_changes(changeset)
 
@@ -625,7 +642,12 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   def handle_async(:query_execution, {:exit, _reason}, socket) do
-    {:noreply, assign(socket, error: "Query execution failed", result: nil, running: false)}
+    {:noreply,
+     assign(socket,
+       error: gettext("Query execution failed"),
+       result: nil,
+       running: false
+     )}
   end
 
   @impl Phoenix.LiveComponent
@@ -1070,7 +1092,7 @@ defmodule Lotus.Web.QueryEditorPage do
       end
     rescue
       error ->
-        {:error, "Query execution failed: #{Exception.message(error)}"}
+        {:error, gettext("Query execution failed: %{reason}", reason: Exception.message(error))}
     end
   end
 
@@ -1171,7 +1193,7 @@ defmodule Lotus.Web.QueryEditorPage do
       nil ->
         {:noreply,
          socket
-         |> put_flash(:error, "Query not found")
+         |> put_flash(:error, gettext("Query not found"))
          |> push_navigate(to: lotus_path(:queries), replace: true)}
 
       query ->
@@ -1179,11 +1201,11 @@ defmodule Lotus.Web.QueryEditorPage do
           {:ok, _} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Query deleted successfully")
+             |> put_flash(:info, gettext("Query deleted successfully"))
              |> push_navigate(to: lotus_path(:queries), replace: true)}
 
           {:error, _} ->
-            send(self(), {:put_flash, [:error, "Failed to delete query"]})
+            send(self(), {:put_flash, [:error, gettext("Failed to delete query")]})
 
             {:noreply,
              socket
