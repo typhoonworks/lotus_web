@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## [0.7.0] - 2025-11-24
+
+### Improved
+
+- **Query Editor UX on Small Screens** - Enhanced results visibility and navigation
+  - Results accessible via scrolling on all viewport sizes (no longer forced to minimize editor)
+  - Floating pill indicator shows query success/error state when results are off-screen
+  - Click-to-scroll navigation to results section
+  - Sticky toolbar with always-accessible run button and editor controls
+  - Intelligent visibility detection using IntersectionObserver scoped to parent container
+
+### Internal
+
+- Extracted floating results pill into dedicated `ResultsPillComponent` for better code organization and maintainability
+
 ## [0.6.2] - 2025-11-18
 
 ### Internal

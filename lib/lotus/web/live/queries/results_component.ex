@@ -5,6 +5,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   alias Lotus.Web.CellFormatter
 
+  attr(:query_id, :string, default: "default")
   attr(:result, :any, default: nil)
   attr(:error, :string, default: nil)
   attr(:running, :boolean, default: false)
@@ -14,7 +15,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   def render_result(assigns) do
     ~H"""
-    <div class="px-4 sm:px-6 lg:px-8 h-full flex flex-col">
+    <div id={"query-results-#{assigns[:query_id] || "default"}"} class="px-4 sm:px-6 lg:px-8 h-full flex flex-col">
       <%= cond do %>
         <% @running == true -> %>
           <.loading_spinner />
