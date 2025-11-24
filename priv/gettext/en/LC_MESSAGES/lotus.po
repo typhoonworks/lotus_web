@@ -8,11 +8,6 @@ msgstr ""
 msgid " rows"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:104
-#, elixir-autogen, elixir-format
-msgid "%{duration}ms"
-msgstr ""
-
 #: lib/lotus/web/live/queries/results_component.ex:121
 #, elixir-autogen, elixir-format
 msgid "%{stats} • %{duration}ms"
@@ -28,7 +23,7 @@ msgstr ""
 msgid "Add variables in SQL with %{variable_code}. When you type one, Lotus detects it and adds an input in the toolbar."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:224
+#: lib/lotus/web/pages/query_editor_page.ex:203
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this query? This action cannot be undone."
 msgstr ""
@@ -43,8 +38,8 @@ msgstr ""
 msgid "Browse the contents of your databases, tables, and columns. Pick a database to get started."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:204
-#: lib/lotus/web/pages/query_editor_page.ex:232
+#: lib/lotus/web/pages/query_editor_page.ex:183
+#: lib/lotus/web/pages/query_editor_page.ex:211
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -87,19 +82,19 @@ msgstr ""
 msgid "Default value"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:157
-#: lib/lotus/web/pages/query_editor_page.ex:240
+#: lib/lotus/web/pages/query_editor_page.ex:136
+#: lib/lotus/web/pages/query_editor_page.ex:219
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:222
+#: lib/lotus/web/pages/query_editor_page.ex:201
 #, elixir-autogen, elixir-format
 msgid "Delete query"
 msgstr ""
 
 #: lib/lotus/web/pages/queries_page.ex:33
-#: lib/lotus/web/pages/query_editor_page.ex:193
+#: lib/lotus/web/pages/query_editor_page.ex:172
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr ""
@@ -145,12 +140,12 @@ msgstr ""
 msgid "Enter one value per line. Use \"value | label\" format to add display labels."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:194
+#: lib/lotus/web/pages/query_editor_page.ex:173
 #, elixir-autogen, elixir-format
 msgid "Enter query description (optional)"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:187
+#: lib/lotus/web/pages/query_editor_page.ex:166
 #, elixir-autogen, elixir-format
 msgid "Enter query name"
 msgstr ""
@@ -162,7 +157,7 @@ msgid "Enter value"
 msgstr ""
 
 #: lib/lotus/web/live/queries/results_component.ex:88
-#: lib/lotus/web/pages/query_editor_page.ex:94
+#: lib/lotus/web/live/queries/results_pill_component.ex:25
 #, elixir-autogen, elixir-format
 msgid "Error"
 msgstr ""
@@ -183,17 +178,17 @@ msgstr ""
 msgid "Export query results to CSV"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:500
+#: lib/lotus/web/pages/query_editor_page.ex:479
 #, elixir-autogen, elixir-format
 msgid "Failed to copy to clipboard!"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:1207
+#: lib/lotus/web/pages/query_editor_page.ex:1186
 #, elixir-autogen, elixir-format
 msgid "Failed to delete query"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:394
+#: lib/lotus/web/pages/query_editor_page.ex:373
 #, elixir-autogen, elixir-format
 msgid "Failed to save query"
 msgstr ""
@@ -255,13 +250,13 @@ msgid "Minimize editor"
 msgstr ""
 
 #: lib/lotus/web/pages/queries_page.ex:28
-#: lib/lotus/web/pages/query_editor_page.ex:186
+#: lib/lotus/web/pages/query_editor_page.ex:165
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr ""
 
 #: lib/lotus/web/components/layouts/live.html.heex:16
-#: lib/lotus/web/pages/query_editor_page.ex:144
+#: lib/lotus/web/pages/query_editor_page.ex:123
 #, elixir-autogen, elixir-format
 msgid "New Query"
 msgstr ""
@@ -271,8 +266,8 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:513
-#: lib/lotus/web/pages/query_editor_page.ex:517
+#: lib/lotus/web/pages/query_editor_page.ex:492
+#: lib/lotus/web/pages/query_editor_page.ex:496
 #, elixir-autogen, elixir-format
 msgid "No query results to export"
 msgstr ""
@@ -298,7 +293,7 @@ msgstr ""
 msgid "Option 1\nOption 2\nOption 3"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:533
+#: lib/lotus/web/pages/query_editor_page.ex:512
 #, elixir-autogen, elixir-format
 msgid "Please enter a SQL statement"
 msgstr ""
@@ -328,28 +323,28 @@ msgstr ""
 msgid "Queries"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:494
+#: lib/lotus/web/pages/query_editor_page.ex:473
 #, elixir-autogen, elixir-format
 msgid "Query copied to clipboard!"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:1203
+#: lib/lotus/web/pages/query_editor_page.ex:1182
 #, elixir-autogen, elixir-format
 msgid "Query deleted successfully"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:646
+#: lib/lotus/web/pages/query_editor_page.ex:625
 #, elixir-autogen, elixir-format
 msgid "Query execution failed"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:1094
+#: lib/lotus/web/pages/query_editor_page.ex:1073
 #, elixir-autogen, elixir-format
 msgid "Query execution failed: %{reason}"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:262
-#: lib/lotus/web/pages/query_editor_page.ex:1195
+#: lib/lotus/web/pages/query_editor_page.ex:241
+#: lib/lotus/web/pages/query_editor_page.ex:1174
 #, elixir-autogen, elixir-format
 msgid "Query not found"
 msgstr ""
@@ -359,7 +354,7 @@ msgstr ""
 msgid "Query running..."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:388
+#: lib/lotus/web/pages/query_editor_page.ex:367
 #, elixir-autogen, elixir-format
 msgid "Query saved successfully!"
 msgstr ""
@@ -397,13 +392,13 @@ msgstr ""
 msgid "SQL query cannot be empty"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:166
+#: lib/lotus/web/pages/query_editor_page.ex:145
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:176
-#: lib/lotus/web/pages/query_editor_page.ex:211
+#: lib/lotus/web/pages/query_editor_page.ex:155
+#: lib/lotus/web/pages/query_editor_page.ex:190
 #, elixir-autogen, elixir-format
 msgid "Save Query"
 msgstr ""
@@ -425,11 +420,6 @@ msgstr ""
 #: lib/lotus/web/live/queries/segmented_data_selector_component.ex:51
 #, elixir-autogen, elixir-format
 msgid "Search"
-msgstr ""
-
-#: lib/lotus/web/pages/query_editor_page.ex:95
-#, elixir-autogen, elixir-format
-msgid "See details below"
 msgstr ""
 
 #: lib/lotus/web/live/queries/segmented_data_selector_component.ex:50
@@ -479,7 +469,7 @@ msgid "Static options"
 msgstr ""
 
 #: lib/lotus/web/live/queries/results_component.ex:31
-#: lib/lotus/web/pages/query_editor_page.ex:100
+#: lib/lotus/web/live/queries/results_pill_component.ex:31
 #, elixir-autogen, elixir-format
 msgid "Success"
 msgstr ""
@@ -520,7 +510,7 @@ msgstr ""
 msgid "Types"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:146
+#: lib/lotus/web/pages/query_editor_page.ex:125
 #, elixir-autogen, elixir-format
 msgid "Untitled"
 msgstr ""
@@ -570,12 +560,12 @@ msgstr ""
 msgid "Write a SQL query that returns value and label columns (or just a value column)."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:408
+#: lib/lotus/web/pages/query_editor_page.ex:387
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to delete queries"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:374
+#: lib/lotus/web/pages/query_editor_page.ex:353
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to save queries"
 msgstr ""
@@ -650,7 +640,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/lotus/web/live/queries/results_component.ex:150
-#: lib/lotus/web/pages/query_editor_page.ex:102
+#: lib/lotus/web/live/queries/results_pill_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "%{count} row"
 msgid_plural "%{count} rows"
@@ -724,4 +714,14 @@ msgstr ""
 #: lib/lotus/web/components/layouts.ex:133
 #, elixir-autogen, elixir-format
 msgid "⌘ is the Command key on Mac"
+msgstr ""
+
+#: lib/lotus/web/live/queries/results_pill_component.ex:49
+#, elixir-autogen, elixir-format
+msgid "%{duration}ms"
+msgstr ""
+
+#: lib/lotus/web/live/queries/results_pill_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "See details below"
 msgstr ""
