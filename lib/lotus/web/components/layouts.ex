@@ -29,7 +29,7 @@ defmodule Lotus.Web.Layouts do
 
   def logo(assigns) do
     ~H"""
-    <a href={lotus_path("")} title={gettext("Lotus Web")}>
+    <a href={lotus_path("")} title="Lotus Web">
       <svg class="h-10 w-auto" viewBox="0 0 512 512"
       >
         <path d="M367.495 286.598C392.721 234.99 399.155 180.51 389.208 134.687C388.029 129.258 382.178 126.398 377.17 128.803C334.902 149.103 295.864 187.646 270.637 239.253C243.524 294.72 238.12 353.505 251.43 401.294C297.315 382.44 340.382 342.065 367.495 286.598Z" fill="#FFCBCE"/>
