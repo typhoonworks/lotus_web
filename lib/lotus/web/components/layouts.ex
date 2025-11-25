@@ -78,14 +78,14 @@ defmodule Lotus.Web.Layouts do
     ~H"""
     <.modal id="shortcuts-modal">
       <div class="max-w-2xl">
-        <h3 class="text-lg font-semibold mb-6">Keyboard Shortcuts</h3>
+        <h3 class="text-lg font-semibold mb-6"><%= gettext("Keyboard Shortcuts") %></h3>
 
         <div class="space-y-6">
           <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">General</h4>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider"><%= gettext("General") %></h4>
             <div class="space-y-2">
               <.shortcut_item
-                description="Show keyboard shortcuts"
+                description={gettext("Show keyboard shortcuts")}
                 keys={["⌘", "/"]}
                 alt_keys={["Ctrl", "/"]}
               />
@@ -93,35 +93,35 @@ defmodule Lotus.Web.Layouts do
           </div>
 
           <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Query Editor</h4>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider"><%= gettext("Query Editor") %></h4>
             <div class="space-y-2">
               <.shortcut_item
-                description="Run query"
+                description={gettext("Run query")}
                 keys={["⌘", "Enter"]}
                 alt_keys={["Ctrl", "Enter"]}
               />
               <.shortcut_item
-                description="Copy query to clipboard"
+                description={gettext("Copy query to clipboard")}
                 keys={["⌘", "Shift", "C"]}
                 alt_keys={["Ctrl", "Shift", "C"]}
               />
               <.shortcut_item
-                description="Toggle Schema Explorer"
+                description={gettext("Toggle Schema Explorer")}
                 keys={["⌘", "E"]}
                 alt_keys={["Ctrl", "E"]}
               />
               <.shortcut_item
-                description="Toggle Variable Settings"
+                description={gettext("Toggle Variable Settings")}
                 keys={["⌘", "X"]}
                 alt_keys={["Ctrl", "X"]}
               />
               <.shortcut_item
-                description="Expand editor"
+                description={gettext("Expand editor")}
                 keys={["⌘", "↓"]}
                 alt_keys={["Ctrl", "↓"]}
               />
               <.shortcut_item
-                description="Minimize editor"
+                description={gettext("Minimize editor")}
                 keys={["⌘", "↑"]}
                 alt_keys={["Ctrl", "↑"]}
               />
@@ -130,7 +130,7 @@ defmodule Lotus.Web.Layouts do
         </div>
 
         <div class="mt-6 text-xs text-gray-500 dark:text-gray-400">
-          <span class="font-medium">Note:</span> ⌘ is the Command key on Mac
+          <span class="font-medium"><%= gettext("Note:") %></span> <%= gettext("⌘ is the Command key on Mac") %>
         </div>
 
         <div class="mt-6 flex justify-end">
@@ -139,7 +139,7 @@ defmodule Lotus.Web.Layouts do
             variant="light"
             phx-click={hide_modal("shortcuts-modal")}
           >
-            Close
+            <%= gettext("Close") %>
           </.button>
         </div>
       </div>

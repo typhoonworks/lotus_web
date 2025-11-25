@@ -13,6 +13,7 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
   """
 
   use Lotus.Web, :live_component
+  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
 
@@ -25,11 +26,11 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
           module={Lotus.Web.SelectComponent}
           id={@source_id || "source-selector"}
           name={@source_field.name}
-          label="Source"
+          label={gettext("Source")}
           floating_label={true}
           value={@source_field.value}
           options={@source_options}
-          prompt="Select source"
+          prompt={gettext("Select source")}
           disabled={@disabled}
           errors={@source_field.errors}
           show_icons={true}
@@ -46,8 +47,8 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
               label={@schema_label}
               value={@schema_field && @schema_field.value}
               options={@schema_options}
-              prompt={"Select #{String.downcase(@schema_label)}"}
-              search_prompt="Search"
+              prompt={gettext("Select %{label}", label: String.downcase(@schema_label || ""))}
+              search_prompt={gettext("Search")}
               disabled={@disabled or @schema_loading}
               errors={(@schema_field && @schema_field.errors) || []}
               show_icons={false}
@@ -61,7 +62,7 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
               floating_label={true}
               value={@schema_field && @schema_field.value}
               options={@schema_options}
-              prompt={"Select #{String.downcase(@schema_label)}"}
+              prompt={gettext("Select %{label}", label: String.downcase(@schema_label || ""))}
               disabled={@disabled or @schema_loading}
               errors={(@schema_field && @schema_field.errors) || []}
               show_icons={false}
@@ -120,7 +121,7 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
       schema_visible: false,
       schema_loading: false,
       schema_options: [],
-      schema_label: "Schema",
+      schema_label: gettext("Schema"),
       schema_multiple: false
     )
   end
@@ -155,19 +156,19 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
 
       case repo.__adapter__() do
         Ecto.Adapters.Postgres ->
-          %{type: :postgres, label: "Schema", multiple: true, show: true}
+          %{type: :postgres, label: gettext("Schema"), multiple: true, show: true}
 
         Ecto.Adapters.MyXQL ->
-          %{type: :mysql, label: "Database", multiple: false, show: false}
+          %{type: :mysql, label: gettext("Database"), multiple: false, show: false}
 
         Ecto.Adapters.SQLite3 ->
-          %{type: :sqlite, label: "Schema", multiple: false, show: false}
+          %{type: :sqlite, label: gettext("Schema"), multiple: false, show: false}
 
         _ ->
-          %{type: :unknown, label: "Schema", multiple: false, show: false}
+          %{type: :unknown, label: gettext("Schema"), multiple: false, show: false}
       end
     rescue
-      _ -> %{type: :unknown, label: "Schema", multiple: false, show: false}
+      _ -> %{type: :unknown, label: gettext("Schema"), multiple: false, show: false}
     end
   end
 end

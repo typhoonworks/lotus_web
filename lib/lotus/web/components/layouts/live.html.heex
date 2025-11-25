@@ -13,13 +13,13 @@
         </div>
         <div class="flex items-center space-x-2 sm:space-x-4">
           <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
-            <.button type="button" class="text-sm sm:text-base">New Query</.button>
+            <.button type="button" class="text-sm sm:text-base"><%= gettext("New Query") %></.button>
           </.link>
           <button
             type="button"
             phx-click={show_modal("shortcuts-modal")}
             class="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-            title="Keyboard shortcuts"
+            title={gettext("Keyboard shortcuts")}
           >
             <Icons.command class="h-5 w-5" />
           </button>

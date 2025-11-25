@@ -4,6 +4,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
   """
 
   use Phoenix.Component
+  use Gettext, backend: Lotus.Web.Gettext
 
   @doc """
   Renders a fieldset-based input with legend acting as floating label.
@@ -143,7 +144,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
       label={@formatted_label}
       floating_label={true}
       value={@value}
-      placeholder={@rest[:placeholder] || "Select date"}
+      placeholder={@rest[:placeholder] || gettext("Select date")}
       disabled={@rest[:disabled]}
       errors={@errors}
       min={@rest[:min] || ~D[1900-01-01]}
@@ -205,7 +206,7 @@ defmodule Lotus.Web.Queries.ToolbarComponents do
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-          placeholder={!@has_value && "Enter value" || ""}
+          placeholder={!@has_value && gettext("Enter value") || ""}
           class={[
             "w-full border-0 bg-transparent focus:ring-0 text-sm py-1.5 focus:placeholder:hidden",
             @has_value && "text-pink-600 focus:text-gray-900 dark:focus:text-gray-100",

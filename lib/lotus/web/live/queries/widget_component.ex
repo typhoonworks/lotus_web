@@ -1,5 +1,6 @@
 defmodule Lotus.Web.Queries.WidgetComponent do
   use Lotus.Web, :html
+  use Gettext, backend: Lotus.Web.Gettext
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
@@ -59,7 +60,7 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             label={@label}
             value={@value}
             options={@options}
-            prompt={if @options == [], do: "Select value"}
+            prompt={if @options == [], do: gettext("Select value")}
             disabled={@options == []}
             class="min-w-32 w-32"
           />
@@ -71,7 +72,7 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             name={@name}
             label={@label}
             value={@value}
-            placeholder="Enter value"
+            placeholder={gettext("Enter value")}
             class="w-32"
           />
       <% end %>

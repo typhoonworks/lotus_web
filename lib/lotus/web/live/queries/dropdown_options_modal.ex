@@ -4,6 +4,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
   """
 
   use Lotus.Web, :live_component
+  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Storage.QueryVariable
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
@@ -52,7 +53,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
 
   def handle_event("test_sql_query", _, socket) do
     if String.trim(socket.assigns.sql_query) == "" do
-      {:noreply, assign(socket, :query_error, "SQL query cannot be empty")}
+      {:noreply, assign(socket, :query_error, gettext("SQL query cannot be empty"))}
     else
       socket =
         socket
@@ -103,7 +104,12 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
     ~H"""
     <div>
       <.modal id="dropdown-options-modal" show={true} on_cancel={JS.push("close_modal", target: @myself)}>
-        <h3 class="text-lg font-semibold mb-4">Dropdown values for the <span class="text-pink-600 dark:text-pink-400 font-mono"><%= @variable_name %></span> widget</h3>
+        <h3 class="text-lg font-semibold mb-4">
+          <% variable_markup = "<span class=\"text-pink-600 dark:text-pink-400 font-mono\">#{@variable_name}</span>" %>
+          <%= gettext("Dropdown values for the %{variable} widget",
+            variable: variable_markup
+          ) |> raw() %>
+        </h3>
 
         <div class="grid grid-cols-5 gap-6">
           <div class="col-span-1 space-y-3">
@@ -112,7 +118,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 type="radio"
                 name="option_source"
                 value="static"
-                label="Custom list"
+                label={gettext("Custom list")}
                 checked={@option_source == :static}
               />
             </div>
@@ -121,7 +127,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 type="radio"
                 name="option_source"
                 value="query"
-                label="From SQL"
+                label={gettext("From SQL")}
                 checked={@option_source == :query}
               />
             </div>
@@ -141,17 +147,19 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 ]}
                 placeholder={
                   if @option_source == :static do
-                    "Option 1\nOption 2\nOption 3"
+                    gettext("Option 1\nOption 2\nOption 3")
                   else
-                    "SELECT value_column, label_column FROM table_name\n-- OR --\nSELECT value_column FROM table_name"
+                    gettext(
+                      "SELECT value_column, label_column FROM table_name\n-- OR --\nSELECT value_column FROM table_name"
+                    )
                   end
                 }
               ><%= if @option_source == :static, do: @custom_options, else: @sql_query %></textarea>
               <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 <%= if @option_source == :static do %>
-                  Enter one value per line. Use "value | label" format to add display labels.
+                  <%= gettext("Enter one value per line. Use \"value | label\" format to add display labels.") %>
                 <% else %>
-                  Write a SQL query that returns value and label columns (or just a value column).
+                  <%= gettext("Write a SQL query that returns value and label columns (or just a value column).") %>
                 <% end %>
               </div>
             </div>
@@ -169,15 +177,17 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Testing...
+                  <%= gettext("Testing...") %>
                 <% else %>
-                  Test Query
+                  <%= gettext("Test Query") %>
                 <% end %>
               </.button>
 
               <%= if @query_preview != [] do %>
                 <div class="mt-3">
-                  <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview (first 3 results):</div>
+                  <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <%= gettext("Preview (first 3 results):") %>
+                  </div>
                   <div class="bg-gray-50 dark:bg-gray-700 rounded-md p-3 space-y-1">
                     <%= for {label, value} <- @query_preview do %>
                       <div class="text-sm font-mono text-gray-600 dark:text-gray-400">
@@ -211,7 +221,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
             disabled={@option_source == :query && (@query_preview == [] || @query_error)}
             class={@option_source == :query && (@query_preview == [] || @query_error) && "opacity-50 cursor-not-allowed"}
           >
-            Done
+            <%= gettext("Done") %>
           </.button>
         </div>
       </.modal>
@@ -223,7 +233,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
     case socket.assigns.option_source do
       :static ->
         if String.trim(socket.assigns.custom_options) == "" do
-          {:error, "Please enter at least one option"}
+          {:error, gettext("Please enter at least one option")}
         else
           static_options = OptionsFormatter.from_display_format(socket.assigns.custom_options)
           {:ok, %{static_options: static_options, options_query: nil}}
@@ -231,7 +241,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
 
       :query ->
         if socket.assigns.query_full_results == [] do
-          {:error, "Please test your SQL query first and ensure it returns results"}
+          {:error, gettext("Please test your SQL query first and ensure it returns results")}
         else
           {:ok, %{static_options: [], options_query: String.trim(socket.assigns.sql_query)}}
         end

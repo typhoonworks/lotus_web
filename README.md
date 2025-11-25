@@ -30,6 +30,7 @@
 - [Quick Setup](#quick-setup)
 - [Usage](#usage)
 - [Configuration Options](#configuration-options)
+- [Internationalization](#internationalization)
 - [Security Best Practices](#security-best-practices)
 - [Comparison with Alternatives](#comparison-with-alternatives)
 - [Development](#development)
@@ -300,6 +301,33 @@ lotus_dashboard "/lotus",
 lotus_dashboard "/lotus",
   on_mount: [MyAppWeb.RequireAdmin, MyAppWeb.LogDashboardAccess]
 ```
+
+## Internationalization
+
+LotusWeb ships with a dedicated Gettext backend (`Lotus.Web.Gettext`) that uses the `"lotus"` domain. All UI components import this backend, so you can wrap strings in `gettext/1`, `ngettext/4`, etc., without additional setup. When no translation exists, the original text continues to be rendered.
+
+### Providing translations from a host application
+
+1. Create a place for your translations (for example `priv/lotus_gettext` in your host app) and copy the template from `deps/lotus_web/priv/gettext/lotus.pot` as a starting point.
+2. Add locale-specific PO files such as `priv/lotus_gettext/fr/LC_MESSAGES/lotus.po` and translate the strings as needed.
+3. Point LotusWeb to your translation directory in your host configuration:
+
+   ```elixir
+   # config/runtime.exs or config/config.exs in the host app
+   config :lotus_web, Lotus.Web.Gettext,
+     priv: "priv/lotus_gettext",
+     locales: ~w(en fr),
+     default_locale: "en"
+   ```
+
+4. Set the locale at runtime (for example during Plug or LiveView mount) to keep LotusWeb in sync with your app:
+
+   ```elixir
+   Lotus.Web.Gettext.put_locale(user_locale)
+   # or Gettext.put_locale(Lotus.Web.Gettext, user_locale)
+   ```
+
+Because the backend uses the `"lotus"` domain, host applications can freely add translations without touching this library. If a translation is missing the original string is displayed, ensuring existing behavior remains unchanged.
 
 ## Security Best Practices
 
