@@ -39,11 +39,22 @@ defmodule Lotus.Web.RouterTest do
         Router.__options__("/lotus", transport: "webpoll")
       end
     end
+
+    test "transferring locale from the Plug session" do
+      conn =
+        :get
+        |> conn("/lotus")
+        |> Plug.Test.init_test_session(%{})
+        |> Plug.Conn.put_session(:lotus_locale, :fr)
+
+      assert %{"locale" => "fr"} = options_to_session(conn, [])
+    end
   end
 
   defp options_to_session(opts) do
     :get
     |> conn("/lotus")
+    |> Plug.Test.init_test_session(%{})
     |> options_to_session(opts)
   end
 

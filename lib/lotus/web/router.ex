@@ -1,6 +1,8 @@
 defmodule Lotus.Web.Router do
   @moduledoc false
 
+  alias Plug.Conn
+
   @default_opts [
     socket_path: "/live",
     transport: "websocket",
@@ -73,7 +75,8 @@ defmodule Lotus.Web.Router do
 
     Enum.each(opts, &validate_opt!/1)
 
-    on_mount = Keyword.get(opts, :on_mount, []) ++ [Lotus.Web.Authentication]
+    on_mount =
+      Keyword.get(opts, :on_mount, []) ++ [Lotus.Web.Locale, Lotus.Web.Authentication]
 
     session_args = [
       prefix,
@@ -113,11 +116,48 @@ defmodule Lotus.Web.Router do
         script: conn.assigns[csp_keys[:script]]
       }
     }
+    |> maybe_set_locale(conn)
   end
 
   defp expand_csp_nonce_keys(nil), do: %{style: nil, script: nil}
   defp expand_csp_nonce_keys(key) when is_atom(key), do: %{style: key, script: key}
   defp expand_csp_nonce_keys(map) when is_map(map), do: map
+
+  defp maybe_set_locale(session, conn) do
+    case get_session_locale(conn) do
+      nil -> session
+      locale -> Map.put(session, "locale", locale)
+    end
+  end
+
+  defp get_session_locale(conn) do
+    [:lotus_locale, "lotus_locale"]
+    |> Enum.find_value(fn key ->
+      conn
+      |> safe_get_session(key)
+      |> normalize_locale()
+    end)
+  end
+
+  defp safe_get_session(conn, key) do
+    Conn.get_session(conn, key)
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp normalize_locale(locale) when is_binary(locale) do
+    locale
+    |> String.trim()
+    |> case do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp normalize_locale(locale) when is_atom(locale),
+    do: locale |> Atom.to_string() |> normalize_locale()
+
+  defp normalize_locale(_locale), do: nil
 
   defp validate_opt!({key, value}) do
     case key do
