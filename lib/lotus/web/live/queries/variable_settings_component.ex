@@ -4,7 +4,6 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
   """
 
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   @impl Phoenix.LiveComponent
   def mount(socket) do

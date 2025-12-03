@@ -2,7 +2,6 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   @moduledoc false
 
   use Lotus.Web, :html
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.CellFormatter
 

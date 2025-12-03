@@ -4,7 +4,6 @@ defmodule Lotus.Web.QueryEditorPage do
   @behaviour Lotus.Web.Page
 
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   @default_page_size 1000
 

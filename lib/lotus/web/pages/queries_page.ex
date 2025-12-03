@@ -4,7 +4,6 @@ defmodule Lotus.Web.QueriesPage do
   @behaviour Lotus.Web.Page
 
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.Page
 

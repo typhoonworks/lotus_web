@@ -4,7 +4,6 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
   """
 
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Storage.QueryVariable
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter

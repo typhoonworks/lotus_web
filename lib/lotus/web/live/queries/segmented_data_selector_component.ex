@@ -13,7 +13,6 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
   """
 
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
 

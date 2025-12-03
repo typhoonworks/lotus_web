@@ -2,7 +2,6 @@ defmodule Lotus.Web.Queries.EditorComponent do
   @moduledoc false
 
   use Lotus.Web, :html
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.Queries.SegmentedDataSelectorComponent
   import Lotus.Web.Queries.WidgetComponent

@@ -34,8 +34,8 @@ defmodule Lotus.Web do
   defp html_helpers do
     quote do
       use Phoenix.Component
-
       use Gettext, backend: Lotus.Web.Gettext
+
       import Lotus.Web.Helpers
       import Phoenix.HTML
       import Phoenix.LiveView.Helpers

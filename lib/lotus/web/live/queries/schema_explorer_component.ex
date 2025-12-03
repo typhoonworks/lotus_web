@@ -3,7 +3,6 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
   A drawer component for browsing data source schemas.
   """
   use Lotus.Web, :live_component
-  use Gettext, backend: Lotus.Web.Gettext
 
   alias Lotus.Web.SourcesMap
 

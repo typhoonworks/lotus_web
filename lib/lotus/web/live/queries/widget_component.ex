@@ -1,6 +1,6 @@
 defmodule Lotus.Web.Queries.WidgetComponent do
   use Lotus.Web, :html
-  use Gettext, backend: Lotus.Web.Gettext
+
   alias Lotus.Web.Queries.ToolbarComponents, as: Toolbar
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
 
