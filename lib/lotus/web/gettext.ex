@@ -8,7 +8,5 @@ defmodule Lotus.Web.Gettext do
   requests so that every host application benefits from the same strings.
   """
 
-  use Gettext.Backend,
-    otp_app: :lotus_web,
-    default_domain: "lotus"
+  use Gettext.Backend, otp_app: :lotus_web
 end
