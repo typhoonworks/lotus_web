@@ -12,7 +12,7 @@ defmodule Lotus.Web.LocaleTest do
 
   test "sets the locale from the session" do
     {:cont, socket} =
-      Locale.on_mount(:default, %{}, %{"locale" => "fr"}, %Socket{assigns: %{__changed__: %{}}})
+      Locale.on_mount(:default, %{}, %{"lotus_locale" => "fr"}, %Socket{assigns: %{__changed__: %{}}})
 
     assert Gettext.get_locale(Lotus.Web.Gettext) == "fr"
     assert socket.assigns.lotus_locale == "fr"
