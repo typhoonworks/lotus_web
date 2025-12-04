@@ -89,7 +89,7 @@ defmodule Lotus.Web.MixProject do
   defp package do
     [
       name: "lotus_web",
-      maintainers: ["Rui Freitas"],
+      maintainers: ["Arda Can Tugay", "Rui Freitas"],
       licenses: ["MIT"],
       links: %{GitHub: @source_url},
       files: ~w[lib priv/static* .formatter.exs mix.exs README* LICENSE*]
