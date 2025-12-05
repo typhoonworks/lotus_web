@@ -44,6 +44,7 @@ defmodule Lotus.Web.RouterTest do
   defp options_to_session(opts) do
     :get
     |> conn("/lotus")
+    |> Plug.Test.init_test_session(%{})
     |> options_to_session(opts)
   end
 

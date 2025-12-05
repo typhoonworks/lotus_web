@@ -73,7 +73,8 @@ defmodule Lotus.Web.Router do
 
     Enum.each(opts, &validate_opt!/1)
 
-    on_mount = Keyword.get(opts, :on_mount, []) ++ [Lotus.Web.Authentication]
+    on_mount =
+      Keyword.get(opts, :on_mount, []) ++ [Lotus.Web.Locale, Lotus.Web.Authentication]
 
     session_args = [
       prefix,

@@ -22,15 +22,15 @@ defmodule Lotus.Web.Queries.ResultsPillComponent do
           <%= if @error do %>
             <Icons.x_mark class="w-4 h-4 text-red-600 dark:text-red-400" />
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Error</span>
-              <span class="text-xs text-gray-600 dark:text-gray-400">See details below</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= gettext("Error") %></span>
+              <span class="text-xs text-gray-600 dark:text-gray-400"><%= gettext("See details below") %></span>
             </div>
           <% else %>
             <Icons.check class="w-4 h-4 text-green-600 dark:text-green-400" />
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Success</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100"><%= gettext("Success") %></span>
               <span class="text-xs text-gray-600 dark:text-gray-400">
-                <%= @result.num_rows %> <%= if @result.num_rows == 1, do: "row", else: "rows" %> • <%= @result.duration_ms %>ms
+                <%= row_count_text(@result.num_rows) %> • <%= duration_text(@result.duration_ms) %>
               </span>
             </div>
           <% end %>
@@ -39,5 +39,13 @@ defmodule Lotus.Web.Queries.ResultsPillComponent do
       </div>
     <% end %>
     """
+  end
+
+  defp row_count_text(count) when is_integer(count) do
+    ngettext("%{count} row", "%{count} rows", count, count: count)
+  end
+
+  defp duration_text(duration_ms) when is_integer(duration_ms) or is_float(duration_ms) do
+    gettext("%{duration}ms", duration: duration_ms)
   end
 end

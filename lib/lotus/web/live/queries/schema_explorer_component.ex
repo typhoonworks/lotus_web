@@ -46,7 +46,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <%= case @view_mode do %>
       <% :databases -> %>
-        <h3 class="text-sm font-medium text-text-light dark:text-text-dark">Data Reference</h3>
+        <h3 class="text-sm font-medium text-text-light dark:text-text-dark"><%= gettext("Data Reference") %></h3>
       <% :tables -> %>
         <div class="flex items-center">
           <.back_button target={@myself} />
@@ -91,19 +91,23 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     ~H"""
     <%= case @view_mode do %>
       <% :databases -> %>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Browse the contents of your databases, tables, and columns. Pick a database to get started.</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <%= gettext("Browse the contents of your databases, tables, and columns. Pick a database to get started.") %>
+        </p>
       <% :tables -> %>
         <%= if @current_db do %>
           <div class="flex items-center gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <%= if @current_db_info && @current_db_info.supports_schemas do %>
               <div class="flex items-center">
                 <Icons.layers class="h-3 w-3 mr-1" />
-                <%= SourcesMap.get_schema_count(@current_db_info) %> schemas
+                <%= schema_count = SourcesMap.get_schema_count(@current_db_info) %>
+                <%= ngettext("%{count} schema", "%{count} schemas", schema_count, count: schema_count) %>
               </div>
             <% end %>
             <div class="flex items-center">
               <Icons.tables class="h-3 w-3 mr-1" />
-              <%= if @current_db_info, do: SourcesMap.get_table_count(@current_db_info), else: 0 %> tables
+              <%= table_count = if(@current_db_info, do: SourcesMap.get_table_count(@current_db_info), else: 0) %>
+              <%= ngettext("%{count} table", "%{count} tables", table_count, count: table_count) %>
             </div>
           </div>
         <% end %>
@@ -122,7 +126,8 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
             <% end %>
             <div class="flex items-center">
               <Icons.tables class="h-3 w-3 mr-1" />
-              <%= length(@columns) %> columns
+              <%= column_count = length(@columns) %>
+              <%= ngettext("%{count} column", "%{count} columns", column_count, count: column_count) %>
             </div>
           </div>
         <% end %>
@@ -163,7 +168,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     <%= if @current_db_info do %>
       <div class="p-2">
         <div :for={schema <- @current_db_info.schemas}>
-          <span class="sr-only">Schema Header</span>
+          <span class="sr-only"><%= gettext("Schema Header") %></span>
           <%= if @current_db_info.supports_schemas do %>
             <div class="flex items-center py-2 px-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <div class="flex-shrink-0 mr-2">
@@ -172,14 +177,16 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
               <div class="flex items-center gap-2 flex-1">
                 <span><%= schema.display_name %></span>
                 <%= if schema.is_default do %>
-                  <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded lowercase">default</span>
+                  <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-1 py-0.5 rounded lowercase">
+                    <%= gettext("default") %>
+                  </span>
                 <% end %>
               </div>
               <span class="text-xs text-gray-400"><%= length(schema.tables) %></span>
             </div>
           <% end %>
 
-          <span class="sr-only">Tables in Schema</span>
+          <span class="sr-only"><%= gettext("Tables in Schema") %></span>
           <div class={["ml-5", if(@current_db_info.supports_schemas, do: "border-l border-gray-200 dark:border-gray-700", else: "ml-0")]}>
             <div :for={table <- schema.tables} class="flex items-center py-1.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r cursor-pointer" phx-click="select_table" phx-value-schema={schema.name} phx-value-table={table} phx-target={@target}>
               <div class="flex-shrink-0 mr-3">

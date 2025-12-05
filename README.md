@@ -30,6 +30,7 @@
 - [Quick Setup](#quick-setup)
 - [Usage](#usage)
 - [Configuration Options](#configuration-options)
+- [Internationalization](#internationalization)
 - [Security Best Practices](#security-best-practices)
 - [Comparison with Alternatives](#comparison-with-alternatives)
 - [Development](#development)
@@ -300,6 +301,30 @@ lotus_dashboard "/lotus",
 lotus_dashboard "/lotus",
   on_mount: [MyAppWeb.RequireAdmin, MyAppWeb.LogDashboardAccess]
 ```
+
+## Internationalization
+
+LotusWeb ships with a dedicated Gettext backend (`Lotus.Web.Gettext`) that uses the `"lotus"` domain. Translations are bundled with the library, so the UI automatically renders in either locale as soon as it is selected. When no translation exists, the original text continues to be rendered.
+
+To change the locale for a user session, store it in the Phoenix session (for example `:lotus_locale`). LotusWeb picks it up automatically and switches the Gettext locale during mount:
+
+```elixir
+defmodule MyAppWeb.Router do
+  use MyAppWeb, :router
+
+  pipeline :browser do
+    plug :fetch_session
+    plug :persist_user_locale
+  end
+
+  defp persist_user_locale(conn, _opts) do
+    user_locale = get_session(conn, :user_locale) || "en"
+    put_session(conn, :lotus_locale, user_locale)
+  end
+end
+```
+
+If you need additional locales or you want to improve the bundled translations, please open a pull request with updates to `priv/gettext/<locale>/LC_MESSAGES/lotus.po`. All translations are maintained in LotusWeb so every host benefits from the same vetted strings.
 
 ## Security Best Practices
 

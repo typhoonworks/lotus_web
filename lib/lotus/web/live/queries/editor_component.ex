@@ -66,7 +66,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
           <%= if @show_search_path do %>
             <div class="absolute bottom-2 left-4 flex items-center gap-2 text-sm">
-              <span class="font-medium text-gray-600 dark:text-gray-400">search_path:</span>
+              <span class="font-medium text-gray-600 dark:text-gray-400"><%= gettext("search_path:") %></span>
               <code class="px-2 py-0.5 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded text-xs font-mono text-gray-700 dark:text-gray-300">
                 <%= @search_path_value %>
               </code>
@@ -84,7 +84,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
                 else: "hover:bg-pink-500 hover:shadow-xl transform hover:scale-105"
               )
             ]}
-           title={if @statement_empty, do: "Enter SQL to run query", else: "Run Query"}
+           title={
+             if @statement_empty,
+               do: gettext("Enter SQL to run query"),
+               else: gettext("Run Query")
+           }
           >
             <%= if @running do %>
               <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -116,7 +120,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   def render_toolbar(assigns) do
     ~H"""
     <div class="sticky top-0 z-10 bg-editor-light dark:bg-editor-dark w-full border-b border-gray-200 dark:border-gray-700">
-      <span class="sr-only">Toolbar</span>
+      <span class="sr-only"><%= gettext("Toolbar") %></span>
       <div class="flex flex-col sm:flex-row sm:items-center w-full px-3 sm:px-6 py-3 gap-3 sm:gap-4">
         <div class="flex items-center gap-2 sm:gap-4">
           <.live_component
@@ -174,9 +178,9 @@ defmodule Lotus.Web.Queries.EditorComponent do
         id="toolbar-run-query-tippy"
         data-title={
           cond do
-            @statement_empty -> "Enter SQL to run query"
-            @running -> "Query running..."
-            true -> "Run query"
+            @statement_empty -> gettext("Enter SQL to run query")
+            @running -> gettext("Query running...")
+            true -> gettext("Run query")
           end
         }
         phx-hook="Tippy"
@@ -203,7 +207,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         phx-click="copy_query"
         phx-target={@target}
         class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-        data-title="Copy query to clipboard"
+        data-title={gettext("Copy query to clipboard")}
         phx-hook="Tippy"
       >
         <Icons.clipboard_copy class="h-5 w-5" />
@@ -220,7 +224,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
-        data-title="Variable settings"
+        data-title={gettext("Variable settings")}
         phx-hook="Tippy"
       >
         <Icons.variable class="h-5 w-5" />
@@ -237,7 +241,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
         ]}
-        data-title="Browse tables"
+        data-title={gettext("Browse tables")}
         phx-hook="Tippy"
       >
         <Icons.tables class="h-5 w-5" />
@@ -249,7 +253,11 @@ defmodule Lotus.Web.Queries.EditorComponent do
         phx-click="toggle_editor"
         phx-target={@target}
         class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-        data-title={if @minimized, do: "Expand editor", else: "Minimize editor"}
+        data-title={
+          if @minimized,
+            do: gettext("Expand editor"),
+            else: gettext("Minimize editor")
+        }
         phx-hook="Tippy"
       >
         <%= if @minimized do %>

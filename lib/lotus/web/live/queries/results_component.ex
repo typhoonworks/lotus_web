@@ -22,12 +22,12 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
         <% @result != nil -> %>
           <div class="mt-6 flex-shrink-0">
-            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md">
                   <Icons.check class="w-4 h-4" />
-                  Success
+                  <%= gettext("Success") %>
                 </span>
                 <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   <%= info_text(@result) %>
@@ -41,7 +41,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   disabled={not can_prev(@result)}
                 >
                   <Icons.chevron_left class="h-5 w-5" />
-                  Prev
+                  <%= gettext("Prev") %>
                 </button>
                 <button
                   phx-click="next_page"
@@ -49,16 +49,16 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
                   disabled={not can_next(@result)}
                 >
-                  Next
+                  <%= gettext("Next") %>
                   <Icons.chevron_right class="h-5 w-5" />
                 </button>
                 <button
                   phx-click="export_csv"
                   phx-target={@target}
-                  title="Export query results to CSV"
+                  title={gettext("Export query results to CSV")}
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50">
                   <Icons.download class="h-5 w-5" />
-                  Export (.csv)
+                  <%= gettext("Export (.csv)") %>
                 </button>
               </div>
             </div>
@@ -71,20 +71,20 @@ defmodule Lotus.Web.Queries.ResultsComponent do
             </.table>
             <%= if Enum.empty?(@result.rows) do %>
               <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-                <p class="text-base">No results found</p>
-                <p class="text-sm mt-1">Your query returned no rows</p>
+                <p class="text-base"><%= gettext("No results found") %></p>
+                <p class="text-sm mt-1"><%= gettext("Your query returned no rows") %></p>
               </div>
             <% end %>
           </div>
 
         <% is_binary(@error) and @error != "" -> %>
           <div class="mt-6">
-            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-md">
                   <Icons.x_mark class="w-4 h-4" />
-                  Error
+                  <%= gettext("Error") %>
                 </span>
               </div>
             </div>
@@ -108,23 +108,45 @@ defmodule Lotus.Web.Queries.ResultsComponent do
           if is_map(win) do
             format_window_text(n, win, total)
           else
-            {"#{n} rows", ""}
+            default_range_text(n)
           end
 
         _ ->
-          {"#{n} rows", ""}
+          default_range_text(n)
       end
 
-    range_text <> total_text <> " • " <> to_string(ms) <> "ms"
+    stats_text = String.trim(range_text <> total_text)
+
+    gettext("%{stats} • %{duration}ms",
+      stats: stats_text,
+      duration: to_string(ms)
+    )
   end
 
   defp format_window_text(n, win, total) do
     offset = Map.get(win, :offset, 0)
     from = if n > 0, do: offset + 1, else: 0
     to_ = offset + n
-    range = if n > 0, do: "Showing #{from}–#{to_}", else: "Showing 0"
-    total_part = if is_integer(total), do: " of #{total} rows", else: " rows"
+
+    range =
+      if n > 0 do
+        gettext("Showing %{from}–%{to}", from: from, to: to_)
+      else
+        gettext("Showing 0")
+      end
+
+    total_part =
+      if is_integer(total) do
+        ngettext(" of %{count} row", " of %{count} rows", total, count: total)
+      else
+        gettext(" rows")
+      end
+
     {range, total_part}
+  end
+
+  defp default_range_text(n) when is_integer(n) do
+    {ngettext("%{count} row", "%{count} rows", n, count: n), ""}
   end
 
   defp can_prev(%{meta: %{} = meta}) do
@@ -173,7 +195,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       </div>
 
       <p class="text-base text-gray-600 mb-2 flex items-center justify-center gap-2">
-        <span>To run your query, click on the Run button or press</span>
+        <span><%= gettext("To run your query, click on the Run button or press") %></span>
         <span class="inline-flex items-center gap-1">
           <%= if @os == :mac do %>
             <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-sm font-sans text-gray-700">⌘</kbd>
@@ -187,7 +209,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
         </span>
       </p>
       <p class="text-sm text-gray-500">
-        Here's where your results will appear
+        <%= gettext("Here's where your results will appear") %>
       </p>
     </div>
     """
@@ -196,7 +218,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   defp loading_spinner(assigns) do
     ~H"""
     <div class="mt-6 flex-shrink-0">
-      <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3">Results</h2>
+      <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
       <div class="grid min-h-[140px] w-full place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
         <.spinner />
       </div>

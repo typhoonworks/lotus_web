@@ -35,6 +35,11 @@ config :phoenix, stacktrace_depth: 20
 
 config :lotus_web, :ecto_repos, [WebDev.Repo, WebDev.ReportingRepo]
 
+config :lotus_web, Lotus.Web.Gettext,
+  default_locale: "en",
+  locales: ~w(en fr),
+  priv: "priv/gettext"
+
 config :lotus_web, Lotus.Web.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   priv: "test/support/postgres",
