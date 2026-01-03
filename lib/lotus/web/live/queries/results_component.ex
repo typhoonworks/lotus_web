@@ -4,6 +4,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   use Lotus.Web, :html
 
   alias Lotus.Web.CellFormatter
+  alias Lotus.Web.VegaSpecBuilder
 
   attr(:query_id, :string, default: "default")
   attr(:result, :any, default: nil)
@@ -12,6 +13,10 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   attr(:os, :atom, default: :unknown)
   attr(:target, Phoenix.LiveComponent.CID, default: nil)
   attr(:is_saved_query, :boolean, default: true)
+  # Visualization attrs
+  attr(:visualization_config, :map, default: nil)
+  attr(:visualization_view_mode, :atom, default: :table)
+  attr(:visualization_visible, :boolean, default: false)
 
   def render_result(assigns) do
     ~H"""
@@ -21,73 +26,44 @@ defmodule Lotus.Web.Queries.ResultsComponent do
           <.loading_spinner />
 
         <% @result != nil -> %>
-          <div class="mt-6 flex-shrink-0">
-            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-md">
-                  <Icons.check class="w-4 h-4" />
-                  <%= gettext("Success") %>
-                </span>
-                <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  <%= info_text(@result) %>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <button
-                  phx-click="prev_page"
-                  phx-target={@target}
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
-                  disabled={not can_prev(@result)}
-                >
-                  <Icons.chevron_left class="h-5 w-5" />
-                  <%= gettext("Prev") %>
-                </button>
-                <button
-                  phx-click="next_page"
-                  phx-target={@target}
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
-                  disabled={not can_next(@result)}
-                >
-                  <%= gettext("Next") %>
-                  <Icons.chevron_right class="h-5 w-5" />
-                </button>
-                <button
-                  phx-click="export_csv"
-                  phx-target={@target}
-                  title={gettext("Export query results to CSV")}
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50">
-                  <Icons.download class="h-5 w-5" />
-                  <%= gettext("Export (.csv)") %>
-                </button>
-              </div>
-            </div>
+          <%!-- Compact header row --%>
+          <div class="pt-3 pb-2 px-0 flex items-center gap-3 flex-shrink-0">
+            <h2 class="text-base font-semibold text-text-light dark:text-text-dark"><%= gettext("Results") %></h2>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded">
+              <Icons.check class="w-3 h-3" />
+              <%= gettext("Success") %>
+            </span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              <%= info_text(@result) %>
+            </span>
           </div>
-          <div class="mt-2 flex-1 min-h-0">
-            <.table id="query-results" rows={@result.rows} sticky_header={true}>
-              <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
-                <%= CellFormatter.format(Enum.at(row, index)) %>
-              </:col>
-            </.table>
-            <%= if Enum.empty?(@result.rows) do %>
-              <div class="text-center py-12 text-gray-500 dark:text-gray-400">
-                <p class="text-base"><%= gettext("No results found") %></p>
-                <p class="text-sm mt-1"><%= gettext("Your query returned no rows") %></p>
-              </div>
+
+          <%!-- Content area: Table or Chart --%>
+          <div class="flex-1 min-h-0 overflow-auto">
+            <%= if @visualization_view_mode == :chart && has_valid_config?(@visualization_config) do %>
+              <.render_chart result={@result} config={@visualization_config} />
+            <% else %>
+              <.render_table result={@result} />
             <% end %>
           </div>
 
+          <%!-- Bottom bar with controls --%>
+          <.bottom_bar
+            result={@result}
+            target={@target}
+            visualization_config={@visualization_config}
+            visualization_view_mode={@visualization_view_mode}
+            visualization_visible={@visualization_visible}
+          />
+
         <% is_binary(@error) and @error != "" -> %>
-          <div class="mt-6">
-            <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded-md">
-                  <Icons.x_mark class="w-4 h-4" />
-                  <%= gettext("Error") %>
-                </span>
-              </div>
-            </div>
+          <%!-- Compact error header row --%>
+          <div class="pt-3 pb-2 px-0 flex items-center gap-3 flex-shrink-0">
+            <h2 class="text-base font-semibold text-text-light dark:text-text-dark"><%= gettext("Results") %></h2>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 rounded">
+              <Icons.x_mark class="w-3 h-3" />
+              <%= gettext("Error") %>
+            </span>
           </div>
           <.render_error error={@error} />
 
@@ -97,6 +73,200 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     </div>
     """
   end
+
+  defp render_table(assigns) do
+    ~H"""
+    <.table id="query-results" rows={@result.rows} sticky_header={true}>
+      <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
+        <%= CellFormatter.format(Enum.at(row, index)) %>
+      </:col>
+    </.table>
+    <%= if Enum.empty?(@result.rows) do %>
+      <div class="text-center py-12 text-gray-500 dark:text-gray-400">
+        <p class="text-base"><%= gettext("No results found") %></p>
+        <p class="text-sm mt-1"><%= gettext("Your query returned no rows") %></p>
+      </div>
+    <% end %>
+    """
+  end
+
+  defp render_chart(assigns) do
+    spec = VegaSpecBuilder.build(assigns.result, assigns.config)
+
+    assigns = assign(assigns, :spec, spec)
+
+    ~H"""
+    <div
+      id="vega-chart-container"
+      phx-hook="VegaChart"
+      phx-update="ignore"
+      data-spec={Jason.encode!(@spec)}
+      class="w-full h-[calc(100vh-420px)] min-h-[250px] max-h-[500px] flex items-center justify-center"
+    >
+      <div class="text-gray-400">
+        <.spinner />
+      </div>
+    </div>
+    """
+  end
+
+  attr(:result, :any, required: true)
+  attr(:target, Phoenix.LiveComponent.CID, required: true)
+  attr(:visualization_config, :map, default: nil)
+  attr(:visualization_view_mode, :atom, default: :table)
+  attr(:visualization_visible, :boolean, default: false)
+
+  defp bottom_bar(assigns) do
+    ~H"""
+    <div class="mt-auto pb-4 flex items-center border-t border-gray-200 dark:border-gray-700 pt-4 relative z-10 bg-white dark:bg-gray-800">
+      <%!-- Left: Pagination and Export --%>
+      <div class="flex items-center gap-2 flex-1">
+        <%= if @visualization_view_mode == :table do %>
+          <button
+            phx-click="prev_page"
+            phx-target={@target}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
+            disabled={not can_prev(@result)}
+          >
+            <Icons.chevron_left class="h-5 w-5" />
+            <%= gettext("Prev") %>
+          </button>
+          <button
+            phx-click="next_page"
+            phx-target={@target}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
+            disabled={not can_next(@result)}
+          >
+            <%= gettext("Next") %>
+            <Icons.chevron_right class="h-5 w-5" />
+          </button>
+          <button
+            phx-click="export_csv"
+            phx-target={@target}
+            title={gettext("Export query results to CSV")}
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors disabled:opacity-50"
+          >
+            <Icons.download class="h-5 w-5" />
+            <%= gettext("Export (.csv)") %>
+          </button>
+        <% end %>
+      </div>
+
+      <%!-- Center: View toggle (only when config exists) --%>
+      <%= if has_valid_config?(@visualization_config) do %>
+        <div class="hidden sm:flex items-center justify-center">
+          <div class="flex rounded-md border border-gray-200 dark:border-gray-600 overflow-hidden">
+            <button
+              id="view-mode-table-btn"
+              phx-click="set_view_mode"
+              phx-value-mode="table"
+              phx-target={@target}
+              data-title={gettext("Table view")}
+              phx-hook="Tippy"
+              class={[
+                "p-2 transition-colors",
+                if(@visualization_view_mode == :table,
+                  do: "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100",
+                  else: "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )
+              ]}
+            >
+              <Icons.table_view class="h-5 w-5" />
+            </button>
+            <button
+              id="view-mode-chart-btn"
+              phx-click="set_view_mode"
+              phx-value-mode="chart"
+              phx-target={@target}
+              data-title={gettext("Chart view")}
+              phx-hook="Tippy"
+              class={[
+                "p-2 transition-colors border-l border-gray-200 dark:border-gray-600",
+                if(@visualization_view_mode == :chart,
+                  do: "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100",
+                  else: "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )
+              ]}
+            >
+              <Icons.chart_combined class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      <% end %>
+
+      <%!-- Right: Visualization controls --%>
+      <div class="flex items-center gap-2 flex-1 justify-end">
+        <%!-- Visualization button with cog icon --%>
+        <.button
+          type="button"
+          variant="light"
+          phx-click="smart_toggle_visualization_drawer"
+          phx-target={@target}
+          class={
+            "!py-1.5 !px-3 inline-flex items-center gap-1.5 " <>
+            if(@visualization_visible,
+              do: "!bg-pink-100 !text-pink-700 !ring-pink-300 dark:!bg-pink-900/30 dark:!text-pink-400 dark:!ring-pink-700",
+              else: ""
+            )
+          }
+        >
+          <%= gettext("Visualization") %>
+          <Icons.cog_6_tooth class="h-4 w-4" />
+        </.button>
+
+        <%= if has_valid_config?(@visualization_config) do %>
+          <%!-- Mobile view toggle --%>
+          <div class="flex sm:hidden rounded-md border border-gray-200 dark:border-gray-600 overflow-hidden">
+            <button
+              id="view-mode-table-btn-mobile"
+              phx-click="set_view_mode"
+              phx-value-mode="table"
+              phx-target={@target}
+              data-title={gettext("Table view")}
+              phx-hook="Tippy"
+              class={[
+                "p-2 transition-colors",
+                if(@visualization_view_mode == :table,
+                  do: "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100",
+                  else: "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )
+              ]}
+            >
+              <Icons.table_view class="h-5 w-5" />
+            </button>
+            <button
+              id="view-mode-chart-btn-mobile"
+              phx-click="set_view_mode"
+              phx-value-mode="chart"
+              phx-target={@target}
+              data-title={gettext("Chart view")}
+              phx-hook="Tippy"
+              class={[
+                "p-2 transition-colors border-l border-gray-200 dark:border-gray-600",
+                if(@visualization_view_mode == :chart,
+                  do: "bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-gray-100",
+                  else: "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )
+              ]}
+            >
+              <Icons.chart_combined class="h-5 w-5" />
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  defp has_valid_config?(nil), do: false
+
+  defp has_valid_config?(config) when is_map(config) do
+    Map.has_key?(config, "chart_type") and
+      Map.has_key?(config, "x_field") and
+      Map.has_key?(config, "y_field")
+  end
+
+  defp has_valid_config?(_), do: false
 
   defp info_text(%{num_rows: n, duration_ms: ms, meta: meta}) do
     {range_text, total_text} =
@@ -217,11 +387,12 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   defp loading_spinner(assigns) do
     ~H"""
-    <div class="mt-6 flex-shrink-0">
-      <h2 class="text-lg font-semibold text-text-light dark:text-text-dark mb-3"><%= gettext("Results") %></h2>
-      <div class="grid min-h-[140px] w-full place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
-        <.spinner />
-      </div>
+    <div class="pt-3 pb-2 px-0 flex items-center gap-3 flex-shrink-0">
+      <h2 class="text-base font-semibold text-text-light dark:text-text-dark"><%= gettext("Results") %></h2>
+      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+        <.spinner class="w-3 h-3" />
+        <%= gettext("Running...") %>
+      </span>
     </div>
     """
   end
