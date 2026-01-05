@@ -117,6 +117,7 @@ defmodule Lotus.Web.MixProject do
         "README.md",
         "guides/installation.md",
         "guides/getting-started.md",
+        "guides/visualizations.md",
         "guides/variables-and-widgets.md"
       ]
     ]
