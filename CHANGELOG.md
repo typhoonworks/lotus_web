@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- **Query Results Visualizations** - Built-in charting capabilities to visualize query results
+  - 5 chart types: Bar, Line, Area, Scatter, and Pie charts
+  - Configurable X-axis, Y-axis, and optional Color/Series grouping fields
+  - Axis customization with toggleable labels and custom titles
+  - Dark mode support with automatic theme adaptation
+  - Keyboard shortcuts: `Cmd/Ctrl+G` to toggle visualization settings, `Cmd/Ctrl+1` for table view, `Cmd/Ctrl+2` for chart view
+  - Powered by Vega-Lite for performant, declarative chart rendering
+
 ## [0.7.0] - 2025-11-24
 
 ### Improved

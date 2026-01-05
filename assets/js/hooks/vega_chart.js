@@ -4,12 +4,10 @@ export default {
   mounted() {
     this.renderChart();
 
-    // Handle chart updates from server
     this.handleEvent("update-chart", ({ spec }) => {
       this.renderChart(spec);
     });
 
-    // Handle theme changes
     this.themeObserver = new MutationObserver(() => {
       this.renderChart();
     });
@@ -18,7 +16,6 @@ export default {
       attributeFilter: ["class"],
     });
 
-    // Handle resize
     this.resizeObserver = new ResizeObserver(() => {
       if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
       this.resizeTimeout = setTimeout(() => this.renderChart(), 100);
@@ -39,10 +36,8 @@ export default {
       return;
     }
 
-    // Get container height (now reliable with explicit CSS height)
     const containerHeight = this.el.clientHeight || 400;
 
-    // Build full spec - use "container" for width, explicit height
     const fullSpec = {
       ...specData,
       width: "container",
@@ -50,10 +45,8 @@ export default {
       autosize: { type: "fit", contains: "padding", resize: true },
     };
 
-    // Detect dark mode
     const isDark = document.documentElement.classList.contains("dark");
 
-    // Configure vega-embed options
     const embedOptions = {
       actions: false,
       renderer: "svg",
@@ -101,7 +94,6 @@ export default {
           </div>
         </div>`;
 
-        // Notify server of error
         const component = this.el.closest("[data-phx-component]");
         if (component) {
           this.pushEventTo(component, "chart_render_error", {
