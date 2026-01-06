@@ -127,6 +127,27 @@ defmodule Lotus.Web.Layouts do
               />
             </div>
           </div>
+
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider"><%= gettext("Query Results") %></h4>
+            <div class="space-y-2">
+              <.shortcut_item
+                description={gettext("Toggle visualization settings")}
+                keys={["⌘", "G"]}
+                alt_keys={["Ctrl", "G"]}
+              />
+              <.shortcut_item
+                description={gettext("Switch to table view")}
+                keys={["⌘", "1"]}
+                alt_keys={["Ctrl", "1"]}
+              />
+              <.shortcut_item
+                description={gettext("Switch to chart view")}
+                keys={["⌘", "2"]}
+                alt_keys={["Ctrl", "2"]}
+              />
+            </div>
+          </div>
         </div>
 
         <div class="mt-6 text-xs text-gray-500 dark:text-gray-400">

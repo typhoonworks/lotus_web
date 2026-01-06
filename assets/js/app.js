@@ -8,6 +8,7 @@ import PlatformScout from "./hooks/platform_scout";
 import ResultsVisibility from "./hooks/results_visibility";
 import ThemeSelector from "./hooks/theme_selector";
 import Tippy from "./hooks/tippy";
+import VegaChart from "./hooks/vega_chart";
 import { load } from "./lib/settings";
 import { initGlobalShortcuts } from "./lib/global_shortcuts";
 
@@ -67,6 +68,7 @@ const hooks = {
   ResultsVisibility,
   ThemeSelector,
   Tippy,
+  VegaChart,
 };
 
 const csrfToken = document

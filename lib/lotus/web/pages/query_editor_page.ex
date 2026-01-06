@@ -14,9 +14,11 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.SourcesMap
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
+  alias Lotus.Web.Queries.VisualizationSettingsComponent
   alias Lotus.Web.Queries.DropdownOptionsModal
   alias Lotus.Web.ExportController
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
+  alias Lotus.Web.VegaSpecBuilder
 
   import Lotus.Web.Queries.EditorComponent
   import Lotus.Web.Queries.ResultsComponent
@@ -30,13 +32,27 @@ defmodule Lotus.Web.QueryEditorPage do
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
-          <div class="relative flex-1 sm:overflow-y-auto sm:overflow-x-hidden">
-            <%= if @schema_explorer_visible or @variable_settings_visible do %>
+          <div class="relative flex-1 sm:overflow-hidden">
+            <%= if @schema_explorer_visible or @variable_settings_visible or @visualization_visible do %>
               <div class="fixed inset-0 bg-black/50 z-10 sm:hidden"
-                   phx-click={if @schema_explorer_visible, do: "close_schema_explorer", else: "close_variable_settings"}
+                   phx-click={cond do
+                     @visualization_visible -> "close_visualization_settings"
+                     @schema_explorer_visible -> "close_schema_explorer"
+                     true -> "close_variable_settings"
+                   end}
                    phx-target={@myself}>
               </div>
             <% end %>
+
+            <.live_component
+              module={VisualizationSettingsComponent}
+              id="visualization-settings"
+              visible={@visualization_visible}
+              parent={@myself}
+              drawer_tab={@visualization_drawer_tab}
+              config={@visualization_config}
+              columns={if @result, do: @result.columns, else: []}
+            />
 
             <.live_component
               module={SchemaExplorerComponent}
@@ -56,11 +72,12 @@ defmodule Lotus.Web.QueryEditorPage do
             />
 
             <div class={[
-              "transition-all duration-300 ease-in-out flex flex-col",
+              "transition-all duration-300 ease-in-out flex flex-col h-full sm:overflow-y-auto",
               cond do
+                @visualization_visible -> "sm:ml-80"
                 @schema_explorer_visible -> "sm:mr-80"
                 @variable_settings_visible -> "sm:mr-80"
-                true -> "mr-0"
+                true -> ""
               end
             ]}>
 
@@ -89,8 +106,19 @@ defmodule Lotus.Web.QueryEditorPage do
                 />
               </div>
 
-              <div class="flex-1 overflow-y-auto sm:overflow-y-auto min-h-0">
-                <.render_result query_id={Map.get(@page, :id, "new")} result={@result} error={@error} running={@running} os={Map.get(assigns, :os, :unknown)} target={@myself} is_saved_query={@page.mode == :edit} />
+              <div class="flex-1 min-h-0">
+                <.render_result
+                  query_id={Map.get(@page, :id, "new")}
+                  result={@result}
+                  error={@error}
+                  running={@running}
+                  os={Map.get(assigns, :os, :unknown)}
+                  target={@myself}
+                  is_saved_query={@page.mode == :edit}
+                  visualization_config={@visualization_config}
+                  visualization_view_mode={@visualization_view_mode}
+                  visualization_visible={@visualization_visible}
+                />
               </div>
 
             </div>
@@ -245,6 +273,7 @@ defmodule Lotus.Web.QueryEditorPage do
              socket
              |> ensure_query_repo_default(query)
              |> assign_query_changeset(query)
+             |> load_visualization(query)
              |> maybe_auto_run_query()}
         end
 
@@ -361,6 +390,9 @@ defmodule Lotus.Web.QueryEditorPage do
 
       case result do
         {:ok, query} ->
+          # Save visualization config if present
+          save_visualization(query, socket.assigns.visualization_config)
+
           {:noreply,
            socket
            |> put_flash(:info, gettext("Query saved successfully!"))
@@ -432,6 +464,79 @@ defmodule Lotus.Web.QueryEditorPage do
       |> assign(schema_explorer_visible: false)
 
     {:noreply, socket}
+  end
+
+  # Visualization event handlers
+
+  @impl Phoenix.LiveComponent
+  def handle_event("smart_toggle_visualization_drawer", _params, socket) do
+    socket =
+      if socket.assigns.visualization_visible do
+        # Close the drawer if already open
+        assign(socket, visualization_visible: false)
+      else
+        # Open the drawer - pick tab based on whether config exists
+        tab =
+          if has_valid_config?(socket.assigns.visualization_config),
+            do: :config,
+            else: :types
+
+        socket
+        |> assign(visualization_visible: true)
+        |> assign(visualization_drawer_tab: tab)
+        |> assign(schema_explorer_visible: false)
+        |> assign(variable_settings_visible: false)
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("close_visualization_settings", _params, socket) do
+    {:noreply, assign(socket, visualization_visible: false)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("select_chart_type", %{"type" => chart_type}, socket) do
+    config = Map.put(socket.assigns.visualization_config || %{}, "chart_type", chart_type)
+
+    socket =
+      socket
+      |> assign(visualization_config: config)
+      |> assign(visualization_drawer_tab: :config)
+      |> maybe_push_chart_update(config)
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("update_visualization_config", params, socket) do
+    config = socket.assigns.visualization_config || %{}
+
+    updated =
+      config
+      |> maybe_put_config("x_field", params["x_field"])
+      |> maybe_put_config("y_field", params["y_field"])
+      |> put_or_remove_config("series_field", params["series_field"])
+      |> maybe_put_axis_config(params)
+
+    socket =
+      socket
+      |> assign(visualization_config: updated)
+      |> maybe_push_chart_update(updated)
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("set_view_mode", %{"mode" => mode}, socket) do
+    view_mode = String.to_existing_atom(mode)
+    {:noreply, assign(socket, visualization_view_mode: view_mode)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("switch_visualization_tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, visualization_drawer_tab: String.to_existing_atom(tab))}
   end
 
   @impl Phoenix.LiveComponent
@@ -694,7 +799,12 @@ defmodule Lotus.Web.QueryEditorPage do
       editor_dialect: nil,
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
-      resolved_variable_options: %{}
+      resolved_variable_options: %{},
+      # Visualization state
+      visualization_visible: false,
+      visualization_config: nil,
+      visualization_view_mode: :table,
+      visualization_drawer_tab: :types
     )
   end
 
@@ -1188,6 +1298,87 @@ defmodule Lotus.Web.QueryEditorPage do
              socket
              |> push_event("close-modal", %{id: "delete-query-modal"})}
         end
+    end
+  end
+
+  # Visualization persistence
+
+  defp save_visualization(_query, nil), do: :ok
+  defp save_visualization(_query, config) when config == %{}, do: :ok
+
+  defp save_visualization(query, config) when is_map(config) do
+    case Lotus.list_visualizations(query.id) do
+      [] ->
+        # Create new visualization
+        Lotus.create_visualization(query.id, %{
+          name: "Default",
+          position: 0,
+          config: config
+        })
+
+      [existing | _] ->
+        # Update existing visualization
+        Lotus.update_visualization(existing, %{config: config})
+    end
+  end
+
+  defp load_visualization(socket, query) do
+    case Lotus.list_visualizations(query.id) do
+      [viz | _] ->
+        assign(socket,
+          visualization_config: viz.config,
+          visualization_view_mode: :table
+        )
+
+      [] ->
+        socket
+    end
+  end
+
+  defp maybe_push_chart_update(socket, config) do
+    # Only push update if in chart view mode and config is valid
+    if socket.assigns.visualization_view_mode == :chart &&
+         socket.assigns.result != nil &&
+         has_valid_config?(config) do
+      spec = VegaSpecBuilder.build(socket.assigns.result, config)
+      push_event(socket, "update-chart", %{spec: spec})
+    else
+      socket
+    end
+  end
+
+  defp has_valid_config?(nil), do: false
+
+  defp has_valid_config?(config) when is_map(config) do
+    Map.has_key?(config, "chart_type") &&
+      Map.has_key?(config, "x_field") && config["x_field"] != "" &&
+      Map.has_key?(config, "y_field") && config["y_field"] != ""
+  end
+
+  defp has_valid_config?(_), do: false
+
+  defp maybe_put_config(map, _key, nil), do: map
+  defp maybe_put_config(map, _key, ""), do: map
+  defp maybe_put_config(map, key, value), do: Map.put(map, key, value)
+
+  # For optional fields: remove key when empty, put when present
+  defp put_or_remove_config(map, key, nil), do: Map.delete(map, key)
+  defp put_or_remove_config(map, key, ""), do: Map.delete(map, key)
+  defp put_or_remove_config(map, key, value), do: Map.put(map, key, value)
+
+  # Handle axis display config (only for cartesian charts)
+  # Check if axis title params exist to know if axis section was rendered
+  defp maybe_put_axis_config(config, params) do
+    # Only update axis config if the axis section is rendered (not pie chart)
+    # We detect this by checking if the title inputs are present in params
+    if Map.has_key?(params, "x_axis_title") or Map.has_key?(params, "y_axis_title") do
+      config
+      |> put_or_remove_config("x_axis_title", params["x_axis_title"])
+      |> put_or_remove_config("y_axis_title", params["y_axis_title"])
+      |> Map.put("x_axis_show_label", Map.has_key?(params, "x_axis_show_label"))
+      |> Map.put("y_axis_show_label", Map.has_key?(params, "y_axis_show_label"))
+    else
+      config
     end
   end
 end

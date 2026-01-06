@@ -104,7 +104,7 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - 🖥️ **Web-based SQL editor** with syntax highlighting and autocomplete
 - 🗂️ **Query management** - create, edit, save, and organize SQL queries
 - 🔍 **Schema explorer** - browse database tables, columns, and statistics
-- 📊 **Results visualization** - clean, tabular display of query results
+- 📊 **Results visualization** - tabular display and interactive charts (bar, line, area, scatter, pie)
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
 - ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
@@ -115,7 +115,7 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - [ ] **Dashboard builder** - create custom dashboards with saved queries
 - [ ] **Query sharing** - share query results via secure links
 - [ ] **Advanced permissions** - role-based access to queries and databases
-- [ ] **Charts** - render charts from queries
+- [x] **Charts** - render charts from queries (bar, line, area, scatter, pie)
 - [x] **Smart variables** - parameterized queries with `{{variable}}` syntax
 - [x] **SQL query-based dropdown options** - populate variable dropdowns from database queries
 - [x] **Schema exploration** - interactive database schema browser
@@ -269,6 +269,12 @@ Once mounted, visit `/lotus` in your application to access the dashboard:
 - Edit and update existing queries
 - Delete queries you no longer need
 
+### **Query Visualizations**
+- Toggle between table and chart views for results
+- 5 chart types available: Bar, Line, Area, Scatter, Pie
+- Configure X-axis, Y-axis, and optional color grouping
+- Keyboard shortcuts: Cmd/Ctrl+G (settings), Cmd/Ctrl+1 (table), Cmd/Ctrl+2 (chart)
+
 ## Configuration Options
 
 ### Basic Configuration
@@ -377,8 +383,7 @@ config :lotus,
 - **✅ No additional infrastructure** - runs inside your Phoenix app
 - **✅ Zero configuration** - uses your existing database connections
 - **✅ Free and open source** - no licensing costs
-- **❌ Less features** - focused on essential SQL querying needs
-- **❌ Not suitable for complex dashboards** - simple tabular results only
+- **❌ Less features** - focused on essential SQL querying and visualization needs
 
 ### vs. Ruby's Blazer Gem
 - **✅ Built for Elixir/Phoenix** - native LiveView implementation

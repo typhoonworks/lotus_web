@@ -26,6 +26,29 @@ Visit the mounted path in your browser (e.g., `/lotus`). You should see:
 4. **Run Query** - Click the play button or press Cmd+Enter
 5. **View Results** - See the results displayed in a table
 
+## Visualizing Query Results
+
+LotusWeb includes built-in charting to visualize your query results.
+
+### Switching Between Views
+- **Table View** - Default tabular display (Cmd/Ctrl+1)
+- **Chart View** - Interactive visualization (Cmd/Ctrl+2)
+
+### Available Chart Types
+- **Bar Chart** - Compare categorical data
+- **Line Chart** - Show trends over time
+- **Area Chart** - Visualize cumulative trends
+- **Scatter Plot** - Explore relationships between variables
+- **Pie Chart** - Display proportions of a whole
+
+### Quick Configuration
+1. **Open Settings** - Click the chart icon or press Cmd/Ctrl+G
+2. **Select Chart Type** - Choose from the Chart Type tab
+3. **Configure Axes** - Set X-Axis, Y-Axis, and optional Color/Series fields
+4. **View Chart** - Press Cmd/Ctrl+2 to see your visualization
+
+For detailed chart configuration, best practices, and troubleshooting, see the [Visualizations Guide](visualizations.md).
+
 ## Exploring Your Schema
 
 1. **Open Schema Explorer** - Click the tables icon in the editor
@@ -108,6 +131,7 @@ Variables are always sent as prepared parameters, preventing SQL injection attac
 
 - Explore your database schema using the Schema Explorer
 - Create useful reports by saving commonly-used queries
+- Visualize your data with the built-in charting - see [Visualizations Guide](visualizations.md)
 - Use variables to make your queries dynamic and reusable
 - Share query results with your team (export features coming soon)
 - Read the [Variables and Widgets Guide](variables-and-widgets.md) for advanced variable usage

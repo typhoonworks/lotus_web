@@ -93,6 +93,19 @@ defmodule WebDev.Migration2 do
   end
 end
 
+defmodule WebDev.Migration3 do
+  use Ecto.Migration
+
+  def up do
+    # Re-run Lotus migrations to pick up V2 (visualizations table)
+    Lotus.Migrations.up()
+  end
+
+  def down do
+    Lotus.Migrations.down()
+  end
+end
+
 defmodule WebDev.MySQLMigration do
   use Ecto.Migration
 
@@ -256,7 +269,8 @@ Task.async(fn ->
     [
       {0, WebDev.Migration0},         # public.users/posts/orders
       {1, WebDev.Migration1},         # reporting.customers/invoices
-      {2, WebDev.Migration2}          # Lotus.Migrations.up()
+      {2, WebDev.Migration2},         # Lotus.Migrations.up() - V1
+      {3, WebDev.Migration3}          # Lotus.Migrations.up() - V2 (visualizations)
     ],
     :up,
     all: true

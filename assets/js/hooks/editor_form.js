@@ -137,6 +137,54 @@ export default {
           {},
         );
       },
+      "Meta+g": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "smart_toggle_visualization_drawer",
+          {},
+        );
+      },
+      "Control+g": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "smart_toggle_visualization_drawer",
+          {},
+        );
+      },
+      "Meta+1": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "set_view_mode",
+          { mode: "table" },
+        );
+      },
+      "Control+1": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "set_view_mode",
+          { mode: "table" },
+        );
+      },
+      "Meta+2": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "set_view_mode",
+          { mode: "chart" },
+        );
+      },
+      "Control+2": (event) => {
+        event.preventDefault();
+        this.pushEventTo(
+          this.el.closest("[data-phx-component]"),
+          "set_view_mode",
+          { mode: "chart" },
+        );
+      },
     });
 
     this.el.form?.addEventListener("submit", () => {
