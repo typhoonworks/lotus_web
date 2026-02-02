@@ -127,34 +127,18 @@ defmodule Lotus.Web.Router do
   defp expand_csp_nonce_keys(key) when is_atom(key), do: %{style: key, script: key}
   defp expand_csp_nonce_keys(map) when is_map(map), do: map
 
-  defp validate_opt!({key, value}) do
-    case key do
-      :as when is_atom(value) ->
-        :ok
-
-      :on_mount ->
-        :ok
-
-      :socket_path when is_binary(value) ->
-        :ok
-
-      :transport when value in @transport_values ->
-        :ok
-
-      :csp_nonce_assign_key ->
-        :ok
-
-      :resolver when is_atom(value) or is_nil(value) ->
-        :ok
-
-      :features when is_list(value) ->
-        :ok
-
-      {key, value} ->
-        raise ArgumentError, "invalid option for lotus_dashboard: #{inspect({key, value})}"
-
-      key ->
-        raise ArgumentError, "invalid option for lotus_dashboard: #{inspect(key)}"
+  defp validate_opt!({_key, _value} = opt) do
+    unless valid_opt?(opt) do
+      raise ArgumentError, "invalid option for lotus_dashboard: #{inspect(opt)}"
     end
   end
+
+  defp valid_opt?({:as, value}) when is_atom(value), do: true
+  defp valid_opt?({:on_mount, _}), do: true
+  defp valid_opt?({:socket_path, value}) when is_binary(value), do: true
+  defp valid_opt?({:transport, value}) when value in @transport_values, do: true
+  defp valid_opt?({:csp_nonce_assign_key, _}), do: true
+  defp valid_opt?({:resolver, value}) when is_atom(value) or is_nil(value), do: true
+  defp valid_opt?({:features, value}) when is_list(value), do: true
+  defp valid_opt?(_), do: false
 end
