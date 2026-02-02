@@ -292,7 +292,7 @@ defmodule Lotus.Web.Components.Icons do
   @doc """
   Renders a clock icon.
   """
-  attr :rest, :global, default: %{class: "w-5 h-5"}
+  attr(:rest, :global, default: %{class: "w-5 h-5"})
 
   def clock(assigns) do
     ~H"""

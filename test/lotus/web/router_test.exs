@@ -36,7 +36,9 @@ defmodule Lotus.Web.RouterTest do
 
     test "passing features through to the session" do
       assert %{"features" => []} = options_to_session([])
-      assert %{"features" => [:timeout_options]} = options_to_session(features: [:timeout_options])
+
+      assert %{"features" => [:timeout_options]} =
+               options_to_session(features: [:timeout_options])
     end
 
     test "validating transport values" do
