@@ -34,6 +34,11 @@ defmodule Lotus.Web.RouterTest do
                |> options_to_session(csp_nonce_assign_key: :my_nonce)
     end
 
+    test "passing features through to the session" do
+      assert %{"features" => []} = options_to_session([])
+      assert %{"features" => [:timeout_options]} = options_to_session(features: [:timeout_options])
+    end
+
     test "validating transport values" do
       assert_raise ArgumentError, ~r/invalid option for lotus_dashboard/, fn ->
         Router.__options__("/lotus", transport: "webpoll")

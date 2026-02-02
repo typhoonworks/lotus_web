@@ -147,7 +147,7 @@ defmodule WebDev.Router do
   scope "/" do
     pipe_through(:browser)
 
-    lotus_dashboard("/lotus")
+    lotus_dashboard("/lotus", features: [:timeout_options])
   end
 end
 

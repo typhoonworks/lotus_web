@@ -84,7 +84,18 @@ LotusWeb inherits Lotus's security features:
 - **Read-Only Queries** - Only SELECT statements are allowed
 - **Table Visibility** - Some tables may be hidden based on configuration
 - **Safe Parameters** - All queries use parameterized execution
-- **Timeouts** - Long-running queries will timeout automatically
+- **Timeouts** - Long-running queries timeout automatically (default: 5 seconds)
+
+### Configuring Query Timeouts
+
+By default, queries timeout after 5 seconds. If you need to support long-running queries, enable the `:timeout_options` feature in your router:
+
+```elixir
+lotus_dashboard "/lotus",
+  features: [:timeout_options]
+```
+
+This adds a timeout selector to the query editor toolbar where users can choose from preset durations (5s, 15s, 30s, 60s, 2m, 5m) or disable the timeout entirely on a per-query basis. Both the Lotus client timeout and the database statement timeout are set to the selected value.
 
 ## Using Variables in Queries
 

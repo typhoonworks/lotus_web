@@ -300,6 +300,20 @@ lotus_dashboard "/lotus",
   transport: "websocket"
 ```
 
+### Feature Flags
+
+```elixir
+# Enable optional features
+lotus_dashboard "/lotus",
+  features: [:timeout_options]
+```
+
+Available features:
+
+| Feature | Description |
+|---------|-------------|
+| `:timeout_options` | Adds a per-query timeout selector to the query editor toolbar. Users can choose from preset durations (5s, 15s, 30s, 60s, 2m, 5m) or disable the timeout entirely. Without this feature, queries use the default 5-second timeout from Lotus. |
+
 ### Additional Mount Callbacks
 
 ```elixir

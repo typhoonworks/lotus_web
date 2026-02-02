@@ -59,7 +59,7 @@ defmodule Lotus.Web.Test.Router do
   scope "/", ThisWontBeUsed, as: :this_wont_be_used do
     pipe_through(:browser)
 
-    lotus_dashboard("/lotus")
+    lotus_dashboard("/lotus", features: [:timeout_options])
   end
 end
 

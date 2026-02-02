@@ -5,7 +5,8 @@ defmodule Lotus.Web.Router do
     socket_path: "/live",
     transport: "websocket",
     csp_nonce_assign_key: nil,
-    resolver: Lotus.Web.Resolver
+    resolver: Lotus.Web.Resolver,
+    features: []
   ]
 
   @transport_values ~w(longpoll websocket)
@@ -28,6 +29,10 @@ defmodule Lotus.Web.Router do
 
   * `:resolver` — a module implementing the `Lotus.Web.Resolver` behaviour for custom authentication
     and access control.
+
+  * `:features` — a list of optional feature flags to enable. Defaults to `[]`.
+    Supported features:
+    * `:timeout_options` — shows a per-query timeout selector in the query editor toolbar.
 
   ## Examples
 
@@ -81,7 +86,8 @@ defmodule Lotus.Web.Router do
       opts[:socket_path],
       opts[:transport],
       opts[:csp_nonce_assign_key],
-      opts[:resolver]
+      opts[:resolver],
+      opts[:features]
     ]
 
     session_opts = [
@@ -96,7 +102,7 @@ defmodule Lotus.Web.Router do
   end
 
   @doc false
-  def __session__(conn, prefix, live_path, live_transport, csp_key, resolver) do
+  def __session__(conn, prefix, live_path, live_transport, csp_key, resolver, features) do
     csp_keys = expand_csp_nonce_keys(csp_key)
 
     user = Lotus.Web.Resolver.call_with_fallback(resolver, :resolve_user, [conn])
@@ -109,6 +115,7 @@ defmodule Lotus.Web.Router do
       "resolver" => resolver,
       "user" => user,
       "access" => access,
+      "features" => features || [],
       "csp_nonces" => %{
         style: conn.assigns[csp_keys[:style]],
         script: conn.assigns[csp_keys[:script]]
@@ -138,6 +145,9 @@ defmodule Lotus.Web.Router do
         :ok
 
       :resolver when is_atom(value) or is_nil(value) ->
+        :ok
+
+      :features when is_list(value) ->
         :ok
 
       {key, value} ->

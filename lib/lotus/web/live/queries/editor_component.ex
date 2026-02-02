@@ -19,6 +19,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
   attr(:resolved_variable_options, :map, default: %{})
+  attr(:query_timeout, :integer, default: 5_000)
+  attr(:timeout_options_enabled, :boolean, default: false)
 
   def editor(assigns) do
     search_path_field = assigns.form[:search_path]
@@ -53,6 +55,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
           variables={@variables}
           variable_values={@variable_values}
           resolved_variable_options={@resolved_variable_options}
+          query_timeout={@query_timeout}
+          timeout_options_enabled={@timeout_options_enabled}
         />
 
         <div class={["relative pb-8", if(@minimized, do: "hidden", else: "")]}>
@@ -116,6 +120,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
   attr(:resolved_variable_options, :map, default: %{})
+  attr(:query_timeout, :integer, default: 5_000)
+  attr(:timeout_options_enabled, :boolean, default: false)
 
   def render_toolbar(assigns) do
     ~H"""
@@ -149,7 +155,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <% end %>
         </div>
 
-        <div class="flex justify-end sm:justify-start">
+        <div class="flex items-center gap-2 justify-end sm:justify-start">
+          <.timeout_selector :if={@timeout_options_enabled} query_timeout={@query_timeout} />
           <.render_actions
             target={@target}
             schema_explorer_visible={@schema_explorer_visible}
@@ -159,6 +166,43 @@ defmodule Lotus.Web.Queries.EditorComponent do
             statement_empty={@statement_empty}
           />
         </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr(:query_timeout, :integer, default: 5_000)
+
+  defp timeout_selector(assigns) do
+    timeout_options = [
+      {"5s", "5000"},
+      {"15s", "15000"},
+      {"30s", "30000"},
+      {"60s", "60000"},
+      {"2m", "120000"},
+      {"5m", "300000"},
+      {gettext("None"), "0"}
+    ]
+
+    assigns = assign(assigns, :timeout_options, timeout_options)
+
+    ~H"""
+    <div
+      id="timeout-selector-tippy"
+      class="flex items-center"
+      data-title={gettext("Query timeout")}
+      phx-hook="Tippy"
+    >
+      <div class="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+        <Icons.clock class="h-4 w-4" />
+        <select
+          name="query_timeout"
+          class="appearance-none bg-transparent border-none text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:ring-0 focus:outline-none cursor-pointer py-0 pl-0 pr-5"
+        >
+          <%= for {label, value} <- @timeout_options do %>
+            <option value={value} selected={to_string(@query_timeout) == value}><%= label %></option>
+          <% end %>
+        </select>
       </div>
     </div>
     """

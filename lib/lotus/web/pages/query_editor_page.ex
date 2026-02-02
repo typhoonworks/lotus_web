@@ -96,6 +96,8 @@ defmodule Lotus.Web.QueryEditorPage do
                   variables={@query.variables}
                   variable_values={Map.get(assigns, :variable_values, %{})}
                   resolved_variable_options={@resolved_variable_options}
+                  query_timeout={@query_timeout}
+                  timeout_options_enabled={:timeout_options in (@features || [])}
                 />
 
                 <.results_pill
@@ -336,6 +338,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
     socket =
       socket
+      |> maybe_update_timeout(params)
       |> update_query_state(changeset,
         statement_empty: statement_empty,
         variable_values: Map.merge(socket.assigns.variable_values || %{}, var_params)
@@ -801,6 +804,7 @@ defmodule Lotus.Web.QueryEditorPage do
       variable_form: to_form(%{}, as: "variables"),
       resolved_variable_options: %{},
       # Visualization state
+      query_timeout: 5_000,
       visualization_visible: false,
       visualization_config: nil,
       visualization_view_mode: :table,
@@ -986,11 +990,22 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp check_statement_empty(nil), do: true
 
+  defp maybe_update_timeout(socket, %{"query_timeout" => timeout_str})
+       when is_binary(timeout_str) do
+    case Integer.parse(timeout_str) do
+      {timeout, ""} -> assign(socket, query_timeout: timeout)
+      _ -> socket
+    end
+  end
+
+  defp maybe_update_timeout(socket, _params), do: socket
+
   defp execute_query(socket, query) do
     vars = Map.get(socket.assigns, :variable_values, %{})
     repo = query.data_repo || socket.assigns.default_repo
     page_size = socket.assigns.page_size || @default_page_size
     page_index = socket.assigns.page_index || 0
+    query_timeout = socket.assigns[:query_timeout]
 
     opts = [
       repo: repo,
@@ -1001,6 +1016,15 @@ defmodule Lotus.Web.QueryEditorPage do
     opts =
       if query.search_path && String.trim(query.search_path) != "" do
         Keyword.put(opts, :search_path, query.search_path)
+      else
+        opts
+      end
+
+    opts =
+      if is_integer(query_timeout) and query_timeout > 0 do
+        opts
+        |> Keyword.put(:timeout, query_timeout)
+        |> Keyword.put(:statement_timeout_ms, query_timeout)
       else
         opts
       end
