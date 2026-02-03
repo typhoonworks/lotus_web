@@ -12,6 +12,7 @@ defmodule Lotus.Web.DashboardLive do
     resolver = Map.get(session, "resolver")
     user = Map.get(session, "user")
     access = Map.get(session, "access", :all)
+    features = Map.get(session, "features", [])
 
     page = resolve_page(params)
 
@@ -26,6 +27,7 @@ defmodule Lotus.Web.DashboardLive do
       |> assign(:resolver, resolver)
       |> assign(:user, user)
       |> assign(:access, access)
+      |> assign(:features, features)
       |> page.comp.handle_mount()
 
     {:ok, socket}

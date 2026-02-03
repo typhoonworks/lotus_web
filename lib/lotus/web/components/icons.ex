@@ -289,6 +289,20 @@ defmodule Lotus.Web.Components.Icons do
     """
   end
 
+  @doc """
+  Renders a clock icon.
+  """
+  attr(:rest, :global, default: %{class: "w-5 h-5"})
+
+  def clock(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </.svg_outline>
+    """
+  end
+
   attr(:rest, :global)
 
   def toggle_boolean(assigns) do

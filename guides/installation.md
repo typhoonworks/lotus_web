@@ -117,6 +117,19 @@ end
 
 **⚠️ Security Warning**: Always mount behind authentication in production.
 
+### Optional Features
+
+You can enable additional features by passing the `features` option:
+
+```elixir
+lotus_dashboard "/lotus",
+  features: [:timeout_options]
+```
+
+| Feature | Description |
+|---------|-------------|
+| `:timeout_options` | Adds a per-query timeout selector to the query editor toolbar, allowing users to override the default 5-second query timeout for long-running queries. |
+
 ## Step 6: Visit the Dashboard
 
 Start your Phoenix server and visit `/lotus` to access the dashboard.
