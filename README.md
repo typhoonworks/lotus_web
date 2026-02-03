@@ -110,11 +110,12 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
 
 ## What's planned?
-- [ ] **Export functionality** - CSV, JSON, and Excel export options
-- [ ] **Query result caching** - cache expensive queries for faster repeated access
+
 - [ ] **Dashboard builder** - create custom dashboards with saved queries
 - [ ] **Query sharing** - share query results via secure links
 - [ ] **Advanced permissions** - role-based access to queries and databases
+- [X] **Query result caching** - cache expensive queries for faster repeated access
+- [X] **Export functionality** - CSV export option
 - [x] **Charts** - render charts from queries (bar, line, area, scatter, pie)
 - [x] **Smart variables** - parameterized queries with `{{variable}}` syntax
 - [x] **SQL query-based dropdown options** - populate variable dropdowns from database queries

@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## [0.9.0] - 2026-02-03
+
 ### Added
 
+- Optional configuration for displaying UI query timeout selector
 - **Query Results Visualizations** - Built-in charting capabilities to visualize query results
   - 5 chart types: Bar, Line, Area, Scatter, and Pie charts
   - Configurable X-axis, Y-axis, and optional Color/Series grouping fields
