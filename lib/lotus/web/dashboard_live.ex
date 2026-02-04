@@ -28,6 +28,7 @@ defmodule Lotus.Web.DashboardLive do
       |> assign(:user, user)
       |> assign(:access, access)
       |> assign(:features, features)
+      |> assign(:public_view, false)
       |> page.comp.handle_mount()
 
     {:ok, socket}

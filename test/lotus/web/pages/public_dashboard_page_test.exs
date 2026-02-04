@@ -33,6 +33,12 @@ defmodule Lotus.Web.Pages.PublicDashboardPageTest do
       refute has_element?(live, "button", "Save")
     end
 
+    test "does not show New button on public routes", %{dashboard: dashboard} do
+      {:ok, live, _html} = live(build_conn(), "/lotus/public/#{dashboard.public_token}")
+
+      refute has_element?(live, "#new-item-dropdown")
+    end
+
     test "shows footer with Lotus branding", %{dashboard: dashboard} do
       {:ok, _live, html} = live(build_conn(), "/lotus/public/#{dashboard.public_token}")
 

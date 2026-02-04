@@ -3,6 +3,14 @@ defmodule Lotus.Web.Pages.QueriesPageTest do
 
   import Phoenix.LiveViewTest
 
+  describe "navbar" do
+    test "shows New button on protected routes" do
+      {:ok, live, _html} = live(build_conn(), "/lotus")
+
+      assert has_element?(live, "#new-item-dropdown button", "New")
+    end
+  end
+
   describe "empty state" do
     test "shows message when no queries exist" do
       {:ok, _live, html} = live(build_conn(), "/lotus")

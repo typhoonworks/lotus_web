@@ -12,7 +12,7 @@
           </div>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-4">
-          <%= if Map.get(assigns, :user) do %>
+          <%= if not Map.get(assigns, :public_view, false) do %>
             <%!-- New Button with Dropdown --%>
             <div class="relative" id="new-item-dropdown">
               <.button
@@ -72,7 +72,7 @@
 
   <.footer class="dark:bg-gray-900 dark:text-gray-300" />
 
-  <%= if Map.get(assigns, :user) do %>
+  <%= if not Map.get(assigns, :public_view, false) do %>
     <.shortcuts_modal />
   <% end %>
 </div>

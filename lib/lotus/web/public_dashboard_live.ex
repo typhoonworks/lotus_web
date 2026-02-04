@@ -29,6 +29,7 @@ defmodule Lotus.Web.PublicDashboardLive do
       |> assign(:user, nil)
       |> assign(:access, :read_only)
       |> assign(:features, [])
+      |> assign(:public_view, true)
       |> page.comp.handle_mount()
 
     {:ok, socket}
