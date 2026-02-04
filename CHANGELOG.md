@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.10.1] - 2026-02-04
+
+### Fixed
+
+- Fixed navbar regression where protected routes showed minimal nav (only theme switcher) instead of full nav (New button, keyboard shortcuts, theme switcher)
+
 ## [0.10.0] - 2026-02-04
 
 ### Added
