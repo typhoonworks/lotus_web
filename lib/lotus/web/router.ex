@@ -55,13 +55,19 @@ defmodule Lotus.Web.Router do
       prefix = Phoenix.Router.scoped_path(__MODULE__, path)
 
       scope path, alias: false, as: false do
-        import Phoenix.LiveView.Router, only: [live: 4, live_session: 3]
+        import Phoenix.LiveView.Router, only: [live: 3, live: 4, live_session: 3]
         import Phoenix.Router, only: [get: 3]
 
-        {session_name, session_opts, route_opts} = Lotus.Web.Router.__options__(prefix, opts)
+        {session_name, session_opts, public_session_opts, route_opts} =
+          Lotus.Web.Router.__options__(prefix, opts)
 
         # Export endpoint - does not require LiveView session
         get("/export/csv", Lotus.Web.ExportController, :csv)
+
+        # Public dashboard - separate live_session without authentication
+        live_session :"#{session_name}_public", public_session_opts do
+          live("/public/:token", Lotus.Web.PublicDashboardLive, :show)
+        end
 
         live_session session_name, session_opts do
           live("/", Lotus.Web.DashboardLive, :home, route_opts)
@@ -96,9 +102,23 @@ defmodule Lotus.Web.Router do
       root_layout: {Lotus.Web.Layouts, :root}
     ]
 
+    # Public session - no authentication on_mount
+    public_session_args = [
+      prefix,
+      opts[:socket_path],
+      opts[:transport],
+      opts[:csp_nonce_assign_key]
+    ]
+
+    public_session_opts = [
+      on_mount: [Lotus.Web.Locale],
+      session: {__MODULE__, :__public_session__, public_session_args},
+      root_layout: {Lotus.Web.Layouts, :root}
+    ]
+
     session_name = Keyword.get(opts, :as, :lotus_dashboard)
 
-    {session_name, session_opts, as: session_name}
+    {session_name, session_opts, public_session_opts, as: session_name}
   end
 
   @doc false
@@ -116,6 +136,21 @@ defmodule Lotus.Web.Router do
       "user" => user,
       "access" => access,
       "features" => features || [],
+      "csp_nonces" => %{
+        style: conn.assigns[csp_keys[:style]],
+        script: conn.assigns[csp_keys[:script]]
+      }
+    }
+  end
+
+  @doc false
+  def __public_session__(conn, prefix, live_path, live_transport, csp_key) do
+    csp_keys = expand_csp_nonce_keys(csp_key)
+
+    %{
+      "prefix" => prefix,
+      "live_path" => live_path,
+      "live_transport" => live_transport,
       "csp_nonces" => %{
         style: conn.assigns[csp_keys[:style]],
         script: conn.assigns[csp_keys[:script]]

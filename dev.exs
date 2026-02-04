@@ -106,6 +106,19 @@ defmodule WebDev.Migration3 do
   end
 end
 
+defmodule WebDev.Migration4 do
+  use Ecto.Migration
+
+  def up do
+    # Re-run Lotus migrations to pick up V3 (dashboard tables)
+    Lotus.Migrations.up()
+  end
+
+  def down do
+    Lotus.Migrations.down()
+  end
+end
+
 defmodule WebDev.MySQLMigration do
   use Ecto.Migration
 
@@ -142,6 +155,7 @@ defmodule WebDev.Router do
 
   pipeline :browser do
     plug(:fetch_session)
+    plug(:fetch_flash)
   end
 
   scope "/" do
@@ -270,7 +284,8 @@ Task.async(fn ->
       {0, WebDev.Migration0},         # public.users/posts/orders
       {1, WebDev.Migration1},         # reporting.customers/invoices
       {2, WebDev.Migration2},         # Lotus.Migrations.up() - V1
-      {3, WebDev.Migration3}          # Lotus.Migrations.up() - V2 (visualizations)
+      {3, WebDev.Migration3},         # Lotus.Migrations.up() - V2 (visualizations)
+      {4, WebDev.Migration4}          # Lotus.Migrations.up() - V3 (dashboards)
     ],
     :up,
     all: true
@@ -364,9 +379,116 @@ Task.async(fn ->
     (#{laptop_id}, 1, 1299.99, '2024-01-19 11:00:00', UTC_TIMESTAMP(), UTC_TIMESTAMP())
   ")
 
+  # --- LOTUS QUERIES & DASHBOARDS ---
+
+  # Clear existing Lotus data (tables created by migrations above)
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_dashboard_card_filter_mappings")
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_dashboard_filters")
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_dashboard_cards")
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_dashboards")
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_query_visualizations")
+  WebDev.PostgresRepo.query!("DELETE FROM lotus_queries")
+
+  # Create sample queries
+  {:ok, users_query} = Lotus.create_query(%{
+    name: "All Users",
+    description: "List all users with their status",
+    statement: "SELECT id, name, email, age, status FROM users ORDER BY id"
+  })
+
+  {:ok, orders_query} = Lotus.create_query(%{
+    name: "Orders by Status",
+    description: "Order totals grouped by status",
+    statement: "SELECT status, COUNT(*) as count, SUM(total_amount) as total FROM orders GROUP BY status ORDER BY total DESC"
+  })
+
+  {:ok, user_posts_query} = Lotus.create_query(%{
+    name: "User Posts",
+    description: "Posts with their authors",
+    statement: "SELECT u.name as author, p.title, p.published FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.id"
+  })
+
+  {:ok, invoices_query} = Lotus.create_query(%{
+    name: "Invoice Summary",
+    description: "Invoice totals by status",
+    statement: "SELECT status, COUNT(*) as count, SUM(total_amount) as total FROM reporting.invoices GROUP BY status"
+  })
+
+  # Create sample dashboards
+  {:ok, overview_dashboard} = Lotus.create_dashboard(%{
+    name: "Business Overview",
+    description: "Key business metrics at a glance"
+  })
+
+  # Add cards to overview dashboard
+  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+    card_type: :heading,
+    title: "Welcome",
+    content: %{"text" => "Business Overview Dashboard"},
+    position: 0,
+    layout: %{x: 0, y: 0, w: 12, h: 2}
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+    card_type: :query,
+    title: "Users",
+    query_id: users_query.id,
+    position: 1,
+    layout: %{x: 0, y: 2, w: 6, h: 4}
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+    card_type: :query,
+    title: "Orders by Status",
+    query_id: orders_query.id,
+    position: 2,
+    layout: %{x: 6, y: 2, w: 6, h: 4},
+    visualization_config: %{"chart_type" => "bar", "x_field" => "status", "y_field" => "total"}
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+    card_type: :text,
+    title: "Notes",
+    content: %{"text" => "This dashboard shows key business metrics including users, orders, and posts."},
+    position: 3,
+    layout: %{x: 0, y: 6, w: 4, h: 3}
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+    card_type: :query,
+    title: "Recent Posts",
+    query_id: user_posts_query.id,
+    position: 4,
+    layout: %{x: 4, y: 6, w: 8, h: 4}
+  })
+
+  # Create second dashboard
+  {:ok, reporting_dashboard} = Lotus.create_dashboard(%{
+    name: "Reporting Dashboard",
+    description: "Financial reports from the reporting schema"
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(reporting_dashboard, %{
+    card_type: :query,
+    title: "Invoice Summary",
+    query_id: invoices_query.id,
+    position: 0,
+    layout: %{x: 0, y: 0, w: 6, h: 4},
+    visualization_config: %{"chart_type" => "pie", "x_field" => "status", "y_field" => "total"}
+  })
+
+  {:ok, _} = Lotus.create_dashboard_card(reporting_dashboard, %{
+    card_type: :link,
+    title: "Documentation",
+    content: %{"url" => "https://github.com/typhoonworks/lotus"},
+    position: 1,
+    layout: %{x: 6, y: 0, w: 6, h: 2}
+  })
+
   IO.puts("✅ Database setup complete!")
   IO.puts("🐘 PostgreSQL (localhost:2346): public & reporting schemas")
   IO.puts("🐬 MySQL (localhost:3308): products & sales tables")
+  IO.puts("📊 Seeded 4 queries and 2 dashboards")
   IO.puts("🌐 Web server running on http://localhost:#{port}/lotus")
   IO.puts("🔧 Adminer available at http://localhost:8087")
 

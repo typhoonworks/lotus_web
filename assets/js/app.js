@@ -1,5 +1,7 @@
 import topbar from "topbar";
 
+import AutoRefresh from "./hooks/auto_refresh";
+import Clipboard from "./hooks/clipboard";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
 import EditorForm from "./hooks/editor_form";
 import Flash from "./hooks/flash";
@@ -60,6 +62,8 @@ topbar.config({
 });
 
 const hooks = {
+  AutoRefresh,
+  Clipboard,
   DispatchChangeOnUpdate,
   EditorForm,
   Flash,

@@ -105,15 +105,18 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - 🗂️ **Query management** - create, edit, save, and organize SQL queries
 - 🔍 **Schema explorer** - browse database tables, columns, and statistics
 - 📊 **Results visualization** - tabular display and interactive charts (bar, line, area, scatter, pie)
+- 📱 **Dashboards** - combine queries into interactive views with grid layouts and public sharing
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
 - ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
 
 ## What's planned?
 
-- [ ] **Dashboard builder** - create custom dashboards with saved queries
-- [ ] **Query sharing** - share query results via secure links
+- [ ] **Dashboard filter UI** - add/edit dashboard filters via modal interface
+- [ ] **Dashboard Text Cards Markdown** - add markdown capabilities to text cards
 - [ ] **Advanced permissions** - role-based access to queries and databases
+- [X] **Dashboard builder** - create custom dashboards with saved queries
+- [X] **Query sharing** - share query results via secure links
 - [X] **Query result caching** - cache expensive queries for faster repeated access
 - [X] **Export functionality** - CSV export option
 - [x] **Charts** - render charts from queries (bar, line, area, scatter, pie)
@@ -128,7 +131,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.5.0"}
+    {:lotus_web, "~> 0.10.0"}
   ]
 end
 ```
@@ -136,14 +139,15 @@ end
 ## Requirements
 
 - **Elixir 1.16+** and **OTP 25+**
-- **Lotus 0.6+** - LotusWeb 0.3+ requires Lotus 0.6 or later
+- **Lotus 0.11+** - LotusWeb 0.10+ requires Lotus 0.11 or later
 - **Phoenix 1.7+** for LiveView compatibility
 
 ### Version Compatibility Matrix
 
 | LotusWeb Version | Required Lotus Version | Notes |
 |------------------|------------------------|-------|
-| 0.4.x            | 0.9.0+                | Latest stable release |
+| 0.10.x           | 0.11.0+               | Latest stable release |
+| 0.4.x            | 0.9.0+                | Legacy version |
 | 0.3.x            | 0.6.0+                | Legacy version |
 
 > The dependency constraint in `mix.exs` automatically ensures compatible versions are installed together.
