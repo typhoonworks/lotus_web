@@ -7,17 +7,17 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @default_page_size 1000
 
-  alias Lotus.Web.Page
   alias Lotus.Storage.Query
   alias Lotus.Storage.QueryVariable
-  alias Lotus.Web.SchemaBuilder
-  alias Lotus.Web.SourcesMap
+  alias Lotus.Web.ExportController
+  alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
+  alias Lotus.Web.Page
+  alias Lotus.Web.Queries.DropdownOptionsModal
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
   alias Lotus.Web.Queries.VisualizationSettingsComponent
-  alias Lotus.Web.Queries.DropdownOptionsModal
-  alias Lotus.Web.ExportController
-  alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
+  alias Lotus.Web.SchemaBuilder
+  alias Lotus.Web.SourcesMap
   alias Lotus.Web.VegaSpecBuilder
 
   import Lotus.Web.Queries.EditorComponent

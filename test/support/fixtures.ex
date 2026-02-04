@@ -81,4 +81,93 @@ defmodule Lotus.Web.Fixtures do
 
     :ok
   end
+
+  @doc """
+  Creates a dashboard fixture for testing.
+
+  ## Examples
+
+      dashboard = dashboard_fixture()
+      dashboard = dashboard_fixture(%{name: "Custom Dashboard"})
+
+  """
+  def dashboard_fixture(attrs \\ %{}) do
+    defaults = %{
+      name: "Test Dashboard #{System.unique_integer([:positive])}",
+      description: "A test dashboard for automated testing"
+    }
+
+    attrs = Map.merge(defaults, attrs)
+
+    {:ok, dashboard} = Lotus.create_dashboard(attrs)
+    dashboard
+  end
+
+  @doc """
+  Creates a dashboard with public sharing enabled.
+
+  ## Examples
+
+      dashboard = public_dashboard_fixture()
+      dashboard = public_dashboard_fixture(%{name: "Public Dashboard"})
+
+  """
+  def public_dashboard_fixture(attrs \\ %{}) do
+    dashboard = dashboard_fixture(attrs)
+    {:ok, dashboard} = Lotus.enable_public_sharing(dashboard)
+    dashboard
+  end
+
+  @doc """
+  Creates a dashboard card fixture for testing.
+
+  ## Examples
+
+      card = dashboard_card_fixture(dashboard)
+      card = dashboard_card_fixture(dashboard, %{title: "My Card", card_type: :text})
+
+  """
+  def dashboard_card_fixture(dashboard, attrs \\ %{}) do
+    defaults = %{
+      card_type: :text,
+      title: "Test Card",
+      position: 0,
+      layout: %{x: 0, y: 0, w: 6, h: 4},
+      content: %{"text" => "Test content"}
+    }
+
+    attrs = Map.merge(defaults, attrs)
+
+    {:ok, card} = Lotus.create_dashboard_card(dashboard.id, attrs)
+    card
+  end
+
+  @doc """
+  Creates a query card fixture for testing.
+
+  Links a card to a query for displaying query results.
+
+  ## Examples
+
+      card = query_card_fixture(dashboard)
+      card = query_card_fixture(dashboard, query)
+      card = query_card_fixture(dashboard, query, %{title: "Revenue Chart"})
+
+  """
+  def query_card_fixture(dashboard, query \\ nil, attrs \\ %{}) do
+    query = query || query_fixture()
+
+    defaults = %{
+      card_type: :query,
+      query_id: query.id,
+      title: "Query Card",
+      position: 0,
+      layout: %{x: 0, y: 0, w: 6, h: 4}
+    }
+
+    attrs = Map.merge(defaults, attrs)
+
+    {:ok, card} = Lotus.create_dashboard_card(dashboard.id, attrs)
+    card
+  end
 end

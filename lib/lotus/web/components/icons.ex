@@ -532,4 +532,133 @@ defmodule Lotus.Web.Components.Icons do
     </.svg_outline>
     """
   end
+
+  attr(:rest, :global)
+
+  def plus(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M5 12h14"/>
+      <path d="M12 5v14"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def blocks(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M10 22V7a1 1 0 0 0-1-1H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5a1 1 0 0 0-1-1H2"/>
+      <rect x="14" y="2" width="8" height="8" rx="1"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def rotate_ccw(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+      <path d="M3 3v5h5"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def magnifying_glass(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="m21 21-4.34-4.34"/>
+      <circle cx="11" cy="11" r="8"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def squares_2x2(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect width="18" height="18" x="3" y="3" rx="2"/>
+      <path d="M3 12h18"/>
+      <path d="M12 3v18"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def document_text(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" x2="8" y1="13" y2="13"/>
+      <line x1="16" x2="8" y1="17" y2="17"/>
+      <line x1="10" x2="8" y1="9" y2="9"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def heading(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M6 12h12"/>
+      <path d="M6 4v16"/>
+      <path d="M18 4v16"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def link_icon(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def exclamation_circle(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" x2="12" y1="8" y2="12"/>
+      <line x1="12" x2="12.01" y1="16" y2="16"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def trash(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 6h18"/>
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def globe(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+      <path d="M2 12h20"/>
+    </.svg_outline>
+    """
+  end
 end

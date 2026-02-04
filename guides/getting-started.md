@@ -143,6 +143,6 @@ Variables are always sent as prepared parameters, preventing SQL injection attac
 - Explore your database schema using the Schema Explorer
 - Create useful reports by saving commonly-used queries
 - Visualize your data with the built-in charting - see [Visualizations Guide](visualizations.md)
+- Combine queries into interactive dashboards - see [Dashboards Guide](dashboards.md)
 - Use variables to make your queries dynamic and reusable
-- Share query results with your team (export features coming soon)
 - Read the [Variables and Widgets Guide](variables-and-widgets.md) for advanced variable usage

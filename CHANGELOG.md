@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## [0.10.0] - 2026-02-04
+
+### Added
+
+- **Dashboard Support** - Interactive dashboards for combining queries into shareable views
+  - Create and edit dashboards with a 12-column grid layout system
+  - Four card types: Query results, Text, Headings, and Links
+  - Manual layout positioning with x, y, width, and height controls
+  - Auto-flow layout system - cards automatically reflow when heights change
+  - Public sharing with secure token-based URLs
+  - Auto-refresh configuration (1 min to 1 hour intervals)
+
 ## [0.9.0] - 2026-02-03
 
 ### Added

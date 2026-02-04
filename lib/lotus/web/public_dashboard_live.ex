@@ -1,7 +1,12 @@
-defmodule Lotus.Web.DashboardLive do
+defmodule Lotus.Web.PublicDashboardLive do
+  @moduledoc """
+  LiveView for public (shared) dashboards.
+  Does not require authentication.
+  """
+
   use Lotus.Web, :live_view
 
-  alias Lotus.Web.{DashboardEditorPage, QueriesPage, QueryEditorPage}
+  alias Lotus.Web.PublicDashboardPage
 
   @impl Phoenix.LiveView
   def mount(params, session, socket) do
@@ -9,12 +14,8 @@ defmodule Lotus.Web.DashboardLive do
     %{"live_path" => live_path, "live_transport" => live_transport} = session
     %{"csp_nonces" => csp_nonces} = session
 
-    resolver = Map.get(session, "resolver")
-    user = Map.get(session, "user")
-    access = Map.get(session, "access", :all)
-    features = Map.get(session, "features", [])
-
-    page = resolve_page(params)
+    token = params["token"]
+    page = %{name: :public_dashboard, comp: PublicDashboardPage, token: token}
 
     put_router_prefix(socket, prefix)
 
@@ -22,12 +23,12 @@ defmodule Lotus.Web.DashboardLive do
       socket
       |> assign(params: params, page: page)
       |> assign(live_path: live_path, live_transport: live_transport)
-      |> assign(:page_title, "Lotus Dashboard")
+      |> assign(:page_title, "Public Dashboard")
       |> assign(:csp_nonces, csp_nonces)
-      |> assign(:resolver, resolver)
-      |> assign(:user, user)
-      |> assign(:access, access)
-      |> assign(:features, features)
+      |> assign(:resolver, nil)
+      |> assign(:user, nil)
+      |> assign(:access, :read_only)
+      |> assign(:features, [])
       |> page.comp.handle_mount()
 
     {:ok, socket}
@@ -47,8 +48,6 @@ defmodule Lotus.Web.DashboardLive do
 
   @impl Phoenix.LiveView
   def handle_params(params, uri, socket) do
-    page = resolve_page(params)
-    socket = assign(socket, page: page)
     socket.assigns.page.comp.handle_params(params, uri, socket)
   end
 
@@ -78,22 +77,4 @@ defmodule Lotus.Web.DashboardLive do
   def handle_async(name, async_fun_result, socket) do
     socket.assigns.page.comp.handle_async(name, async_fun_result, socket)
   end
-
-  ## Render Helpers
-
-  defp resolve_page(%{"page" => "queries", "id" => "new"}),
-    do: %{name: :query_new, comp: QueryEditorPage, mode: :new}
-
-  defp resolve_page(%{"page" => "queries", "id" => id}),
-    do: %{name: :query_edit, comp: QueryEditorPage, mode: :edit, id: id}
-
-  defp resolve_page(%{"page" => "queries"}), do: %{name: :queries, comp: QueriesPage}
-
-  defp resolve_page(%{"page" => "dashboards", "id" => "new"}),
-    do: %{name: :dashboard_new, comp: DashboardEditorPage, mode: :new}
-
-  defp resolve_page(%{"page" => "dashboards", "id" => id}),
-    do: %{name: :dashboard_edit, comp: DashboardEditorPage, mode: :edit, id: id}
-
-  defp resolve_page(_params), do: %{name: :home, comp: QueriesPage}
 end

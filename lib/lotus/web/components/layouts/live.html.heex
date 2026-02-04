@@ -12,18 +12,51 @@
           </div>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-4">
-          <.link navigate={lotus_path([:queries, "new"])} class="flex items-center h-full">
-            <.button type="button" class="text-sm sm:text-base"><%= gettext("New Query") %></.button>
-          </.link>
-          <button
-            type="button"
-            phx-click={show_modal("shortcuts-modal")}
-            class="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-            title={gettext("Keyboard shortcuts")}
-          >
-            <Icons.command class="h-5 w-5" />
-          </button>
-          <.theme_selector />
+          <%= if Map.get(assigns, :user) do %>
+            <%!-- New Button with Dropdown --%>
+            <div class="relative" id="new-item-dropdown">
+              <.button
+                type="button"
+                phx-click={JS.toggle(to: "#new-dropdown-menu")}
+                class="inline-flex items-center gap-1.5 text-sm sm:text-base"
+              >
+                <Icons.plus class="h-4 w-4" />
+                <%= gettext("New") %>
+              </.button>
+
+              <div
+                id="new-dropdown-menu"
+                class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
+                phx-click-away={JS.hide(to: "#new-dropdown-menu")}
+              >
+                <.link
+                  navigate={lotus_path(["queries", "new"])}
+                  class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <Icons.terminal class="h-5 w-5 text-gray-400" />
+                  <%= gettext("SQL Query") %>
+                </.link>
+                <.link
+                  navigate={lotus_path(["dashboards", "new"])}
+                  class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <Icons.blocks class="h-5 w-5 text-gray-400" />
+                  <%= gettext("Dashboard") %>
+                </.link>
+              </div>
+            </div>
+            <button
+              type="button"
+              phx-click={show_modal("shortcuts-modal")}
+              class="hidden sm:block p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              title={gettext("Keyboard shortcuts")}
+            >
+              <Icons.command class="h-5 w-5" />
+            </button>
+            <.theme_selector />
+          <% else %>
+            <.theme_selector />
+          <% end %>
         </div>
       </div>
     </div>
@@ -39,5 +72,7 @@
 
   <.footer class="dark:bg-gray-900 dark:text-gray-300" />
 
-  <.shortcuts_modal />
+  <%= if Map.get(assigns, :user) do %>
+    <.shortcuts_modal />
+  <% end %>
 </div>
