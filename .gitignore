@@ -30,3 +30,8 @@ priv/static/*
 
 # Ignore local .db files
 /priv/*.db*
+
+# Secret configuration (API keys, etc.)
+/config/dev.secret.exs
+.env
+.env.development.local

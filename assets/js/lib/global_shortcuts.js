@@ -6,6 +6,10 @@ export function initGlobalShortcuts() {
       event.preventDefault();
       toggleShortcutsModal();
     },
+    "$mod+k": (event) => {
+      event.preventDefault();
+      toggleAIAssistant();
+    },
   });
 
   return unsubscribe;
@@ -17,5 +21,12 @@ function toggleShortcutsModal() {
   );
   if (commandButton) {
     commandButton.click();
+  }
+}
+
+function toggleAIAssistant() {
+  const aiButton = document.getElementById("ai-assistant-btn");
+  if (aiButton) {
+    aiButton.click();
   }
 }

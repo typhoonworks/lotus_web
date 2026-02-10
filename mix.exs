@@ -2,14 +2,14 @@ defmodule Lotus.Web.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/typhoonworks/lotus_web"
-  @version "0.10.1"
+  @version "0.11.0"
 
   def project do
     [
       app: :lotus_web,
       name: "Lotus Web",
       version: @version,
-      elixir: "~> 1.16",
+      elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -47,7 +47,7 @@ defmodule Lotus.Web.MixProject do
       {:gettext, "~> 0.26"},
 
       # Lotus
-      {:lotus, "~> 0.11"},
+      {:lotus, "~> 0.12"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
@@ -117,7 +117,9 @@ defmodule Lotus.Web.MixProject do
         "README.md",
         "guides/installation.md",
         "guides/getting-started.md",
+        "guides/ai-assistant.md",
         "guides/visualizations.md",
+        "guides/dashboards.md",
         "guides/variables-and-widgets.md"
       ]
     ]

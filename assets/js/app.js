@@ -1,5 +1,6 @@
 import topbar from "topbar";
 
+import AIPromptInput from "./hooks/ai_prompt_input";
 import AutoRefresh from "./hooks/auto_refresh";
 import Clipboard from "./hooks/clipboard";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
@@ -62,6 +63,7 @@ topbar.config({
 });
 
 const hooks = {
+  AIPromptInput,
   AutoRefresh,
   Clipboard,
   DispatchChangeOnUpdate,

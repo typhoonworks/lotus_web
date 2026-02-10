@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+## [0.11.0] - 2026-02-10
+
+### Added
+
+- **AI Query Assistant (EXPERIMENTAL, BYOK)** - Generate SQL queries from natural language descriptions
+  - Left-side drawer interface with prompt input textarea
+  - Schema-aware query generation using OpenAI, Anthropic, or Google Gemini models
+  - Four AI tools for schema discovery: `list_schemas`, `list_tables`, `get_table_schema`, `get_column_values`
+  - Automatic column value introspection to avoid guessing enum/status values
+  - Security: Respects Lotus visibility rules - AI only sees tables/columns the user can access
+  - Keyboard shortcut: `Cmd/Ctrl+K` to open AI Assistant drawer
+  - BYOK (Bring Your Own Key) architecture - users provide their own API keys
+  - Error handling with user-friendly messages and retry capability
+  - Prompt persistence - prompts remain visible after generation for refinement
+  - Localized UI strings (English and French)
+
+### BREAKING
+
+- **Minimum Elixir Version** - Updated from 1.16 to 1.17 to align with Lotus core library requirements
+  - Applications using Elixir 1.16 must upgrade to Elixir 1.17+ to use this version
+
+### Changed
+
+- **CI Matrix** - Updated to test against Elixir 1.17 and 1.18 (removed 1.16)
+- **Documentation** - Added AI Assistant guide to docs extras in mix.exs, also included missing dashboards guide
+
+### Fixed
+
+- **Gettext Translations** - Fixed 23 fuzzy English translations that were missing proper text
+
 ## [0.10.1] - 2026-02-04
 
 ### Fixed

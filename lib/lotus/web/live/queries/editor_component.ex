@@ -6,11 +6,17 @@ defmodule Lotus.Web.Queries.EditorComponent do
   alias Lotus.Web.Queries.SegmentedDataSelectorComponent
   import Lotus.Web.Queries.WidgetComponent
 
+  defp ai_enabled? do
+    Lotus.AI.enabled?()
+  end
+
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
   attr(:statement_empty, :boolean, default: false)
   attr(:schema_explorer_visible, :boolean, default: false)
   attr(:variable_settings_visible, :boolean, default: false)
+  attr(:ai_assistant_visible, :boolean, default: false)
+  attr(:ai_generating, :boolean, default: false)
   attr(:form, Phoenix.HTML.Form, required: true)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:data_repo_names, :list, default: [])
@@ -60,6 +66,21 @@ defmodule Lotus.Web.Queries.EditorComponent do
         />
 
         <div class={["relative pb-8", if(@minimized, do: "hidden", else: "")]}>
+          <%!-- AI Generation Loading Overlay --%>
+          <%= if assigns[:ai_generating] do %>
+            <div class="absolute inset-0 bg-white/70 dark:bg-gray-900/70 z-30 flex items-center justify-center backdrop-blur-sm">
+              <div class="flex flex-col items-center space-y-3">
+                <svg class="animate-spin h-8 w-8 text-pink-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <%= gettext("Generating query...") %>
+                </p>
+              </div>
+            </div>
+          <% end %>
+
           <div id="editor" phx-update="ignore" class="w-full bg-editor-light dark:bg-editor-dark" style="min-height: 300px;"></div>
           <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" style="display: none;" />
           <div
@@ -256,6 +277,28 @@ defmodule Lotus.Web.Queries.EditorComponent do
       >
         <Icons.clipboard_copy class="h-5 w-5" />
       </button>
+
+      <%!-- AI Assistant button --%>
+      <%= if ai_enabled?() do %>
+        <button
+          id="ai-assistant-btn"
+          type="button"
+          phx-click="toggle_ai_assistant"
+          phx-target={@target}
+          class={[
+            "p-2 transition-colors",
+            if(Map.get(assigns, :ai_assistant_visible, false),
+              do: "text-pink-600 hover:text-pink-700",
+              else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+            )
+          ]}
+          data-title={gettext("Generate query with AI")}
+          phx-hook="Tippy"
+        >
+          <Icons.robot class="h-5 w-5" />
+        </button>
+      <% end %>
+
       <button
         id="variable-settings-btn"
         type="button"
