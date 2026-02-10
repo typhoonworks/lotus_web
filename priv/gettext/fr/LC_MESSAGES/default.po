@@ -23,7 +23,7 @@ msgstr "(ou une seule colonne %{value})."
 msgid "Add variables in SQL with %{variable_code}. When you type one, Lotus detects it and adds an input in the toolbar."
 msgstr "Ajoutez des variables dans le SQL avec %{variable_code}. Lorsque vous en saisissez une, Lotus la détecte et ajoute un champ dans la barre d'outils."
 
-#: lib/lotus/web/pages/query_editor_page.ex:247
+#: lib/lotus/web/pages/query_editor_page.ex:246
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this query? This action cannot be undone."
 msgstr "Voulez-vous vraiment supprimer cette requête ? Cette action est irréversible."
@@ -41,8 +41,8 @@ msgstr "Parcourez le contenu de vos bases, tables et colonnes. Choisissez une ba
 #: lib/lotus/web/live/dashboards/add_card_modal.ex:89
 #: lib/lotus/web/pages/dashboard_editor_page.ex:243
 #: lib/lotus/web/pages/dashboard_editor_page.ex:273
-#: lib/lotus/web/pages/query_editor_page.ex:227
-#: lib/lotus/web/pages/query_editor_page.ex:255
+#: lib/lotus/web/pages/query_editor_page.ex:226
+#: lib/lotus/web/pages/query_editor_page.ex:254
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "Annuler"
@@ -88,13 +88,13 @@ msgstr "Valeur par défaut"
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:194
 #: lib/lotus/web/pages/dashboard_editor_page.ex:281
-#: lib/lotus/web/pages/query_editor_page.ex:180
-#: lib/lotus/web/pages/query_editor_page.ex:263
+#: lib/lotus/web/pages/query_editor_page.ex:179
+#: lib/lotus/web/pages/query_editor_page.ex:262
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr "Supprimer"
 
-#: lib/lotus/web/pages/query_editor_page.ex:245
+#: lib/lotus/web/pages/query_editor_page.ex:244
 #, elixir-autogen, elixir-format
 msgid "Delete query"
 msgstr "Supprimer la requête"
@@ -102,7 +102,7 @@ msgstr "Supprimer la requête"
 #: lib/lotus/web/pages/dashboard_editor_page.ex:231
 #: lib/lotus/web/pages/queries_page.ex:95
 #: lib/lotus/web/pages/queries_page.ex:131
-#: lib/lotus/web/pages/query_editor_page.ex:216
+#: lib/lotus/web/pages/query_editor_page.ex:215
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr "Description"
@@ -148,12 +148,12 @@ msgstr "Saisissez une valeur par défaut..."
 msgid "Enter one value per line. Use \"value | label\" format to add display labels."
 msgstr "Entrez une valeur par ligne. Utilisez le format \"valeur | libellé\" pour ajouter un libellé d'affichage."
 
-#: lib/lotus/web/pages/query_editor_page.ex:217
+#: lib/lotus/web/pages/query_editor_page.ex:216
 #, elixir-autogen, elixir-format
 msgid "Enter query description (optional)"
 msgstr "Entrez la description de la requête (facultatif)"
 
-#: lib/lotus/web/pages/query_editor_page.ex:210
+#: lib/lotus/web/pages/query_editor_page.ex:209
 #, elixir-autogen, elixir-format
 msgid "Enter query name"
 msgstr "Entrez le nom de la requête"
@@ -186,17 +186,17 @@ msgstr "Exporter (.csv)"
 msgid "Export query results to CSV"
 msgstr "Exporter les résultats de la requête en CSV"
 
-#: lib/lotus/web/pages/query_editor_page.ex:666
+#: lib/lotus/web/pages/query_editor_page.ex:703
 #, elixir-autogen, elixir-format
 msgid "Failed to copy to clipboard!"
 msgstr "Échec de la copie dans le presse-papiers !"
 
-#: lib/lotus/web/pages/query_editor_page.ex:1461
+#: lib/lotus/web/pages/query_editor_page.ex:1531
 #, elixir-autogen, elixir-format
 msgid "Failed to delete query"
 msgstr "Impossible de supprimer la requête"
 
-#: lib/lotus/web/pages/query_editor_page.ex:422
+#: lib/lotus/web/pages/query_editor_page.ex:421
 #, elixir-autogen, elixir-format
 msgid "Failed to save query"
 msgstr "Impossible d'enregistrer la requête"
@@ -260,12 +260,12 @@ msgstr "Réduire l'éditeur"
 #: lib/lotus/web/pages/dashboard_editor_page.ex:224
 #: lib/lotus/web/pages/queries_page.ex:87
 #: lib/lotus/web/pages/queries_page.ex:123
-#: lib/lotus/web/pages/query_editor_page.ex:209
+#: lib/lotus/web/pages/query_editor_page.ex:208
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Nom"
 
-#: lib/lotus/web/pages/query_editor_page.ex:167
+#: lib/lotus/web/pages/query_editor_page.ex:166
 #, elixir-autogen, elixir-format
 msgid "New Query"
 msgstr "Nouvelle requête"
@@ -275,8 +275,8 @@ msgstr "Nouvelle requête"
 msgid "Next"
 msgstr "Suivant"
 
-#: lib/lotus/web/pages/query_editor_page.ex:679
-#: lib/lotus/web/pages/query_editor_page.ex:683
+#: lib/lotus/web/pages/query_editor_page.ex:716
+#: lib/lotus/web/pages/query_editor_page.ex:720
 #, elixir-autogen, elixir-format
 msgid "No query results to export"
 msgstr "Aucun résultat de requête à exporter"
@@ -302,7 +302,7 @@ msgstr "Nombre"
 msgid "Option 1\nOption 2\nOption 3"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:699
+#: lib/lotus/web/pages/query_editor_page.ex:736
 #, elixir-autogen, elixir-format
 msgid "Please enter a SQL statement"
 msgstr "Veuillez saisir une instruction SQL"
@@ -332,30 +332,31 @@ msgstr "Aperçu (3 premiers résultats) :"
 msgid "Queries"
 msgstr "Requêtes"
 
-#: lib/lotus/web/pages/query_editor_page.ex:660
+#: lib/lotus/web/pages/query_editor_page.ex:697
 #, elixir-autogen, elixir-format
 msgid "Query copied to clipboard!"
 msgstr "Requête copiée dans le presse-papiers !"
 
-#: lib/lotus/web/pages/query_editor_page.ex:1457
+#: lib/lotus/web/pages/query_editor_page.ex:1527
 #, elixir-autogen, elixir-format
 msgid "Query deleted successfully"
 msgstr "Requête supprimée avec succès"
 
 #: lib/lotus/web/pages/public_dashboard_page.ex:149
-#: lib/lotus/web/pages/query_editor_page.ex:869
+#: lib/lotus/web/pages/query_editor_page.ex:938
+#: lib/lotus/web/pages/query_editor_page.ex:942
 #, elixir-autogen, elixir-format
 msgid "Query execution failed"
 msgstr "Échec de l'exécution de la requête"
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:733
-#: lib/lotus/web/pages/query_editor_page.ex:1348
+#: lib/lotus/web/pages/query_editor_page.ex:1418
 #, elixir-autogen, elixir-format
 msgid "Query execution failed: %{reason}"
 msgstr "Échec de l'exécution de la requête : %{reason}"
 
-#: lib/lotus/web/pages/query_editor_page.ex:285
-#: lib/lotus/web/pages/query_editor_page.ex:1449
+#: lib/lotus/web/pages/query_editor_page.ex:284
+#: lib/lotus/web/pages/query_editor_page.ex:1519
 #, elixir-autogen, elixir-format
 msgid "Query not found"
 msgstr "Requête introuvable"
@@ -365,7 +366,7 @@ msgstr "Requête introuvable"
 msgid "Query running..."
 msgstr "Requête en cours..."
 
-#: lib/lotus/web/pages/query_editor_page.ex:416
+#: lib/lotus/web/pages/query_editor_page.ex:415
 #, elixir-autogen, elixir-format
 msgid "Query saved successfully!"
 msgstr "Requête enregistrée avec succès !"
@@ -404,13 +405,13 @@ msgid "SQL query cannot be empty"
 msgstr "La requête SQL ne peut pas être vide"
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:202
-#: lib/lotus/web/pages/query_editor_page.ex:189
+#: lib/lotus/web/pages/query_editor_page.ex:188
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: lib/lotus/web/pages/query_editor_page.ex:199
-#: lib/lotus/web/pages/query_editor_page.ex:234
+#: lib/lotus/web/pages/query_editor_page.ex:198
+#: lib/lotus/web/pages/query_editor_page.ex:233
 #, elixir-autogen, elixir-format
 msgid "Save Query"
 msgstr "Enregistrer la requête"
@@ -527,7 +528,7 @@ msgid "Types"
 msgstr "Types"
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:154
-#: lib/lotus/web/pages/query_editor_page.ex:169
+#: lib/lotus/web/pages/query_editor_page.ex:168
 #, elixir-autogen, elixir-format
 msgid "Untitled"
 msgstr "Sans titre"
@@ -577,12 +578,12 @@ msgstr "Widgets"
 msgid "Write a SQL query that returns value and label columns (or just a value column)."
 msgstr "Écrivez une requête SQL qui renvoie les colonnes valeur et libellé (ou uniquement une colonne valeur)."
 
-#: lib/lotus/web/pages/query_editor_page.ex:436
+#: lib/lotus/web/pages/query_editor_page.ex:435
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to delete queries"
 msgstr "Vous n'avez pas l'autorisation de supprimer des requêtes"
 
-#: lib/lotus/web/pages/query_editor_page.ex:399
+#: lib/lotus/web/pages/query_editor_page.ex:398
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to save queries"
 msgstr "Vous n'avez pas l'autorisation d'enregistrer des requêtes"
@@ -679,7 +680,7 @@ msgstr[0] "%{count} table"
 msgstr[1] "%{count} tables"
 
 #: lib/lotus/web/components/layouts.ex:170
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:58
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:78
 #, elixir-autogen, elixir-format
 msgid "Close"
 msgstr "Fermer"
@@ -1418,50 +1419,35 @@ msgstr "Enregistrez d'abord le tableau de bord pour activer le partage public."
 msgid "You don't have permission to modify dashboards"
 msgstr "Vous n'avez pas l'autorisation de modifier des tableaux de bord"
 
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:47
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:48
 #, elixir-autogen, elixir-format
 msgid "AI Assistant"
 msgstr "Assistant IA"
 
-#: lib/lotus/web/pages/query_editor_page.ex:823
+#: lib/lotus/web/pages/query_editor_page.ex:861
 #, elixir-autogen, elixir-format
 msgid "AI features are not configured"
 msgstr "Les fonctionnalités IA ne sont pas configurées"
 
-#: lib/lotus/web/pages/query_editor_page.ex:495
+#: lib/lotus/web/pages/query_editor_page.ex:511
 #, elixir-autogen, elixir-format
 msgid "AI features are not configured. Please add AI configuration."
 msgstr "Les fonctionnalités IA ne sont pas configurées. Veuillez ajouter la configuration IA."
 
-#: lib/lotus/web/pages/query_editor_page.ex:815
-#, elixir-autogen, elixir-format
-msgid "AI query generated successfully"
-msgstr "Requête IA générée avec succès"
-
-#: lib/lotus/web/pages/query_editor_page.ex:829
+#: lib/lotus/web/pages/query_editor_page.ex:873
 #, elixir-autogen, elixir-format
 msgid "API key is missing or invalid"
 msgstr "La clé API est manquante ou invalide"
 
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:50
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:52
 #, elixir-autogen, elixir-format
 msgid "Describe your query in plain English"
 msgstr "Décrivez votre requête en langage naturel"
 
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:80
-#, elixir-autogen, elixir-format
-msgid "Example: Show all active users who signed up in the last 30 days"
-msgstr "Exemple : Afficher tous les utilisateurs actifs inscrits au cours des 30 derniers jours"
-
-#: lib/lotus/web/pages/query_editor_page.ex:847
+#: lib/lotus/web/pages/query_editor_page.ex:901
 #, elixir-autogen, elixir-format
 msgid "Failed to generate query: %{error}"
 msgstr "Échec de la génération de la requête : %{error}"
-
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:127
-#, elixir-autogen, elixir-format
-msgid "Generate Query"
-msgstr "Générer la requête"
 
 #: lib/lotus/web/live/queries/editor_component.ex:295
 #, elixir-autogen, elixir-format
@@ -1473,37 +1459,103 @@ msgstr "Générer la requête avec l'IA"
 msgid "Generating query..."
 msgstr "Génération de la requête..."
 
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:125
-#, elixir-autogen, elixir-format
-msgid "Generating..."
-msgstr "Génération..."
-
-#: lib/lotus/web/pages/query_editor_page.ex:532
+#: lib/lotus/web/pages/query_editor_page.ex:543
 #, elixir-autogen, elixir-format
 msgid "Please select a data source first"
 msgstr "Veuillez d'abord sélectionner une source de données"
 
-#: lib/lotus/web/pages/query_editor_page.ex:855
+#: lib/lotus/web/pages/query_editor_page.ex:915
 #, elixir-autogen, elixir-format
 msgid "Query generation timed out or crashed"
 msgstr "La génération de la requête a expiré ou s'est interrompue"
-
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:92
-#, elixir-autogen, elixir-format
-msgid "Unable to generate query"
-msgstr "Impossible de générer la requête"
-
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:73
-#, elixir-autogen, elixir-format
-msgid "What would you like to query?"
-msgstr "Que souhaitez-vous interroger ?"
-
-#: lib/lotus/web/live/queries/ai_assistant_component.ex:107
-#, elixir-autogen
-msgid "Clear"
-msgstr ""
 
 #: lib/lotus/web/components/layouts.ex:120
 #, elixir-autogen, elixir-format
 msgid "Toggle AI Assistant"
 msgstr "Activer/désactiver l'assistant IA"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:54
+#, elixir-autogen, elixir-format
+msgid "%{count} messages • %{generations} queries generated"
+msgstr "%{count} messages • %{generations} requêtes générées"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:204
+#, elixir-autogen, elixir-format
+msgid "Ask AI to fix this"
+msgstr "Demander à l'IA de corriger"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:119
+#, elixir-autogen, elixir-format
+msgid "Ask me to generate a SQL query, and I can help you refine it through conversation"
+msgstr "Demandez-moi de générer une requête SQL, et je peux vous aider à l'affiner par la conversation"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:67
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:68
+#, elixir-autogen, elixir-format
+msgid "Clear conversation"
+msgstr "Effacer la conversation"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:125
+#, elixir-autogen, elixir-format
+msgid "Count orders by month"
+msgstr "Compter les commandes par mois"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:122
+#, elixir-autogen, elixir-format
+msgid "Example prompts:"
+msgstr "Exemples de requêtes :"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:126
+#, elixir-autogen, elixir-format
+msgid "Find top 10 products by revenue"
+msgstr "Trouver les 10 meilleurs produits par chiffre d'affaires"
+
+#: lib/lotus/web/pages/query_editor_page.ex:846
+#, elixir-autogen, elixir-format
+msgid "Here's your SQL query:"
+msgstr "Voici votre requête SQL :"
+
+#: lib/lotus/web/pages/query_editor_page.ex:584
+#, elixir-autogen, elixir-format
+msgid "Please fix the error and generate a corrected query"
+msgstr "Veuillez corriger l'erreur et générer une requête corrigée"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:183
+#, elixir-autogen, elixir-format
+msgid "Query Failed"
+msgstr "Échec de la requête"
+
+#: lib/lotus/web/pages/query_editor_page.ex:576
+#, elixir-autogen, elixir-format
+msgid "Query inserted into editor"
+msgstr "Requête insérée dans l'éditeur"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:245
+#, elixir-autogen, elixir-format
+msgid "Send message"
+msgstr "Envoyer le message"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:124
+#, elixir-autogen, elixir-format
+msgid "Show all active users"
+msgstr "Afficher tous les utilisateurs actifs"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:191
+#, elixir-autogen, elixir-format
+msgid "Show failed query"
+msgstr "Afficher la requête échouée"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:116
+#, elixir-autogen, elixir-format
+msgid "Start a conversation"
+msgstr "Démarrer une conversation"
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:230
+#, elixir-autogen, elixir-format
+msgid "Type your message..."
+msgstr "Tapez votre message..."
+
+#: lib/lotus/web/live/queries/ai_assistant_component.ex:172
+#, elixir-autogen, elixir-format
+msgid "Use this query"
+msgstr "Utiliser cette requête"

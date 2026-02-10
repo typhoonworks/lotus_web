@@ -1,7 +1,9 @@
 import topbar from "topbar";
 
+import AIMessageInput from "./hooks/ai_message_input";
 import AIPromptInput from "./hooks/ai_prompt_input";
 import AutoRefresh from "./hooks/auto_refresh";
+import AutoScrollAI from "./hooks/auto_scroll_ai";
 import Clipboard from "./hooks/clipboard";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
 import EditorForm from "./hooks/editor_form";
@@ -63,8 +65,10 @@ topbar.config({
 });
 
 const hooks = {
+  AIMessageInput,
   AIPromptInput,
   AutoRefresh,
+  AutoScrollAI,
   Clipboard,
   DispatchChangeOnUpdate,
   EditorForm,

@@ -30,14 +30,16 @@ Visit the mounted path in your browser (e.g., `/lotus`). You should see:
 
 > ⚠️ **Experimental Feature**: The AI Query Assistant is optional and requires setup. See the [AI Assistant Guide](ai-assistant.md) for details.
 
-If AI features are enabled, you can generate SQL from natural language:
+If AI features are enabled, you can generate and refine SQL through a conversational interface:
 
-1. **Click the robot icon** (🤖) in the query editor toolbar
+1. **Click the robot icon** in the query editor toolbar to open the AI chat drawer
 2. **Describe what you want** - e.g., "Show users who signed up in the last 7 days"
-3. **Review the generated SQL** - The AI inserts SQL directly into the editor
-4. **Run or refine** - Execute the query or adjust as needed
+3. **Review the generated SQL** - The AI responds in a chat bubble with the query
+4. **Click "Use this query"** to insert the generated SQL into the editor
+5. **Iterate naturally** - Send follow-up messages to refine ("Add a LIMIT 100", "Group by month instead")
+6. **Fix errors automatically** - If a query fails while the AI drawer is open, the error appears in the conversation — click "Ask AI to fix this" to get a corrected query
 
-The AI is schema-aware and will explore your database structure to generate accurate queries.
+The AI is schema-aware and will explore your database structure to generate accurate queries. The full conversation context is sent with each request for iterative refinement.
 
 **Note:** AI features are disabled by default and require you to provide your own API key (BYOK) from OpenAI, Anthropic, or Google. See the [AI Assistant Guide](ai-assistant.md) for setup instructions.
 

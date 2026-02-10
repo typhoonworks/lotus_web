@@ -7,6 +7,7 @@ The AI Query Assistant helps you generate SQL queries from natural language desc
 ## Overview
 
 The AI Assistant:
+- **Conversational** - Multi-turn chat interface for iterative query building and refinement
 - **BYOK (Bring Your Own Key)** - You provide and manage your own API keys
 - **Schema-aware** - Automatically understands your database structure
 - **Respects visibility** - Only sees tables and columns you can access
@@ -31,11 +32,11 @@ config :lotus, :ai,
 
 ### 1. Opening the Assistant
 
-Click the **robot icon** (🤖) in the query editor toolbar. A drawer slides in from the left with a prompt input.
+Click the **robot icon** in the query editor toolbar. A conversational drawer slides in from the left with a chat interface. If this is your first time, you'll see example prompts to help you get started.
 
 ### 2. Writing Prompts
 
-Be specific and descriptive:
+Type your message in the input at the bottom of the drawer and press **Enter** to send (Shift+Enter for newlines). Be specific and descriptive:
 
 **Good prompts:**
 - "Show all users who signed up in the last 7 days"
@@ -43,24 +44,37 @@ Be specific and descriptive:
 - "Calculate monthly revenue grouped by product category"
 
 **Too vague:**
-- "Show users" ❌
-- "Data" ❌
+- "Show users"
+- "Data"
 
 ### 3. Reviewing Generated Queries
 
-The AI inserts generated SQL directly into the editor. **Always review the query** before running:
+The AI responds in a chat bubble with the generated SQL. **Always review the query** before using it:
 
 1. Check that it queries the right tables
 2. Verify JOINs are correct
 3. Confirm filters match your intent
 4. Check for appropriate LIMITs
 
-### 4. Iterating
+Click the **"Use this query"** button on any AI message containing SQL to insert it into the editor.
 
-If the generated query isn't quite right:
-- Click the robot icon again
-- Refine your prompt with more details
-- Try mentioning specific table or column names
+### 4. Iterating with Follow-Up Messages
+
+The conversation keeps full context, so you can refine queries naturally:
+- "Add a LIMIT 100 to that"
+- "Group by month instead of day"
+- "Also include the customer email"
+- "That's not right — the status column is called `state`"
+
+### 5. Fixing Errors Automatically
+
+When a query execution fails while the AI drawer is open, the error appears in the conversation. Click **"Ask AI to fix this"** to send the error context to the AI, which will attempt to generate a corrected query.
+
+### 6. Managing the Conversation
+
+- The header shows the message count and how many queries have been generated
+- Click the **trash icon** to clear the conversation and start fresh
+- Scroll through conversation history — the chat auto-scrolls to new messages
 
 ## How It Works
 
@@ -156,10 +170,8 @@ The AI will respond: `UNABLE_TO_GENERATE: api_keys table not available`
 
 ### Current Limitations
 
-- **No conversation history** - Each prompt is independent
-- **No query refinement** - Can't ask follow-up questions to improve queries
 - **English recommended** - Other languages may work but aren't tested
-- **No query explanation** - Doesn't explain what generated SQL does
+- **Session-only history** - Conversation is not persisted across page reloads
 
 ### When AI Can't Help
 

@@ -676,4 +676,39 @@ defmodule Lotus.Web.Components.Icons do
     </.svg_outline>
     """
   end
+
+  attr(:rest, :global)
+
+  def send(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/>
+      <path d="m21.854 2.147-10.94 10.939"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def sparkles(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/>
+      <path d="M20 2v4"/>
+      <path d="M22 4h-4"/>
+      <circle cx="4" cy="20" r="2"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def corner_down_right(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="m15 10 5 5-5 5"/>
+      <path d="M4 4v7a4 4 0 0 0 4 4h12"/>
+    </.svg_outline>
+    """
+  end
 end
