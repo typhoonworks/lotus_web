@@ -1,8 +1,6 @@
-# LotusWeb
+# Lotus Web
 
-[Try the demo here](https://lotus.typhoon.works/)
-
-![Lotus](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/banner.png)
+![Lotus Web](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/banner.png)
 
 <p>
   <a href="https://hex.pm/packages/lotus_web">
@@ -16,409 +14,260 @@
   </a>
 </p>
 
-**A beautiful, lightweight web interface for [Lotus](https://github.com/typhoonworks/lotus) - the SQL query runner and storage library for Elixir applications.**
+**A LiveView-powered BI interface that mounts directly in your Phoenix app — SQL editor, dashboards, charts, and AI-powered query generation in plain English. No separate deployment needed.**
 
-## Table of Contents
+[Try the live demo](https://lotus.typhoon.works/)
 
-- [Overview](#overview)
-- [Production Use](#production-use)
-- [Why LotusWeb?](#why-lotusweb)
-- [Current Features](#current-features)
-- [What's planned?](#whats-planned)
-- [Installation](#installation)
-- [Requirements](#requirements)
-- [Quick Setup](#quick-setup)
-- [Usage](#usage)
-- [Configuration Options](#configuration-options)
-- [Internationalization](#internationalization)
-- [Security Best Practices](#security-best-practices)
-- [Comparison with Alternatives](#comparison-with-alternatives)
-- [Development](#development)
-- [Contributing](#contributing)
-- [Acknowledgments](#acknowledgments)
-- [License](#license)
+<!-- TODO: Replace with a 30-second demo GIF showing: mount in router → open browser → write SQL → see chart → save to dashboard -->
 
-> ⚠️ **Branch & Release Policy**
->
-> - **Use tagged releases** when adding this package as a dependency.
->   Example: `{:lotus, "~> 0.9.2"}` and `{:lotus_web, "~> 0.6.2"}`
-> - The `main` branch is **development-only** and may not compile or run outside this repo.
-> - Release docs live on HexDocs (links above). The README on `main` may describe unreleased changes.
+## Why Lotus Web?
 
-## Overview
+You shouldn't need to deploy Metabase or Redash just to query your database. Lotus Web gives your team a full BI interface inside your existing Phoenix app — one dependency, one route, done. It shares your app's authentication, runs on your existing infrastructure, and is read-only by design.
 
-LotusWeb provides a free, easy-to-setup BI dashboard that you can mount directly in your Phoenix application. Perfect for technical and non-technical users who need to run SQL queries, create reports, and explore data without the complexity of a full BI solution.
+We're running Lotus Web in production at [Accomplish](https://accomplish.dev).
 
->🚧 While LotusWeb already has a solid feature set and its API surface is stabilizing, it’s still evolving. We’ll make a best effort to announce breaking changes, but we can’t guarantee backwards compatibility yet — especially as Lotus broadens its `Source` abstraction to support more than SQL-backed data sources.
+> While Lotus Web already has a solid feature set and its API surface is stabilizing, it's still evolving. We'll make a best effort to announce breaking changes, but we can't guarantee full backwards compatibility yet.
 
-## Production Use
+## Quick Start
 
-LotusWeb is generally safe to use in production. It relies on Lotus’s read-only execution and session safety. We are running it in [Accomplish](https://accomplish.dev) successfully in production today, notwithanding being affected by the limitation described below.
-
-### UUID Caveats
-
-If your application uses UUIDs or mixed ID formats, there are current limitations that affect how variables work in the LotusWeb UI:
-
-- Variable binding around UUID columns is constrained across different storage types and databases:
-  - PostgreSQL `uuid`
-  - MySQL `BINARY(16)` vs `CHAR(36|32)`
-  - SQLite `TEXT` vs `BLOB`
-- You can still get a lot of value from the UI, but filtering on UUID columns with `{{var}}` will likely not work in Postgres as it warrants a special binary format that is not UI friendly (we convert to String for the UI but currently have no way to cast it back with runtime column inference).
-
-We plan to improve this with column‑aware binding (Lotus will use schema metadata to deterministically cast/shape values). Once available, LotusWeb will take advantage of it automatically.
-
-### File Exports
-
-Lotus Web supports CSV exports of query results for both saved and unsaved queries. Because Lotus Web is implemented with LiveView, we use a short-lived, signed, encrypted, token to authorize exports via a separate controller endpoint (`Lotus.Web.ExportController.csv/2`). This allows us to chunk large results using browser downloads.
-
-For saved queries, we pass the Query ID and any variables in the token.
-
-For unsaved queries, we pass the raw SQL query and any variables in the token.
-
-While the token (which contains this potentially sensitive data) is short-lived, signed, and encrypted, you should still take care to only expose the export functionality to trusted users, as browsers can store download URLs in history.
-
-## Why LotusWeb?
-
-### 🎯 **Lightweight Alternative to Complex BI Tools**
-- **No additional servers required** - mount directly in your Phoenix app
-- **Simpler than Livebook** - no separate setup or deployment needed
-- **Free alternative to Blazer** - inspired by the popular Ruby gem but built for Elixir
-
-### 🔐 **Secure by Default**
-- **Read-only queries only** - built on Lotus's safety-first architecture
-- **Table visibility controls** - hide sensitive tables from the interface
-- **No direct database access** - all queries go through Lotus's security layer
-
-### 🏗️ **Built for Phoenix**
-- **LiveView-powered** - real-time query execution and results
-- **Phoenix integration** - follows Phoenix conventions and patterns
-
-### ⚡ **Developer & User Friendly**
-- **SQL editor with syntax highlighting** - powered by CoreMirror Editor
-- **Schema explorer** - browse tables and columns interactively
-- **Query management** - save, organize, and reuse queries
-- **Multiple database support** - switch between configured repositories
-- **Export capabilities** - download results as CSV (coming soon)
-
-## Current Features
-- 🖥️ **Web-based SQL editor** with syntax highlighting and autocomplete
-- 🗂️ **Query management** - create, edit, save, and organize SQL queries
-- 🔍 **Schema explorer** - browse database tables, columns, and statistics
-- 📊 **Results visualization** - tabular display and interactive charts (bar, line, area, scatter, pie)
-- 📱 **Dashboards** - combine queries into interactive views with grid layouts and public sharing
-- 🏪 **Multi-database support** - execute queries against different configured repositories
-- ⚡ **Real-time execution** - LiveView-powered query running
-- ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
-- 🤖 **AI Query Assistant (EXPERIMENTAL, BYOK)** - conversational SQL generation from natural language with multi-turn refinement, using your own OpenAI, Anthropic, or Gemini API key
-
-## What's planned?
-
-- [ ] **Dashboard filter UI** - add/edit dashboard filters via modal interface
-- [ ] **Dashboard Text Cards Markdown** - add markdown capabilities to text cards
-- [ ] **Advanced permissions** - role-based access to queries and databases
-- [X] **Dashboard builder** - create custom dashboards with saved queries
-- [X] **Query sharing** - share query results via secure links
-- [X] **Query result caching** - cache expensive queries for faster repeated access
-- [X] **Export functionality** - CSV export option
-- [x] **Charts** - render charts from queries (bar, line, area, scatter, pie)
-- [x] **Smart variables** - parameterized queries with `{{variable}}` syntax
-- [x] **SQL query-based dropdown options** - populate variable dropdowns from database queries
-- [x] **Schema exploration** - interactive database schema browser
-
-## Installation
-
-Add `lotus_web` to your list of dependencies in `mix.exs`:
+### 1. Add dependencies
 
 ```elixir
+# mix.exs
 def deps do
   [
+    {:lotus, "~> 0.13.0"},
     {:lotus_web, "~> 0.12.0"}
   ]
 end
 ```
 
-## Requirements
-
-- **Elixir 1.17+** and **OTP 25+**
-- **Lotus 0.13+** - LotusWeb 0.12+ requires Lotus 0.13 or later
-- **Phoenix 1.7+** for LiveView compatibility
-
-### Version Compatibility Matrix
-
-| LotusWeb Version | Required Lotus Version | Notes |
-|------------------|------------------------|-------|
-| 0.12.x           | 0.13.0+               | Latest stable release (requires Elixir 1.17+) |
-| 0.11.x           | 0.12.0+               | Previous stable release |
-| 0.10.x           | 0.11.0+               | Legacy version |
-| 0.4.x            | 0.9.0+                | Legacy version |
-| 0.3.x            | 0.6.0+                | Legacy version |
-
-> The dependency constraint in `mix.exs` automatically ensures compatible versions are installed together.
-
-## Quick Setup
-
-### 1. Configure Lotus (if not already done)
-
-Add Lotus configuration to your `config/config.exs`:
+### 2. Configure Lotus
 
 ```elixir
+# config/config.exs
 config :lotus,
-  ecto_repo: MyApp.Repo,        # Where Lotus stores queries
-  default_repo: "main",         # Default repository for query execution
-  data_repos: %{                # Where queries execute
-    "main" => MyApp.Repo,
-    "analytics" => MyApp.AnalyticsRepo
+  ecto_repo: MyApp.Repo,
+  default_repo: "main",
+  data_repos: %{
+    "main" => MyApp.Repo
   }
 ```
 
-### 2. Add Lotus migration (if not already done)
+### 3. Run the migration
 
 ```bash
 mix ecto.gen.migration create_lotus_tables
 ```
 
-Add the Lotus migration to your generated migration file:
-
 ```elixir
 defmodule MyApp.Repo.Migrations.CreateLotusTables do
   use Ecto.Migration
 
-  def up do
-    Lotus.Migrations.up()
-  end
-
-  def down do
-    Lotus.Migrations.down()
-  end
+  def up, do: Lotus.Migrations.up()
+  def down, do: Lotus.Migrations.down()
 end
 ```
-
-Run the migration:
 
 ```bash
 mix ecto.migrate
 ```
 
-### 3. Configure Caching (Optional but Recommended)
-
-Lotus supports result caching to improve query performance. To enable caching:
-
-#### Add Lotus to your supervision tree:
+### 4. Mount in your router
 
 ```elixir
-# lib/my_app/application.ex
-def start(_type, _args) do
-  children = [
-    MyApp.Repo,
-    # Add Lotus for caching support
-    Lotus,
-    MyAppWeb.Endpoint
-  ]
+# lib/my_app_web/router.ex
+import Lotus.Web.Router
 
-  opts = [strategy: :one_for_one, name: MyApp.Supervisor]
-  Supervisor.start_link(children, opts)
+scope "/", MyAppWeb do
+  pipe_through [:browser, :require_authenticated_user]
+
+  lotus_dashboard "/lotus"
 end
 ```
 
-#### Configure cache settings:
+### 5. Visit `/lotus` in your browser
+
+That's it. Full BI dashboard, running inside your Phoenix app.
+
+## Features
+
+### SQL Editor
+
+Web-based SQL editor with syntax highlighting, autocomplete, and real-time execution powered by LiveView. Switch between configured databases, run queries with Cmd/Ctrl+Enter, and see results instantly.
+
+See the [getting started guide](guides/getting-started.md) for more.
+
+### Schema Explorer
+
+Browse your database tables, columns, and statistics interactively. Click to inspect table structures and understand your data before writing queries.
+
+### Visualizations
+
+Toggle between table and chart views for any query result. 5 chart types available: bar, line, area, scatter, and pie. Configure axes and color grouping, then save the visualization alongside the query.
+
+Keyboard shortcuts: Cmd/Ctrl+G (chart settings), Cmd/Ctrl+1 (table view), Cmd/Ctrl+2 (chart view).
+
+See the [visualizations guide](guides/visualizations.md) for chart configuration details.
+
+### Dashboards
+
+Combine saved queries into interactive dashboards with a 12-column grid layout. Add query result cards, text (markdown), headings, and links. Configure auto-refresh intervals and share dashboards publicly via secure token URLs.
+
+See the [dashboards guide](guides/dashboards.md) for layout and sharing details.
+
+### Smart Variables and Widgets
+
+Parameterize queries with `{{variable}}` syntax. Variables are automatically detected and rendered as input widgets. Supports text, number, and date types with configurable widgets — including dropdowns backed by static options or live SQL queries.
+
+See the [variables and widgets guide](guides/variables-and-widgets.md) for advanced usage.
+
+### AI Query Assistant
+
+Ask your database questions in plain English. The AI assistant discovers your schema, respects table visibility rules, and supports multi-turn conversations for iterative refinement — no other embeddable BI tool does this. Bring your own OpenAI, Anthropic, or Gemini API key. Open it with Cmd/Ctrl+K.
+
+See the [AI assistant guide](guides/ai-assistant.md) for setup and provider options.
+
+### Multi-Database Support
+
+Execute queries against any configured Ecto repository. Switch between databases from the editor toolbar — useful for apps with separate analytics, reporting, or multi-tenant databases.
+
+## Configuration
+
+### Mount Options
+
+```elixir
+# Default
+lotus_dashboard "/lotus"
+
+# Custom route name
+lotus_dashboard "/admin/queries", as: :admin_queries
+
+# Custom WebSocket settings
+lotus_dashboard "/lotus",
+  socket_path: "/live",
+  transport: "websocket"
+
+# Additional mount callbacks
+lotus_dashboard "/lotus",
+  on_mount: [MyAppWeb.RequireAdmin]
+
+# Feature flags
+lotus_dashboard "/lotus",
+  features: [:timeout_options]
+```
+
+| Feature | Description |
+|---------|-------------|
+| `:timeout_options` | Adds a per-query timeout selector (5s to 5m) to the editor toolbar |
+
+### Caching (Optional, Recommended)
+
+Add Lotus to your supervision tree and configure cache settings:
+
+```elixir
+# lib/my_app/application.ex
+children = [
+  MyApp.Repo,
+  Lotus,          # Enables caching
+  MyAppWeb.Endpoint
+]
+```
 
 ```elixir
 # config/config.exs
 config :lotus,
   cache: [
     adapter: Lotus.Cache.ETS,
-    namespace: "my_app_cache",
     profiles: %{
-      results: [ttl_ms: 60_000],      # Cache query results for 1 minute
-      schema: [ttl_ms: 3_600_000],    # Cache schemas for 1 hour
-      options: [ttl_ms: 300_000]      # Cache dropdown options for 5 minutes
+      results: [ttl_ms: 60_000],
+      schema: [ttl_ms: 3_600_000],
+      options: [ttl_ms: 300_000]
     }
   ]
 ```
 
-**Note**: Without adding Lotus to your supervision tree, all query functions will work normally but caching will be disabled.
+### Internationalization
 
-### 4. Mount LotusWeb in your router
+Lotus Web ships with a dedicated Gettext backend. To set the locale, store it in the Phoenix session:
 
 ```elixir
-defmodule MyAppWeb.Router do
-  use MyAppWeb, :router
-  import Lotus.Web.Router
-
-  # ... other routes
-
-  scope "/", MyAppWeb do
-    pipe_through [:browser, :require_authenticated_user] # 🔒 Important: Add authentication!
-
-    lotus_dashboard "/lotus"
-  end
+defp persist_user_locale(conn, _opts) do
+  user_locale = get_session(conn, :user_locale) || "en"
+  put_session(conn, :lotus_locale, user_locale)
 end
 ```
 
-**⚠️ Security Notice**: Always mount LotusWeb behind authentication in production. The dashboard provides powerful query capabilities and should only be accessible to authorized users.
+To contribute translations, submit a PR with updates to `priv/gettext/<locale>/LC_MESSAGES/lotus.po`.
 
-## Usage
+## Security
 
-Once mounted, visit `/lotus` in your application to access the dashboard:
-
-### **Query Editor**
-- Write and execute SQL queries with syntax highlighting
-- Switch between configured databases
-- Real-time query execution
-- Error handling with clear messages
-
-### **Schema Explorer**
-- Browse available tables and their columns
-- View table statistics and schema information
-- Click to insert table/column names into queries (coming soon)
-
-### **Query Management**
-- Save queries with descriptive names
-- Edit and update existing queries
-- Delete queries you no longer need
-
-### **Query Visualizations**
-- Toggle between table and chart views for results
-- 5 chart types available: Bar, Line, Area, Scatter, Pie
-- Configure X-axis, Y-axis, and optional color grouping
-- Keyboard shortcuts: Cmd/Ctrl+G (settings), Cmd/Ctrl+1 (table), Cmd/Ctrl+2 (chart)
-
-## Configuration Options
-
-### Basic Configuration
+**Always mount behind authentication in production.** Lotus Web provides powerful query capabilities and should only be accessible to authorized users.
 
 ```elixir
-# Mount with default options
-lotus_dashboard "/lotus"
-```
-
-### Custom Route Name
-
-```elixir
-# Use a custom route name (default is :lotus_dashboard)
-lotus_dashboard "/admin/queries", as: :admin_queries
-```
-
-### WebSocket Configuration
-
-```elixir
-# Customize WebSocket settings
-lotus_dashboard "/lotus",
-  socket_path: "/live",
-  transport: "websocket"
-```
-
-### Feature Flags
-
-```elixir
-# Enable optional features
-lotus_dashboard "/lotus",
-  features: [:timeout_options]
-```
-
-Available features:
-
-| Feature | Description |
-|---------|-------------|
-| `:timeout_options` | Adds a per-query timeout selector to the query editor toolbar. Users can choose from preset durations (5s, 15s, 30s, 60s, 2m, 5m) or disable the timeout entirely. Without this feature, queries use the default 5-second timeout from Lotus. |
-
-### Additional Mount Callbacks
-
-```elixir
-# Add authentication or other mount logic
-lotus_dashboard "/lotus",
-  on_mount: [MyAppWeb.RequireAdmin, MyAppWeb.LogDashboardAccess]
-```
-
-## Internationalization
-
-LotusWeb ships with a dedicated Gettext backend (`Lotus.Web.Gettext`) that uses the `"lotus"` domain. Translations are bundled with the library, so the UI automatically renders in either locale as soon as it is selected. When no translation exists, the original text continues to be rendered.
-
-To change the locale for a user session, store it in the Phoenix session (for example `:lotus_locale`). LotusWeb picks it up automatically and switches the Gettext locale during mount:
-
-```elixir
-defmodule MyAppWeb.Router do
-  use MyAppWeb, :router
-
-  pipeline :browser do
-    plug :fetch_session
-    plug :persist_user_locale
-  end
-
-  defp persist_user_locale(conn, _opts) do
-    user_locale = get_session(conn, :user_locale) || "en"
-    put_session(conn, :lotus_locale, user_locale)
-  end
-end
-```
-
-If you need additional locales or you want to improve the bundled translations, please open a pull request with updates to `priv/gettext/<locale>/LC_MESSAGES/lotus.po`. All translations are maintained in LotusWeb so every host benefits from the same vetted strings.
-
-## Security Best Practices
-
-### 1. Always Require Authentication
-
-```elixir
-# ✅ Good - requires authentication
+# Always require authentication
 scope "/", MyAppWeb do
   pipe_through [:browser, :require_authenticated_user]
   lotus_dashboard "/lotus"
 end
-
-# ❌ Bad - no authentication required
-scope "/", MyAppWeb do
-  pipe_through [:browser]
-  lotus_dashboard "/lotus"  # Anyone can access!
-end
 ```
 
-### 2. Use Table Visibility Controls
+Additional security layers:
 
-Configure Lotus to control access to database tables:
+- **Read-only execution** — all queries run in read-only transactions via Lotus
+- **Table visibility controls** — hide sensitive tables and columns from the interface
+- **Session safety** — secured by LiveView architecture with automatic session state restoration
+- **Export security** — CSV exports use short-lived, signed, encrypted tokens
+
+Configure table visibility in Lotus:
 
 ```elixir
 config :lotus,
   table_visibility: %{
     default: [
-      allow: [
-        "reports_users",
-        "analytics_events",
-        {"reporting", ~r/^daily_/}  # Allow reporting.daily_* tables
-      ],
-      deny: [
-        "users",           # Block sensitive user data
-        "admin_logs",      # Block admin tables
-        {"public", ~r/^schema_/}  # Block schema tables
-      ]
+      allow: ["reports_users", "analytics_events"],
+      deny: ["users", "admin_logs"]
     ]
   }
 ```
 
-## Comparison with Alternatives
+## How Lotus Web Compares
 
-### vs. Livebook
-- **✅ Simpler setup** - no separate deployment needed
-- **✅ Integrated with your app** - shares authentication and styling
-- **❌ Less programmable** - focused on SQL rather than general computation
+| | Lotus Web | Metabase | Redash | Blazer (Rails) | Livebook |
+|---|---|---|---|---|---|
+| **Deployment** | Mounts in your app | Separate service | Separate service | Mounts in your app | Separate service |
+| **Extra infra** | None | Java + DB | Python + Redis + DB | None | None |
+| **Auth** | Uses your app's auth | Separate system | Separate system | Uses your app's auth | Token-based |
+| **SQL editor** | Yes | Yes | Yes | Yes | Code cells |
+| **Dashboards** | Yes | Yes | Yes | No | No |
+| **Charts** | 5 types | Many | Many | 3 types | Via libraries |
+| **AI query gen** | Yes (BYOK) | No | No | No | No |
+| **Read-only** | By design | Configurable | Configurable | Configurable | No |
+| **Cost** | Free | Free/Paid | Free | Free | Free |
 
-### vs. Full BI Solutions (Metabase, Grafana, etc.)
-- **✅ No additional infrastructure** - runs inside your Phoenix app
-- **✅ Zero configuration** - uses your existing database connections
-- **✅ Free and open source** - no licensing costs
-- **❌ Less features** - focused on essential SQL querying and visualization needs
+## Requirements
 
-### vs. Ruby's Blazer Gem
-- **✅ Built for Elixir/Phoenix** - native LiveView implementation
-- **✅ Multi-database support** - can query different repos simultaneously
-- **✅ More secure** - Lotus's read-only architecture
-- **=** Similar philosophy - embedded BI for developers and product owners
+| Lotus Web | Lotus | Elixir | Phoenix |
+|-----------|-------|--------|---------|
+| 0.12.x | 0.13.0+ | 1.17+ | 1.7+ |
+| 0.11.x | 0.12.0+ | 1.17+ | 1.7+ |
+| 0.10.x | 0.11.0+ | 1.17+ | 1.7+ |
 
 ## Development
 
-### Prerequisites
-- Elixir 1.17+
-- Phoenix 1.7+
-- A Phoenix application with Lotus configured
+```bash
+mix deps.get
+
+# Ensure placeholder assets exist for compilation
+mkdir -p priv/static/css
+touch priv/static/css/app.css && touch priv/static/app.js
+
+# Install frontend deps
+npm install --prefix assets
+
+# Start dev server
+mix dev
+```
 
 ### Running Tests
 
@@ -426,93 +275,28 @@ config :lotus,
 mix test
 ```
 
-### Development Server
-
-For local development, ensure dependencies and placeholder assets exist, then run the dev server:
-
-```bash
-# From the repo root
-mix deps.get
-
-# Ensure placeholder assets exist for local dev compilation
-mkdir -p priv/static/css
-touch priv/static/css/app.css && touch priv/static/app.js
-
-# Install frontend deps for the demo/dev server
-npm install --prefix assets
-
-# Start the dev server / watcher
-mix dev
-```
-
-For subsequent runs:
-
-```bash
-mix dev
-```
-
-### Setting Up AI Query Assistant (Optional)
-
-The AI Query Assistant is an experimental feature that generates SQL from natural language. To enable it during development:
-
-1. **Generate the dev secrets file** (if not already present):
+### AI Assistant Setup (Optional)
 
 ```bash
 mix lotus.gen.dev.secret
 ```
 
-This creates `config/dev.secret.exs` (already in `.gitignore`)
-
-2. **Get an API key** from one of these providers:
-   - [OpenAI](https://platform.openai.com/api-keys)
-   - [Anthropic](https://console.anthropic.com/settings/keys)
-   - [Google AI Studio](https://aistudio.google.com/app/apikey)
-
-3. **Edit `config/dev.secret.exs`** and uncomment/configure your chosen provider:
-
-```elixir
-# OpenAI (recommended for development)
-Application.put_env(:lotus, :ai,
-  enabled: true,
-  provider: "openai",
-  api_key: "sk-proj-..."  # Your API key here
-)
-```
-
-4. **Restart the dev server** - the robot icon will appear in the query editor toolbar
-
-**Note for contributors:**
-- AI features are **disabled by default** - contributors don't need API keys unless testing AI-specific changes
-- The `dev.secret.exs` file is gitignored to prevent accidental key commits
-- See [Lotus AI documentation](https://github.com/typhoonworks/lotus#ai-query-generation-experimental-byok) for more details
+Edit `config/dev.secret.exs` with your API key, then restart the dev server. See the [AI assistant guide](guides/ai-assistant.md) for provider options.
 
 ## Contributing
 
-We welcome contributions!
-
-Common ways to help:
-- 🐛 Report bugs or issues
-- 💡 Suggest new features
-- 📚 Improve documentation
-- 🎨 Enhance UI/UX
-- ⚡ Performance improvements
-
-When reporting a bug, please include:
-- Your Elixir & OTP versions
-- The dependency lines from your `mix.exs` (lotus / lotus_web, phoenix, live_view)
-- Whether you’re on a **tagged release** or using a Git ref/branch
-- Steps to reproduce (commands run, stacktrace, etc.)
+We welcome contributions! When reporting bugs, please include your Elixir/OTP versions, dependency versions, and steps to reproduce.
 
 ## Acknowledgments
 
-LotusWeb owes significant inspiration to:
-- **[ObanWeb](https://hexdocs.pm/oban_web/)** - for the Phoenix mounting patterns and LiveView architecture
-- **[Blazer](https://github.com/ankane/blazer)** - for proving the value of simple, embedded BI tools
-- **The Phoenix LiveView team** - for making rich web interfaces simple to build
+Lotus Web owes significant inspiration to:
+- **[Oban Web](https://hexdocs.pm/oban_web/)** — for the Phoenix mounting patterns and LiveView architecture
+- **[Blazer](https://github.com/ankane/blazer)** — for proving the value of simple, embedded BI tools
+- **The Phoenix LiveView team** — for making rich web interfaces simple to build
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 Portions of the code are adapted from [Oban Web](https://github.com/sorentwo/oban),
-© 2025 The Oban Team, licensed under the Apache License 2.0 - see the LICENSE-APACHE file for details.
+(c) 2025 The Oban Team, licensed under the Apache License 2.0 - see the LICENSE-APACHE file for details.
