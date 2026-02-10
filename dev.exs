@@ -256,6 +256,18 @@ Application.put_env(:lotus, :cache, %{
   namespace: "lotus_web_dev"
 })
 
+# Import dev secrets (API keys, etc.) if the file exists
+# Generate with: mix lotus.gen.dev.secret
+dev_secret_exs_path = Path.expand("config/dev.secret.exs", __DIR__)
+
+if File.exists?(dev_secret_exs_path) do
+  Code.eval_file(dev_secret_exs_path)
+  IO.puts("✅ Loaded dev.secret.exs configuration")
+else
+  IO.puts("⚠️  dev.secret.exs not found. AI features will be disabled.")
+  IO.puts("   Run 'mix lotus.gen.dev.secret' to create it with API key placeholders.")
+end
+
 Task.async(fn ->
   # Start esbuild and tailwind applications first
   {:ok, _} = Application.ensure_all_started(:esbuild)

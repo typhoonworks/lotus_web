@@ -109,6 +109,7 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
 - ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
+- 🤖 **AI Query Assistant (EXPERIMENTAL, BYOK)** - generate SQL from natural language using your own OpenAI, Anthropic, or Gemini API key
 
 ## What's planned?
 
@@ -131,7 +132,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.10.1"}
+    {:lotus_web, "~> 0.11.0"}
   ]
 end
 ```
@@ -447,6 +448,41 @@ For subsequent runs:
 ```bash
 mix dev
 ```
+
+### Setting Up AI Query Assistant (Optional)
+
+The AI Query Assistant is an experimental feature that generates SQL from natural language. To enable it during development:
+
+1. **Generate the dev secrets file** (if not already present):
+
+```bash
+mix lotus.gen.dev.secret
+```
+
+This creates `config/dev.secret.exs` (already in `.gitignore`)
+
+2. **Get an API key** from one of these providers:
+   - [OpenAI](https://platform.openai.com/api-keys)
+   - [Anthropic](https://console.anthropic.com/settings/keys)
+   - [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+3. **Edit `config/dev.secret.exs`** and uncomment/configure your chosen provider:
+
+```elixir
+# OpenAI (recommended for development)
+Application.put_env(:lotus, :ai,
+  enabled: true,
+  provider: "openai",
+  api_key: "sk-proj-..."  # Your API key here
+)
+```
+
+4. **Restart the dev server** - the robot icon will appear in the query editor toolbar
+
+**Note for contributors:**
+- AI features are **disabled by default** - contributors don't need API keys unless testing AI-specific changes
+- The `dev.secret.exs` file is gitignored to prevent accidental key commits
+- See [Lotus AI documentation](https://github.com/typhoonworks/lotus#ai-query-generation-experimental-byok) for more details
 
 ## Contributing
 

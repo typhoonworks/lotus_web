@@ -12,6 +12,7 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.ExportController
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
   alias Lotus.Web.Page
+  alias Lotus.Web.Queries.AiAssistantComponent
   alias Lotus.Web.Queries.DropdownOptionsModal
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
@@ -33,11 +34,12 @@ defmodule Lotus.Web.QueryEditorPage do
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
           <div class="relative flex-1 sm:overflow-hidden">
-            <%= if @schema_explorer_visible or @variable_settings_visible or @visualization_visible do %>
+            <%= if @schema_explorer_visible or @variable_settings_visible or @visualization_visible or @ai_assistant_visible do %>
               <div class="fixed inset-0 bg-black/50 z-10 sm:hidden"
                    phx-click={cond do
                      @visualization_visible -> "close_visualization_settings"
                      @schema_explorer_visible -> "close_schema_explorer"
+                     @ai_assistant_visible -> "close_ai_assistant"
                      true -> "close_variable_settings"
                    end}
                    phx-target={@myself}>
@@ -71,14 +73,25 @@ defmodule Lotus.Web.QueryEditorPage do
               active_tab={@variable_settings_active_tab}
             />
 
+            <.live_component
+              module={AiAssistantComponent}
+              id="ai-assistant"
+              visible={@ai_assistant_visible}
+              parent={@myself}
+              data_source={@query_form[:data_repo].value}
+              generating={@ai_generating}
+              error={assigns[:ai_error]}
+              prompt={@ai_prompt}
+            />
+
             <div class={[
               "transition-all duration-300 ease-in-out flex flex-col h-full sm:overflow-y-auto",
-              cond do
-                @visualization_visible -> "sm:ml-80"
-                @schema_explorer_visible -> "sm:mr-80"
-                @variable_settings_visible -> "sm:mr-80"
-                true -> ""
-              end
+              # Left-side drawers (visualizations OR AI assistant)
+              if(@visualization_visible, do: "sm:ml-80", else: ""),
+              if(@ai_assistant_visible, do: "sm:ml-96", else: ""),
+              # Right-side drawers (schema explorer OR variable settings - can coexist with left drawers!)
+              if(@schema_explorer_visible, do: "sm:mr-80", else: ""),
+              if(@variable_settings_visible, do: "sm:mr-80", else: "")
             ]}>
 
               <div id={"results-visibility-tracker-#{Map.get(@page, :id, "new")}"} phx-hook="ResultsVisibility">
@@ -93,6 +106,8 @@ defmodule Lotus.Web.QueryEditorPage do
                   statement_empty={@statement_empty}
                   schema_explorer_visible={@schema_explorer_visible}
                   variable_settings_visible={@variable_settings_visible}
+                  ai_assistant_visible={@ai_assistant_visible}
+                  ai_generating={@ai_generating}
                   variables={@query.variables}
                   variable_values={Map.get(assigns, :variable_values, %{})}
                   resolved_variable_options={@resolved_variable_options}
@@ -469,6 +484,70 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, socket}
   end
 
+  # AI Assistant event handlers
+
+  @impl Phoenix.LiveComponent
+  def handle_event("toggle_ai_assistant", _params, socket) do
+    # Check if AI is enabled
+    unless Lotus.AI.enabled?() do
+      {:noreply,
+       socket
+       |> put_flash(:error, gettext("AI features are not configured. Please add AI configuration."))}
+    else
+      socket =
+        socket
+        |> assign(ai_assistant_visible: not socket.assigns.ai_assistant_visible)
+        |> assign(ai_error: nil)
+        |> assign(visualization_visible: false)
+        # Note: Schema explorer stays open (it's on the opposite side - right)
+
+      {:noreply, socket}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("close_ai_assistant", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(ai_assistant_visible: false)
+     |> assign(ai_error: nil)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("clear_ai_prompt", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(ai_prompt: "")
+     |> assign(ai_error: nil)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("generate_ai_query", %{"prompt" => prompt}, socket) do
+    data_source = socket.assigns.query_form[:data_repo].value
+
+    # Validate data source
+    if is_nil(data_source) or data_source == "" do
+      {:noreply,
+       socket
+       |> assign(ai_error: gettext("Please select a data source first"))}
+    else
+      # Start async task
+      socket =
+        socket
+        |> assign(ai_generating: true)
+        |> assign(ai_error: nil)
+        |> assign(ai_prompt: prompt)
+        |> start_async(:ai_generation, fn ->
+          Lotus.AI.generate_query(
+            prompt: prompt,
+            data_source: data_source
+          )
+        end)
+
+      {:noreply, socket}
+    end
+  end
+
   # Visualization event handlers
 
   @impl Phoenix.LiveComponent
@@ -488,6 +567,7 @@ defmodule Lotus.Web.QueryEditorPage do
         |> assign(visualization_visible: true)
         |> assign(visualization_drawer_tab: tab)
         |> assign(schema_explorer_visible: false)
+        |> assign(ai_assistant_visible: false)
         |> assign(variable_settings_visible: false)
       end
 
@@ -718,6 +798,63 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_info(_msg, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
+  def handle_async(:ai_generation, {:ok, result}, socket) do
+    case result do
+      {:ok, %{sql: sql}} ->
+        # Success: Insert SQL into editor
+        changeset =
+          socket.assigns.query_form.source
+          |> Ecto.Changeset.change(%{statement: sql})
+          |> Map.put(:action, :update)
+
+        socket =
+          socket
+          |> assign(query_form: to_form(changeset))
+          |> assign(ai_generating: false)
+          |> assign(ai_error: nil)
+          |> put_flash(:info, gettext("AI query generated successfully"))
+
+        {:noreply, socket}
+
+      {:error, :not_configured} ->
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_error: gettext("AI features are not configured"))}
+
+      {:error, :api_key_not_configured} ->
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_error: gettext("API key is missing or invalid"))}
+
+      {:error, {:unable_to_generate, reason}} when is_binary(reason) ->
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_error: reason)}
+
+      {:error, error} when is_binary(error) ->
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_error: error)}
+
+      {:error, error} ->
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_error: gettext("Failed to generate query: %{error}", error: inspect(error)))}
+    end
+  end
+
+  def handle_async(:ai_generation, {:exit, _reason}, socket) do
+    {:noreply,
+     socket
+     |> assign(ai_generating: false)
+     |> assign(ai_error: gettext("Query generation timed out or crashed"))}
+  end
+
   def handle_async(:query_execution, {:ok, {:ok, result}}, socket) do
     {:noreply, assign(socket, result: result, error: nil, running: false)}
   end
@@ -808,7 +945,12 @@ defmodule Lotus.Web.QueryEditorPage do
       visualization_visible: false,
       visualization_config: nil,
       visualization_view_mode: :table,
-      visualization_drawer_tab: :types
+      visualization_drawer_tab: :types,
+      # AI Assistant state
+      ai_assistant_visible: false,
+      ai_generating: false,
+      ai_error: nil,
+      ai_prompt: ""
     )
   end
 

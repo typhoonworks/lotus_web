@@ -26,6 +26,21 @@ Visit the mounted path in your browser (e.g., `/lotus`). You should see:
 4. **Run Query** - Click the play button or press Cmd+Enter
 5. **View Results** - See the results displayed in a table
 
+## Using the AI Query Assistant (Optional)
+
+> ⚠️ **Experimental Feature**: The AI Query Assistant is optional and requires setup. See the [AI Assistant Guide](ai-assistant.md) for details.
+
+If AI features are enabled, you can generate SQL from natural language:
+
+1. **Click the robot icon** (🤖) in the query editor toolbar
+2. **Describe what you want** - e.g., "Show users who signed up in the last 7 days"
+3. **Review the generated SQL** - The AI inserts SQL directly into the editor
+4. **Run or refine** - Execute the query or adjust as needed
+
+The AI is schema-aware and will explore your database structure to generate accurate queries.
+
+**Note:** AI features are disabled by default and require you to provide your own API key (BYOK) from OpenAI, Anthropic, or Google. See the [AI Assistant Guide](ai-assistant.md) for setup instructions.
+
 ## Visualizing Query Results
 
 LotusWeb includes built-in charting to visualize your query results.
