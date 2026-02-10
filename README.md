@@ -139,15 +139,16 @@ end
 
 ## Requirements
 
-- **Elixir 1.16+** and **OTP 25+**
-- **Lotus 0.11+** - LotusWeb 0.10+ requires Lotus 0.11 or later
+- **Elixir 1.17+** and **OTP 25+**
+- **Lotus 0.12+** - LotusWeb 0.11+ requires Lotus 0.12 or later
 - **Phoenix 1.7+** for LiveView compatibility
 
 ### Version Compatibility Matrix
 
 | LotusWeb Version | Required Lotus Version | Notes |
 |------------------|------------------------|-------|
-| 0.10.x           | 0.11.0+               | Latest stable release |
+| 0.11.x           | 0.12.0+               | Latest stable release (requires Elixir 1.17+) |
+| 0.10.x           | 0.11.0+               | Previous stable release |
 | 0.4.x            | 0.9.0+                | Legacy version |
 | 0.3.x            | 0.6.0+                | Legacy version |
 
@@ -414,7 +415,7 @@ config :lotus,
 ## Development
 
 ### Prerequisites
-- Elixir 1.16+
+- Elixir 1.17+
 - Phoenix 1.7+
 - A Phoenix application with Lotus configured
 

@@ -488,20 +488,21 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("toggle_ai_assistant", _params, socket) do
-    # Check if AI is enabled
-    unless Lotus.AI.enabled?() do
-      {:noreply,
-       socket
-       |> put_flash(:error, gettext("AI features are not configured. Please add AI configuration."))}
-    else
+    if Lotus.AI.enabled?() do
       socket =
         socket
         |> assign(ai_assistant_visible: not socket.assigns.ai_assistant_visible)
         |> assign(ai_error: nil)
         |> assign(visualization_visible: false)
-        # Note: Schema explorer stays open (it's on the opposite side - right)
 
       {:noreply, socket}
+    else
+      {:noreply,
+       socket
+       |> put_flash(
+         :error,
+         gettext("AI features are not configured. Please add AI configuration.")
+       )}
     end
   end
 
