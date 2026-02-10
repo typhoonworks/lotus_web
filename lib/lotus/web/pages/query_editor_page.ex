@@ -80,8 +80,7 @@ defmodule Lotus.Web.QueryEditorPage do
               parent={@myself}
               data_source={@query_form[:data_repo].value}
               generating={@ai_generating}
-              error={assigns[:ai_error]}
-              prompt={@ai_prompt}
+              conversation={@ai_conversation}
             />
 
             <div class={[
@@ -489,11 +488,19 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("toggle_ai_assistant", _params, socket) do
     if Lotus.AI.enabled?() do
+      # Initialize conversation if opening for the first time or if it doesn't exist
+      conversation =
+        if socket.assigns.ai_assistant_visible do
+          socket.assigns.ai_conversation
+        else
+          socket.assigns[:ai_conversation] || new_conversation()
+        end
+
       socket =
         socket
         |> assign(ai_assistant_visible: not socket.assigns.ai_assistant_visible)
-        |> assign(ai_error: nil)
         |> assign(visualization_visible: false)
+        |> assign(ai_conversation: conversation)
 
       {:noreply, socket}
     else
@@ -508,10 +515,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("close_ai_assistant", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(ai_assistant_visible: false)
-     |> assign(ai_error: nil)}
+    {:noreply, assign(socket, ai_assistant_visible: false)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("clear_ai_conversation", _params, socket) do
+    {:noreply, assign(socket, ai_conversation: new_conversation())}
   end
 
   @impl Phoenix.LiveComponent
@@ -523,30 +532,57 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("generate_ai_query", %{"prompt" => prompt}, socket) do
+  def handle_event("send_ai_message", %{"message" => message}, socket) do
     data_source = socket.assigns.query_form[:data_repo].value
 
     # Validate data source
     if is_nil(data_source) or data_source == "" do
-      {:noreply,
-       socket
-       |> assign(ai_error: gettext("Please select a data source first"))}
+      conversation =
+        add_error_message(
+          socket.assigns.ai_conversation,
+          gettext("Please select a data source first")
+        )
+
+      {:noreply, assign(socket, ai_conversation: conversation)}
     else
-      # Start async task
+      conversation = add_user_message(socket.assigns.ai_conversation, message)
+
       socket =
         socket
         |> assign(ai_generating: true)
-        |> assign(ai_error: nil)
-        |> assign(ai_prompt: prompt)
+        |> assign(ai_conversation: conversation)
         |> start_async(:ai_generation, fn ->
-          Lotus.AI.generate_query(
-            prompt: prompt,
-            data_source: data_source
+          Lotus.AI.generate_query_with_context(
+            prompt: message,
+            data_source: data_source,
+            conversation: conversation
           )
         end)
 
       {:noreply, socket}
     end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("use_ai_query", %{"sql" => sql}, socket) do
+    changeset =
+      socket.assigns.query_form.source
+      |> Ecto.Changeset.change(%{statement: sql})
+      |> Map.put(:action, :update)
+
+    socket =
+      socket
+      |> assign(query_form: to_form(changeset))
+      |> put_flash(:info, gettext("Query inserted into editor"))
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("retry_ai_with_error", _params, socket) do
+    # Automatically send a message asking AI to fix the last error
+    message = gettext("Please fix the error and generate a corrected query")
+    handle_event("send_ai_message", %{"message" => message}, socket)
   end
 
   # Visualization event handlers
@@ -800,60 +836,89 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_async(:ai_generation, {:ok, result}, socket) do
+    conversation = socket.assigns.ai_conversation
+
     case result do
       {:ok, %{sql: sql}} ->
-        # Success: Insert SQL into editor
-        changeset =
-          socket.assigns.query_form.source
-          |> Ecto.Changeset.change(%{statement: sql})
-          |> Map.put(:action, :update)
+        conversation =
+          add_assistant_response(
+            conversation,
+            gettext("Here's your SQL query:"),
+            sql
+          )
 
         socket =
           socket
-          |> assign(query_form: to_form(changeset))
           |> assign(ai_generating: false)
-          |> assign(ai_error: nil)
-          |> put_flash(:info, gettext("AI query generated successfully"))
+          |> assign(ai_conversation: conversation)
 
         {:noreply, socket}
 
       {:error, :not_configured} ->
+        conversation =
+          add_error_message(
+            conversation,
+            gettext("AI features are not configured")
+          )
+
         {:noreply,
          socket
          |> assign(ai_generating: false)
-         |> assign(ai_error: gettext("AI features are not configured"))}
+         |> assign(ai_conversation: conversation)}
 
       {:error, :api_key_not_configured} ->
+        conversation =
+          add_error_message(
+            conversation,
+            gettext("API key is missing or invalid")
+          )
+
         {:noreply,
          socket
          |> assign(ai_generating: false)
-         |> assign(ai_error: gettext("API key is missing or invalid"))}
+         |> assign(ai_conversation: conversation)}
 
       {:error, {:unable_to_generate, reason}} when is_binary(reason) ->
+        conversation = add_error_message(conversation, reason)
+
         {:noreply,
          socket
          |> assign(ai_generating: false)
-         |> assign(ai_error: reason)}
+         |> assign(ai_conversation: conversation)}
 
       {:error, error} when is_binary(error) ->
+        conversation = add_error_message(conversation, error)
+
         {:noreply,
          socket
          |> assign(ai_generating: false)
-         |> assign(ai_error: error)}
+         |> assign(ai_conversation: conversation)}
 
       {:error, error} ->
+        conversation =
+          add_error_message(
+            conversation,
+            gettext("Failed to generate query: %{error}", error: inspect(error))
+          )
+
         {:noreply,
          socket
          |> assign(ai_generating: false)
-         |> assign(ai_error: gettext("Failed to generate query: %{error}", error: inspect(error)))}
+         |> assign(ai_conversation: conversation)}
     end
   end
 
   def handle_async(:ai_generation, {:exit, _reason}, socket) do
+    conversation =
+      add_error_message(
+        socket.assigns.ai_conversation,
+        gettext("Query generation timed out or crashed")
+      )
+
     {:noreply,
      socket
      |> assign(ai_generating: false)
-     |> assign(ai_error: gettext("Query generation timed out or crashed"))}
+     |> assign(ai_conversation: conversation)}
   end
 
   def handle_async(:query_execution, {:ok, {:ok, result}}, socket) do
@@ -861,16 +926,21 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   def handle_async(:query_execution, {:ok, {:error, error_msg}}, socket) do
-    {:noreply, assign(socket, error: to_string(error_msg), result: nil, running: false)}
+    conversation = maybe_add_query_error(socket, error_msg)
+
+    {:noreply,
+     socket
+     |> assign(error: to_string(error_msg), result: nil, running: false)
+     |> assign(ai_conversation: conversation)}
   end
 
   def handle_async(:query_execution, {:exit, _reason}, socket) do
+    conversation = maybe_add_query_error(socket, gettext("Query execution failed"))
+
     {:noreply,
-     assign(socket,
-       error: gettext("Query execution failed"),
-       result: nil,
-       running: false
-     )}
+     socket
+     |> assign(error: gettext("Query execution failed"), result: nil, running: false)
+     |> assign(ai_conversation: conversation)}
   end
 
   @impl Phoenix.LiveComponent
@@ -950,8 +1020,7 @@ defmodule Lotus.Web.QueryEditorPage do
       # AI Assistant state
       ai_assistant_visible: false,
       ai_generating: false,
-      ai_error: nil,
-      ai_prompt: ""
+      ai_conversation: new_conversation()
     )
   end
 
@@ -1547,5 +1616,72 @@ defmodule Lotus.Web.QueryEditorPage do
     else
       config
     end
+  end
+
+  # AI Conversation helpers
+  defp new_conversation do
+    %{
+      messages: [],
+      schema_context: %{tables_analyzed: []},
+      generation_count: 0,
+      started_at: DateTime.utc_now(),
+      last_activity: DateTime.utc_now()
+    }
+  end
+
+  defp maybe_add_query_error(socket, error_msg) do
+    if socket.assigns.ai_assistant_visible do
+      # Get the current SQL from the editor (what the user just ran)
+      current_sql = socket.assigns.query.statement
+      add_error_message(socket.assigns.ai_conversation, to_string(error_msg), current_sql)
+    else
+      socket.assigns.ai_conversation
+    end
+  end
+
+  defp add_user_message(conversation, content) do
+    message = %{
+      role: :user,
+      content: content,
+      sql: nil,
+      timestamp: DateTime.utc_now()
+    }
+
+    %{
+      conversation
+      | messages: conversation.messages ++ [message],
+        last_activity: DateTime.utc_now()
+    }
+  end
+
+  defp add_assistant_response(conversation, content, sql) do
+    message = %{
+      role: :assistant,
+      content: content,
+      sql: sql,
+      timestamp: DateTime.utc_now()
+    }
+
+    %{
+      conversation
+      | messages: conversation.messages ++ [message],
+        generation_count: conversation.generation_count + 1,
+        last_activity: DateTime.utc_now()
+    }
+  end
+
+  defp add_error_message(conversation, error_content, sql \\ nil) do
+    message = %{
+      role: :error,
+      content: error_content,
+      sql: sql,
+      timestamp: DateTime.utc_now()
+    }
+
+    %{
+      conversation
+      | messages: conversation.messages ++ [message],
+        last_activity: DateTime.utc_now()
+    }
   end
 end

@@ -109,7 +109,7 @@ While the token (which contains this potentially sensitive data) is short-lived,
 - 🏪 **Multi-database support** - execute queries against different configured repositories
 - ⚡ **Real-time execution** - LiveView-powered query running
 - ❓ **Smart variables** - parameterized queries with `{{variable}}` syntax, configurable widgets, and SQL query-based dropdown options
-- 🤖 **AI Query Assistant (EXPERIMENTAL, BYOK)** - generate SQL from natural language using your own OpenAI, Anthropic, or Gemini API key
+- 🤖 **AI Query Assistant (EXPERIMENTAL, BYOK)** - conversational SQL generation from natural language with multi-turn refinement, using your own OpenAI, Anthropic, or Gemini API key
 
 ## What's planned?
 
@@ -132,7 +132,7 @@ Add `lotus_web` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.11.0"}
+    {:lotus_web, "~> 0.12.0"}
   ]
 end
 ```
@@ -140,15 +140,16 @@ end
 ## Requirements
 
 - **Elixir 1.17+** and **OTP 25+**
-- **Lotus 0.12+** - LotusWeb 0.11+ requires Lotus 0.12 or later
+- **Lotus 0.13+** - LotusWeb 0.12+ requires Lotus 0.13 or later
 - **Phoenix 1.7+** for LiveView compatibility
 
 ### Version Compatibility Matrix
 
 | LotusWeb Version | Required Lotus Version | Notes |
 |------------------|------------------------|-------|
-| 0.11.x           | 0.12.0+               | Latest stable release (requires Elixir 1.17+) |
-| 0.10.x           | 0.11.0+               | Previous stable release |
+| 0.12.x           | 0.13.0+               | Latest stable release (requires Elixir 1.17+) |
+| 0.11.x           | 0.12.0+               | Previous stable release |
+| 0.10.x           | 0.11.0+               | Legacy version |
 | 0.4.x            | 0.9.0+                | Legacy version |
 | 0.3.x            | 0.6.0+                | Legacy version |
 

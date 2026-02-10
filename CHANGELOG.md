@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## [0.12.0] - 2026-02-10
+
+### Added
+
+- **AI Assistant - Multi-Turn Conversation** - Upgraded from single-prompt to a full conversational interface
+  - Chat-style message bubbles with user, assistant, and error roles
+  - Conversation history with auto-scroll and message timestamps
+  - "Use this query" button on each generated SQL to insert it into the editor
+  - "Ask AI to fix this" button on error messages for automatic retry with context
+  - Clear conversation button to start fresh
+  - Empty state with example prompts to guide users
+  - Query execution errors automatically appear in the conversation when the AI drawer is open
+  - Conversation context sent to the AI provider for iterative query refinement
+  - New JS hooks: `AIMessageInput` (Enter to send, auto-expand) and `AutoScrollAI`
+  - New icons: `send`, `sparkles`, `corner_down_right`
+
+### BREAKING
+
+- **Minimum Lotus Version** - Updated from 0.12.0 to 0.13.0 to align with Lotus core library requirements
+  - Applications using Lotus 0.12.x or earlier must upgrade to Lotus 0.13.0+ to use this version
+
 ## [0.11.0] - 2026-02-10
 
 ### Added
