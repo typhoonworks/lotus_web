@@ -2,7 +2,7 @@ defmodule Lotus.Web.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/typhoonworks/lotus_web"
-  @version "0.12.0"
+  @version "0.12.1"
 
   def project do
     [
@@ -127,7 +127,7 @@ defmodule Lotus.Web.MixProject do
 
   defp description do
     """
-    Lightweight, SQL query runner and storage for Elixir apps — save, organize, and execute analytical queries with Ecto.
+    Web interface for Lotus — a LiveView-powered SQL editor, dashboard builder, and schema explorer that mounts directly in your Phoenix app.
     """
   end
 end
