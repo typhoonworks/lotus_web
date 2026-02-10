@@ -512,7 +512,7 @@ LotusWeb owes significant inspiration to:
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE).
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 Portions of the code are adapted from [Oban Web](https://github.com/sorentwo/oban),
-© 2025 The Oban Team, licensed under the [Apache License 2.0](./LICENSE-APACHE).
+© 2025 The Oban Team, licensed under the Apache License 2.0 - see the LICENSE-APACHE file for details.
