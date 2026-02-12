@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Bump gettext version to `~> 0.26 or ~> 1.0`. According to the [CHANGELOG](https://hexdocs.pm/gettext/changelog.html), there aren't any breaking changes between 0.26 and 1.0, but some other libraries still point to `0.26.x`.
+
 ## [0.12.0] - 2026-02-10
 
 ### Added
