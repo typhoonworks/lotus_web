@@ -36,8 +36,8 @@ We're running Lotus Web in production at [Accomplish](https://accomplish.dev).
 # mix.exs
 def deps do
   [
-    {:lotus, "~> 0.13.0"},
-    {:lotus_web, "~> 0.12.0"}
+    {:lotus, "~> 0.14.0"},
+    {:lotus_web, "~> 0.13.0"}
   ]
 end
 ```
@@ -118,7 +118,7 @@ See the [dashboards guide](guides/dashboards.md) for layout and sharing details.
 
 ### Smart Variables and Widgets
 
-Parameterize queries with `{{variable}}` syntax. Variables are automatically detected and rendered as input widgets. Supports text, number, and date types with configurable widgets — including dropdowns backed by static options or live SQL queries.
+Parameterize queries with `{{variable}}` syntax. Variables are automatically detected and rendered as input widgets. Supports text, number, and date types with configurable widgets — including dropdowns backed by static options or live SQL queries. Enable "Allow multiple values" on any variable to use tag inputs or multiselect dropdowns for SQL `IN` clauses.
 
 See the [variables and widgets guide](guides/variables-and-widgets.md) for advanced usage.
 
@@ -249,6 +249,7 @@ config :lotus,
 
 | Lotus Web | Lotus | Elixir | Phoenix |
 |-----------|-------|--------|---------|
+| 0.13.x | 0.14.0+ | 1.17+ | 1.7+ |
 | 0.12.x | 0.13.0+ | 1.17+ | 1.7+ |
 | 0.11.x | 0.12.0+ | 1.17+ | 1.7+ |
 | 0.10.x | 0.11.0+ | 1.17+ | 1.7+ |

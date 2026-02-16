@@ -137,6 +137,8 @@ LotusWeb supports dynamic variables in your SQL queries using the `{{variable_na
 - **Input** - Free text/number entry fields
 - **Dropdown** - Select from predefined options (one option per line)
 - **Date Picker** - Calendar interface for date variables
+- **Tag Input** - Chip-style multi-value entry (when "Allow multiple values" is enabled)
+- **Multiselect** - Multi-value dropdown (when "Allow multiple values" is enabled with dropdown options)
 
 ### Variable Settings
 - **Access Settings** - Click the "Variable settings" {x} icon in the toolbar to open variable settings
