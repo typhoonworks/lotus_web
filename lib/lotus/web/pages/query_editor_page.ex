@@ -29,6 +29,7 @@ defmodule Lotus.Web.QueryEditorPage do
   def render(assigns) do
     ~H"""
     <div id="query-editor-page" class="flex flex-col h-full overflow-y-auto">
+      <div id="toast-listener" phx-hook="Toast" class="hidden"></div>
       <div class="mx-auto w-full px-0 sm:px-0 lg:px-6 py-0 sm:py-6 min-h-full sm:h-full flex flex-col">
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg min-h-full sm:h-full flex flex-col">
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
@@ -334,7 +335,13 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Phoenix.LiveComponent
   def handle_event("validate", params, socket) do
     query_params = Map.get(params, "query", %{})
-    var_params = Map.get(params, "variables", %{})
+
+    existing_vars = socket.assigns.variable_values || %{}
+
+    var_params =
+      params
+      |> Map.get("variables", %{})
+      |> Map.reject(fn {name, v} -> v == "" and not Map.has_key?(existing_vars, name) end)
 
     changeset = build_query_changeset(socket.assigns.query, query_params)
 
@@ -350,12 +357,21 @@ defmodule Lotus.Web.QueryEditorPage do
       initial_db: query_params["data_repo"]
     )
 
+    query = Ecto.Changeset.apply_changes(changeset)
+
+    normalized_vars =
+      (socket.assigns.variable_values || %{})
+      |> Map.merge(var_params)
+      |> clear_values_on_widget_change(query.variables, socket.assigns.query.variables)
+      |> clear_values_on_default_change(query.variables, socket.assigns.query.variables)
+      |> normalize_variable_values(query.variables)
+
     socket =
       socket
       |> maybe_update_timeout(params)
       |> update_query_state(changeset,
         statement_empty: statement_empty,
-        variable_values: Map.merge(socket.assigns.variable_values || %{}, var_params)
+        variable_values: normalized_vars
       )
       |> maybe_update_editor_schema(query_params["data_repo"])
 
@@ -418,10 +434,9 @@ defmodule Lotus.Web.QueryEditorPage do
            |> assign_query_changeset(query)}
 
         {:error, %Ecto.Changeset{} = cs} ->
-          send(self(), {:put_flash, [:error, gettext("Failed to save query")]})
-
           {:noreply,
            socket
+           |> show_toast(:error, gettext("Failed to save query"))
            |> assign(query_changeset: cs, query_form: to_form(cs, as: "query"))}
       end
     end
@@ -661,8 +676,14 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("variables_changed", %{"variables" => incoming}, socket) do
-    {:noreply,
-     assign(socket, variable_values: Map.merge(socket.assigns.variable_values || %{}, incoming))}
+    existing_vars = socket.assigns.variable_values || %{}
+
+    filtered =
+      Map.reject(incoming, fn {name, v} -> v == "" and not Map.has_key?(existing_vars, name) end)
+
+    merged = Map.merge(existing_vars, filtered)
+    normalized = normalize_variable_values(merged, socket.assigns.query.variables)
+    {:noreply, assign(socket, variable_values: normalized)}
   end
 
   @impl Phoenix.LiveComponent
@@ -694,14 +715,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-success", _params, socket) do
-    send(self(), {:put_flash, [:info, gettext("Query copied to clipboard!")]})
-    {:noreply, socket}
+    {:noreply, show_toast(socket, :info, gettext("Query copied to clipboard!"))}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("copy-to-clipboard-error", %{"error" => _error}, socket) do
-    send(self(), {:put_flash, [:error, gettext("Failed to copy to clipboard!")]})
-    {:noreply, socket}
+    {:noreply, show_toast(socket, :error, gettext("Failed to copy to clipboard!"))}
   end
 
   @impl Phoenix.LiveComponent
@@ -713,12 +732,10 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("export_csv", _params, socket) do
     case socket.assigns.result do
       nil ->
-        send(self(), {:put_flash, [:error, gettext("No query results to export")]})
-        {:noreply, socket}
+        {:noreply, show_toast(socket, :error, gettext("No query results to export"))}
 
       %{rows: [], meta: _} ->
-        send(self(), {:put_flash, [:error, gettext("No query results to export")]})
-        {:noreply, socket}
+        {:noreply, show_toast(socket, :error, gettext("No query results to export"))}
 
       _result ->
         {:noreply, generate_export_url(socket)}
@@ -726,7 +743,7 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("run_query", %{"query" => query_params} = _payload, socket) do
+  def handle_event("run_query", %{"query" => query_params}, socket) do
     changeset = build_query_changeset(socket.assigns.query, query_params)
     form = build_query_form(changeset)
 
@@ -993,6 +1010,10 @@ defmodule Lotus.Web.QueryEditorPage do
     |> assign(sources_map: sources_map)
   end
 
+  defp show_toast(socket, kind, message) do
+    push_event(socket, "toast", %{kind: kind, message: message})
+  end
+
   defp assign_ui_state(socket) do
     assign(socket,
       result: nil,
@@ -1108,6 +1129,7 @@ defmodule Lotus.Web.QueryEditorPage do
       "widget" => v.widget,
       "label" => v.label,
       "default" => v.default,
+      "list" => v.list,
       "static_options" => static_options_to_params(v.static_options),
       "options_query" => v.options_query
     }
@@ -1166,6 +1188,75 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp normalize_variable_attrs(attrs), do: attrs
+
+  defp clear_values_on_widget_change(values, new_variables, old_variables) do
+    old_by_name = Map.new(old_variables, &{&1.name, &1})
+
+    Enum.reduce(new_variables, values, fn var, acc ->
+      maybe_clear_value(acc, var, Map.get(old_by_name, var.name))
+    end)
+  end
+
+  defp maybe_clear_value(values, _var, nil), do: values
+
+  defp maybe_clear_value(values, var, old) do
+    widget_changed = Map.get(old, :widget) != var.widget
+    list_changed = Map.get(old, :list, false) != Map.get(var, :list, false)
+
+    if widget_changed or list_changed, do: Map.put(values, var.name, nil), else: values
+  end
+
+  defp clear_values_on_default_change(values, new_variables, old_variables) do
+    old_defaults = Map.new(old_variables, &{&1.name, &1.default})
+
+    Enum.reduce(new_variables, values, fn var, acc ->
+      old_default = Map.get(old_defaults, var.name)
+      maybe_clear_for_default(acc, var, old_default)
+    end)
+  end
+
+  defp maybe_clear_for_default(values, %{default: same}, same), do: values
+
+  defp maybe_clear_for_default(values, var, old_default) do
+    current = Map.get(values, var.name)
+
+    if empty_value?(current) or matches_default?(current, old_default),
+      do: Map.put(values, var.name, nil),
+      else: values
+  end
+
+  defp matches_default?(value, default) when is_list(value) and is_binary(default) do
+    value == String.split(default, ",", trim: true) |> Enum.map(&String.trim/1)
+  end
+
+  defp matches_default?(value, default), do: value == default
+
+  defp normalize_variable_values(values, variables) do
+    defaults = Map.new(variables, fn v -> {v.name, v.default} end)
+
+    list_var_names =
+      variables
+      |> Enum.filter(&Map.get(&1, :list, false))
+      |> MapSet.new(& &1.name)
+
+    Map.new(values, fn {name, value} ->
+      # Apply default when value is empty
+      default = Map.get(defaults, name)
+      value = if empty_value?(value) and not empty_value?(default), do: default, else: value
+
+      # Then normalize list values
+      if name in list_var_names and is_binary(value) do
+        {name, value |> String.split(",", trim: true) |> Enum.map(&String.trim/1)}
+      else
+        {name, value}
+      end
+    end)
+  end
+
+  defp empty_value?(nil), do: true
+  defp empty_value?(""), do: true
+  defp empty_value?([]), do: true
+  defp empty_value?(_), do: false
 
   defp build_query_changeset(query, params, action \\ :validate) do
     query
@@ -1282,7 +1373,11 @@ defmodule Lotus.Web.QueryEditorPage do
 
     current_vals = socket.assigns.variable_values || %{}
     keep = Map.take(current_vals, names)
-    with_defaults = merge_variable_defaults(keep, ordered_vars)
+
+    with_defaults =
+      keep
+      |> merge_variable_defaults(ordered_vars)
+      |> normalize_variable_values(ordered_vars)
 
     prev_names = Enum.map(socket.assigns.query.variables, & &1.name)
     new_names = names -- prev_names
@@ -1528,10 +1623,9 @@ defmodule Lotus.Web.QueryEditorPage do
              |> push_navigate(to: lotus_path(:queries), replace: true)}
 
           {:error, _} ->
-            send(self(), {:put_flash, [:error, gettext("Failed to delete query")]})
-
             {:noreply,
              socket
+             |> show_toast(:error, gettext("Failed to delete query"))
              |> push_event("close-modal", %{id: "delete-query-modal"})}
         end
     end

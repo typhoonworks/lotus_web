@@ -47,7 +47,7 @@ defmodule Lotus.Web.MixProject do
       {:gettext, "~> 0.26 or ~> 1.0"},
 
       # Lotus
-      {:lotus, "~> 0.13"},
+      {:lotus, "~> 0.14"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},

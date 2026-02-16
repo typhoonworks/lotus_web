@@ -49,7 +49,30 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             name={@name}
             label={@label}
             value={@value}
-            class="min-w-32 w-32"
+            class="min-w-40 w-40"
+          />
+
+        <% :multiselect -> %>
+          <Toolbar.input
+            id={@id <> "_ms"}
+            type="multiselect"
+            name={@name}
+            label={@label}
+            value={encode_list_value(@value)}
+            options={@options}
+            prompt={gettext("Select values")}
+            disabled={@options == []}
+            class="min-w-40 w-40"
+          />
+
+        <% :tag_input -> %>
+          <.tag_input
+            id={@id}
+            name={@name}
+            label={@label}
+            value={@value}
+            input_type={if @var.type == :number, do: "number", else: "text"}
+            class="min-w-40 w-64"
           />
 
         <% :select -> %>
@@ -60,9 +83,9 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             label={@label}
             value={@value}
             options={@options}
-            prompt={if @options == [], do: gettext("Select value")}
+            prompt={gettext("Select value")}
             disabled={@options == []}
-            class="min-w-32 w-32"
+            class="min-w-40 w-40"
           />
 
         <% _ -> %>
@@ -73,16 +96,94 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             label={@label}
             value={@value}
             placeholder={gettext("Enter value")}
-            class="w-32"
+            class="min-w-40 w-40"
           />
       <% end %>
     </div>
     """
   end
 
+  defp tag_input(assigns) do
+    tags = parse_tags(assigns.value)
+
+    assigns =
+      assigns
+      |> assign(:tags, tags)
+      |> assign(:has_value, tags != [])
+      |> assign(:hidden_value, Enum.join(tags, ","))
+      |> assign(:formatted_label, format_label(assigns[:label]))
+      |> assign(:tag_input_id, assigns.id <> "_tag")
+      |> assign(:hidden_id, assigns.id <> "_tag_hidden")
+
+    ~H"""
+    <fieldset class={[
+      "group border rounded-md bg-white dark:bg-input-dark",
+      @has_value && "border-pink-600",
+      !@has_value && "border-gray-300 dark:border-gray-600 focus-within:border-pink-600"
+    ]}>
+      <legend :if={@label} class="ml-1 px-1 text-xs font-medium text-gray-700 dark:text-gray-300">
+        {@formatted_label}
+      </legend>
+      <input
+        type="hidden"
+        name={@name}
+        value={@hidden_value}
+        id={@hidden_id}
+        phx-hook="DispatchChangeOnUpdate"
+      />
+      <div class={[
+        "flex overflow-hidden items-center px-2 cursor-text",
+        @class
+      ]}>
+        <div :if={@has_value} class="overflow-x-auto scrollbar-hide flex items-center shrink min-w-0">
+          <span :for={{tag, idx} <- Enum.with_index(@tags)} class="inline-flex shrink-0 items-center gap-0.5 rounded bg-pink-100 dark:bg-pink-900/30 px-1 mr-1 text-xs font-medium text-pink-700 dark:text-pink-300">
+            {tag}
+            <button
+              type="button"
+              data-tag-remove={idx}
+              data-hidden-id={@hidden_id}
+              phx-hook="TagRemove"
+              id={@tag_input_id <> "_rm_" <> to_string(idx)}
+              class="text-pink-500 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-200"
+            >
+              <Icons.x_mark class="h-3 w-3" />
+            </button>
+          </span>
+        </div>
+        <input
+          type={@input_type}
+          id={@tag_input_id}
+          phx-hook="TagInput"
+          data-hidden-id={@hidden_id}
+          data-tag-count={length(@tags)}
+          placeholder={if(!@has_value, do: gettext("Enter values"), else: "")}
+          class={[
+            "border-0 bg-transparent focus:ring-0 text-sm py-1.5 focus:placeholder:hidden",
+            @has_value && "shrink-0 w-[72px]",
+            !@has_value && "w-full",
+            @has_value && "text-pink-600 focus:text-gray-900 dark:focus:text-gray-100",
+            !@has_value && "text-gray-900 dark:text-gray-100"
+          ]}
+        />
+      </div>
+    </fieldset>
+    """
+  end
+
+  defp parse_tags(nil), do: []
+  defp parse_tags(""), do: []
+  defp parse_tags(value) when is_binary(value), do: String.split(value, ",", trim: true)
+  defp parse_tags(value) when is_list(value), do: value
+  defp parse_tags(_), do: []
+
   defp widget_type(%{type: :date}), do: :date
+  defp widget_type(%{list: true, widget: :select}), do: :multiselect
+  defp widget_type(%{list: true}), do: :tag_input
   defp widget_type(%{widget: :select}), do: :select
   defp widget_type(_), do: :input
+
+  defp encode_list_value(value) when is_list(value), do: Enum.join(value, ",")
+  defp encode_list_value(value), do: value
 
   defp format_label(name) when is_binary(name) do
     name

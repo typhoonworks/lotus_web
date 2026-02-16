@@ -128,9 +128,7 @@ defmodule Lotus.Web.Pages.DashboardEditorPageTest do
       {:ok, live, _html} = live(build_conn(), "/lotus/dashboards/#{dashboard.id}")
 
       # Wait for async query execution
-      Process.sleep(100)
-
-      html = render(live)
+      html = render_async(live)
 
       # Should show query results
       assert html =~ "Alice"
