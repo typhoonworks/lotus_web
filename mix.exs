@@ -48,7 +48,8 @@ defmodule Lotus.Web.MixProject do
       {:earmark, "~> 1.4"},
 
       # Lotus
-      {:lotus, "~> 0.14"},
+      # {:lotus, "~> 0.14"},
+      {:lotus, github: "typhoonworks/lotus", branch: "main"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},

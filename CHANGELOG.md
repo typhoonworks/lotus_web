@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+- **AI-Generated Variables and Widgets** - The AI Assistant can now generate variable configurations alongside SQL queries
+  - AI responses include variable metadata (type, widget, label, default, static options)
+  - "Use this query" applies both SQL and variable settings in one action
+  - Contextual button label ("Apply variable changes") when only variables differ from the current query
+  - Variable summary displayed in AI conversation bubbles showing name and widget type
+  - Current SQL and variable context sent to AI for more relevant suggestions
+
 ## [0.13.1] - 2026-03-05
 
 ### Changed

@@ -82,6 +82,7 @@ defmodule Lotus.Web.QueryEditorPage do
               data_source={@query_form[:data_repo].value}
               generating={@ai_generating}
               conversation={@ai_conversation}
+              current_sql={@query_form[:statement].value}
             />
 
             <div class={[
@@ -535,7 +536,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("clear_ai_conversation", _params, socket) do
-    {:noreply, assign(socket, ai_conversation: new_conversation())}
+    {:noreply, assign(socket, ai_conversation: new_conversation(), ai_pending_variables: nil)}
   end
 
   @impl Phoenix.LiveComponent
@@ -550,7 +551,11 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("send_ai_message", %{"message" => message}, socket) do
     data_source = socket.assigns.query_form[:data_repo].value
 
-    # Validate data source
+    data_source =
+      if is_nil(data_source) or data_source == "",
+        do: socket.assigns.default_repo,
+        else: data_source
+
     if is_nil(data_source) or data_source == "" do
       conversation =
         add_error_message(
@@ -561,6 +566,7 @@ defmodule Lotus.Web.QueryEditorPage do
       {:noreply, assign(socket, ai_conversation: conversation)}
     else
       conversation = add_user_message(socket.assigns.ai_conversation, message)
+      query_context = build_ai_query_context(socket.assigns)
 
       socket =
         socket
@@ -570,7 +576,8 @@ defmodule Lotus.Web.QueryEditorPage do
           Lotus.AI.generate_query_with_context(
             prompt: message,
             data_source: data_source,
-            conversation: conversation
+            conversation: conversation,
+            query_context: query_context
           )
         end)
 
@@ -579,18 +586,22 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
-  def handle_event("use_ai_query", %{"sql" => sql}, socket) do
-    changeset =
-      socket.assigns.query_form.source
-      |> Ecto.Changeset.change(%{statement: sql})
-      |> Map.put(:action, :update)
+  def handle_event("use_ai_query", %{"sql" => sql} = params, socket) do
+    current_sql = socket.assigns.query_form[:statement].value
+    sql_changed = sql != current_sql
+    ai_variables = extract_ai_variables(params, socket)
 
-    socket =
-      socket
-      |> assign(query_form: to_form(changeset))
-      |> put_flash(:info, gettext("Query inserted into editor"))
+    socket = apply_ai_query(socket, sql, ai_variables)
 
-    {:noreply, socket}
+    flash_message =
+      case {sql_changed, ai_variables != nil} do
+        {true, true} -> gettext("Query and variable settings applied")
+        {true, false} -> gettext("Query inserted into editor")
+        {false, true} -> gettext("Variable settings updated")
+        {false, false} -> gettext("Query inserted into editor")
+      end
+
+    {:noreply, show_toast(socket, :info, flash_message)}
   end
 
   @impl Phoenix.LiveComponent
@@ -706,9 +717,14 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("variables_detected", %{"variables" => names}, socket) do
     names = List.wrap(names)
     existing_variables = socket.assigns.query.variables
+    ai_variables = socket.assigns.ai_pending_variables
 
-    ordered_vars = build_ordered_variables(names, existing_variables)
-    socket = update_variable_state(socket, ordered_vars, names)
+    ordered_vars = build_ordered_variables(names, existing_variables, ai_variables)
+
+    socket =
+      socket
+      |> update_variable_state(ordered_vars, names, %{})
+      |> assign(ai_pending_variables: nil)
 
     {:noreply, socket}
   end
@@ -856,12 +872,13 @@ defmodule Lotus.Web.QueryEditorPage do
     conversation = socket.assigns.ai_conversation
 
     case result do
-      {:ok, %{sql: sql}} ->
+      {:ok, %{sql: sql, variables: variables}} ->
         conversation =
           add_assistant_response(
             conversation,
             gettext("Here's your SQL query:"),
-            sql
+            sql,
+            variables || []
           )
 
         socket =
@@ -1041,7 +1058,8 @@ defmodule Lotus.Web.QueryEditorPage do
       # AI Assistant state
       ai_assistant_visible: false,
       ai_generating: false,
-      ai_conversation: new_conversation()
+      ai_conversation: new_conversation(),
+      ai_pending_variables: nil
     )
   end
 
@@ -1147,6 +1165,49 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp format_variable_label(var_name), do: var_name
+
+  defp default_variable(name) do
+    %QueryVariable{
+      name: name,
+      type: :text,
+      widget: :input,
+      label: format_variable_label(name),
+      default: nil,
+      static_options: [],
+      options_query: nil
+    }
+  end
+
+  defp build_variable_from_ai(name, ai_config) do
+    alias Lotus.Storage.QueryVariable.StaticOption
+
+    static_options =
+      case ai_config["static_options"] do
+        opts when is_list(opts) and opts != [] ->
+          opts |> Enum.map(&StaticOption.from_input/1) |> Enum.reject(&is_nil/1)
+
+        _ ->
+          []
+      end
+
+    %QueryVariable{
+      name: name,
+      type: parse_variable_type(ai_config["type"]),
+      widget: parse_variable_widget(ai_config["widget"]),
+      label: ai_config["label"] || format_variable_label(name),
+      default: ai_config["default"],
+      list: ai_config["list"] || false,
+      static_options: static_options,
+      options_query: ai_config["options_query"]
+    }
+  end
+
+  defp parse_variable_type("number"), do: :number
+  defp parse_variable_type("date"), do: :date
+  defp parse_variable_type(_), do: :text
+
+  defp parse_variable_widget("select"), do: :select
+  defp parse_variable_widget(_), do: :input
 
   defp normalize_query_params(params) do
     case Map.get(params, "variables") do
@@ -1339,24 +1400,22 @@ defmodule Lotus.Web.QueryEditorPage do
     end)
   end
 
-  defp build_ordered_variables(names, existing_variables) do
+  defp build_ordered_variables(names, existing_variables, ai_variables) do
     existing_by_name = Map.new(existing_variables, &{&1.name, &1})
 
-    Enum.map(names, fn name ->
-      case existing_by_name do
-        %{^name => %QueryVariable{} = var} ->
-          var
+    ai_by_name =
+      case ai_variables do
+        vars when is_list(vars) and vars != [] ->
+          Map.new(vars, fn v -> {v["name"], v} end)
 
         _ ->
-          %QueryVariable{
-            name: name,
-            type: :text,
-            widget: :input,
-            label: format_variable_label(name),
-            default: nil,
-            static_options: [],
-            options_query: nil
-          }
+          %{}
+      end
+
+    Enum.map(names, fn name ->
+      case Map.get(ai_by_name, name) do
+        nil -> Map.get(existing_by_name, name) || default_variable(name)
+        ai_config -> build_variable_from_ai(name, ai_config)
       end
     end)
   end
@@ -1367,24 +1426,32 @@ defmodule Lotus.Web.QueryEditorPage do
     end)
   end
 
-  defp update_variable_state(socket, ordered_vars, names) do
-    params = %{"variables" => Enum.map(ordered_vars, &variable_to_params/1)}
+  defp update_variable_state(socket, ordered_vars, names, extra_params) do
+    params =
+      Map.merge(%{"variables" => Enum.map(ordered_vars, &variable_to_params/1)}, extra_params)
+
     changeset = build_query_changeset(socket.assigns.query, params)
 
     current_vals = socket.assigns.variable_values || %{}
     keep = Map.take(current_vals, names)
+    old_variables = socket.assigns.query.variables
 
     with_defaults =
       keep
       |> merge_variable_defaults(ordered_vars)
+      |> clear_values_on_widget_change(ordered_vars, old_variables)
       |> normalize_variable_values(ordered_vars)
 
-    prev_names = Enum.map(socket.assigns.query.variables, & &1.name)
+    prev_names = Enum.map(old_variables, & &1.name)
     new_names = names -- prev_names
     show_settings = new_names != [] and not socket.assigns.variable_settings_visible
 
+    query = Ecto.Changeset.apply_changes(changeset)
+    resolved_options = resolve_variable_options(query)
+
     update_query_state(socket, changeset,
       variable_values: with_defaults,
+      resolved_variable_options: resolved_options,
       variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
       variable_settings_active_tab:
         if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab),
@@ -1723,6 +1790,65 @@ defmodule Lotus.Web.QueryEditorPage do
     }
   end
 
+  defp extract_ai_variables(%{"message-index" => index_str}, socket) do
+    with {index, ""} <- Integer.parse(index_str),
+         %{variables: vars} when is_list(vars) and vars != [] <-
+           Enum.at(socket.assigns.ai_conversation.messages, index) do
+      vars
+    else
+      _ -> nil
+    end
+  end
+
+  defp extract_ai_variables(_params, _socket), do: nil
+
+  defp apply_ai_query(socket, sql, ai_variables) when is_list(ai_variables) do
+    names = Query.extract_variables_from_statement(sql)
+    existing_variables = socket.assigns.query.variables
+    ordered = build_ordered_variables(names, existing_variables, ai_variables)
+
+    socket
+    |> assign(ai_pending_variables: ai_variables)
+    |> update_variable_state(ordered, names, %{"statement" => sql})
+    |> assign(ai_pending_variables: nil)
+  end
+
+  defp apply_ai_query(socket, sql, _ai_variables) do
+    changeset = build_query_changeset(socket.assigns.query, %{"statement" => sql})
+    update_query_state(socket, changeset, statement_empty: check_statement_empty(sql))
+  end
+
+  defp build_ai_query_context(assigns) do
+    sql = assigns.query_form[:statement].value
+
+    if is_binary(sql) and sql != "" do
+      %{sql: sql, variables: Enum.map(assigns.query.variables, &variable_to_ai_context/1)}
+    else
+      nil
+    end
+  end
+
+  defp variable_to_ai_context(v) do
+    base = %{
+      "name" => v.name,
+      "type" => to_string(v.type),
+      "widget" => to_string(v.widget),
+      "label" => v.label,
+      "default" => v.default,
+      "list" => v.list
+    }
+
+    case v.widget do
+      :select ->
+        base
+        |> Map.put("static_options", Enum.map(v.static_options, &Map.from_struct/1))
+        |> Map.put("options_query", v.options_query)
+
+      _ ->
+        base
+    end
+  end
+
   defp maybe_add_query_error(socket, error_msg) do
     if socket.assigns.ai_assistant_visible do
       # Get the current SQL from the editor (what the user just ran)
@@ -1748,11 +1874,12 @@ defmodule Lotus.Web.QueryEditorPage do
     }
   end
 
-  defp add_assistant_response(conversation, content, sql) do
+  defp add_assistant_response(conversation, content, sql, variables) do
     message = %{
       role: :assistant,
       content: content,
       sql: sql,
+      variables: variables,
       timestamp: DateTime.utc_now()
     }
 

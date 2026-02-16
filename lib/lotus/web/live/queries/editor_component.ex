@@ -83,7 +83,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <% end %>
 
           <div id="editor" phx-update="ignore" class="w-full bg-editor-light dark:bg-editor-dark" style="min-height: 300px;"></div>
-          <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" style="display: none;" />
+          <.input type="textarea" field={@form[:statement]} phx-hook="EditorForm" phx-target={@target} style="display: none;" />
           <div
             data-editor-schema={Lotus.JSON.encode!(@schema || %{})}
             data-editor-dialect={@dialect || "postgres"}

@@ -13,6 +13,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
   # - data_source: string (from query_form)
   # - generating: boolean (loading state)
   # - conversation: map (conversation history)
+  # - current_sql: string (current SQL in the editor)
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
@@ -29,7 +30,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
     >
       <%= if @visible do %>
         <.header parent={@parent} conversation={@conversation} />
-        <.conversation_history conversation={@conversation} parent={@parent} />
+        <.conversation_history conversation={@conversation} parent={@parent} current_sql={@current_sql} />
         <.input_area generating={@generating} parent={@parent} />
       <% end %>
     </div>
@@ -87,6 +88,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
 
   attr(:conversation, :map, required: true)
   attr(:parent, :any, required: true)
+  attr(:current_sql, :string, default: nil)
 
   defp conversation_history(assigns) do
     ~H"""
@@ -99,7 +101,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
         <.empty_state />
       <% else %>
         <%= for {message, index} <- Enum.with_index(@conversation.messages) do %>
-          <.message_bubble message={message} index={index} parent={@parent} />
+          <.message_bubble message={message} index={index} parent={@parent} current_sql={@current_sql} />
         <% end %>
       <% end %>
     </div>
@@ -133,6 +135,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
   attr(:message, :map, required: true)
   attr(:index, :integer, required: true)
   attr(:parent, :any, required: true)
+  attr(:current_sql, :string, default: nil)
 
   defp message_bubble(assigns) do
     ~H"""
@@ -161,15 +164,28 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
               <%= if @message.sql do %>
                 <div class="mt-2 relative group">
                   <pre class="text-xs bg-slate-100 dark:bg-gray-950 text-gray-900 dark:text-gray-100 p-2 rounded overflow-x-auto"><code><%= @message.sql %></code></pre>
+                  <%= if Map.get(@message, :variables, []) != [] do %>
+                    <div class="mt-1.5 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <Icons.variable class="h-3.5 w-3.5 text-pink-500 dark:text-pink-400" />
+                      <span>
+                        <%= variable_summary(Map.get(@message, :variables, [])) %>
+                      </span>
+                    </div>
+                  <% end %>
                   <button
                     type="button"
                     phx-click="use_ai_query"
                     phx-value-sql={@message.sql}
+                    phx-value-message-index={@index}
                     phx-target={@parent}
                     class="mt-2 w-full inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded bg-pink-600 hover:bg-pink-700 text-white transition-colors"
                   >
                     <Icons.corner_down_right class="h-3.5 w-3.5 mr-1" />
-                    <%= gettext("Use this query") %>
+                    <%= if variables_only_change?(@message, @current_sql) do %>
+                      <%= gettext("Apply variable changes") %>
+                    <% else %>
+                      <%= gettext("Use this query") %>
+                    <% end %>
                   </button>
                 </div>
               <% end %>
@@ -259,13 +275,48 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
     """
   end
 
+  defp variables_only_change?(message, current_sql) do
+    message.sql != nil and
+      Map.get(message, :variables, []) != [] and
+      normalize_sql(message.sql) == normalize_sql(current_sql)
+  end
+
+  defp normalize_sql(nil), do: nil
+
+  defp normalize_sql(sql) when is_binary(sql),
+    do: sql |> String.trim() |> String.replace(~r/\s+/, " ")
+
+  defp variable_summary(variables) when is_list(variables) and variables != [] do
+    details =
+      Enum.map_join(variables, ", ", fn v ->
+        name = v["name"] || v["label"] || "?"
+        widget = format_widget_type(v["widget"])
+        "#{name} (#{widget})"
+      end)
+
+    ngettext(
+      "%{count} variable: %{details}",
+      "%{count} variables: %{details}",
+      length(variables),
+      count: length(variables),
+      details: details
+    )
+  end
+
+  defp variable_summary(_), do: ""
+
+  defp format_widget_type("select"), do: gettext("dropdown")
+  defp format_widget_type("input"), do: gettext("text input")
+  defp format_widget_type(_), do: gettext("text input")
+
   @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok,
      socket
      |> assign(visible: false)
      |> assign(generating: false)
-     |> assign(conversation: new_conversation())}
+     |> assign(conversation: new_conversation())
+     |> assign(current_sql: nil)}
   end
 
   @impl Phoenix.LiveComponent
