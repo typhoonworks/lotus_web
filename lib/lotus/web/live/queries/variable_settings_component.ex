@@ -138,12 +138,19 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                 </fieldset>
               <% end %>
 
+              <.input type="checkbox" field={vf[:list]} label={gettext("Allow multiple values")} />
+
               <%= if vf[:widget].value == :select do %>
                   <.select_options_configuration vf={vf} parent={@parent} />
               <% end %>
 
+              <% select_disabled = vf[:widget].value == :select and not has_select_options?(vf) %>
               <.input type="text" field={vf[:default]} label={gettext("Default value")}
-                      placeholder={gettext("Enter a default value...")} />
+                      placeholder={if select_disabled, do: gettext("Configure select options first"), else: gettext("Enter a default value...")}
+                      disabled={select_disabled} />
+              <%= if select_disabled do %>
+                <p class="text-xs text-gray-400 dark:text-gray-500 -mt-1"><%= gettext("Add select options above to enable default values.") %></p>
+              <% end %>
             </div>
           </.inputs_for>
         </.form>
@@ -156,6 +163,25 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
     <input type="hidden" name={@vf[:static_options].name} value={format_static_options_for_form(@vf[:static_options].value)} />
     <input type="hidden" name={@vf[:options_query].name} value={@vf[:options_query].value || ""} />
     """
+  end
+
+  defp has_select_options?(vf) do
+    has_static =
+      case vf[:static_options].value do
+        nil -> false
+        [] -> false
+        "" -> false
+        _ -> true
+      end
+
+    has_query =
+      case vf[:options_query].value do
+        nil -> false
+        "" -> false
+        _ -> true
+      end
+
+    has_static or has_query
   end
 
   defp format_static_options_for_form(static_options) do

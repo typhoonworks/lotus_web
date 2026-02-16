@@ -11,8 +11,11 @@ import Flash from "./hooks/flash";
 import MultiSelectSearch from "./hooks/multi_select_search";
 import PlatformScout from "./hooks/platform_scout";
 import ResultsVisibility from "./hooks/results_visibility";
+import TagInput from "./hooks/tag_input";
+import TagRemove from "./hooks/tag_remove";
 import ThemeSelector from "./hooks/theme_selector";
 import Tippy from "./hooks/tippy";
+import Toast from "./hooks/toast";
 import VegaChart from "./hooks/vega_chart";
 import { load } from "./lib/settings";
 import { initGlobalShortcuts } from "./lib/global_shortcuts";
@@ -76,8 +79,11 @@ const hooks = {
   MultiSelectSearch,
   PlatformScout,
   ResultsVisibility,
+  TagInput,
+  TagRemove,
   ThemeSelector,
   Tippy,
+  Toast,
   VegaChart,
 };
 

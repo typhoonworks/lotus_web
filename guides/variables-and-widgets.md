@@ -102,6 +102,44 @@ SELECT user_id, email FROM users WHERE active = true ORDER BY email
 - **User experience**: Calendar interface
 - **Output**: Always ISO date format
 
+## List Variables (Multi-Value)
+
+Variables can be configured to accept multiple values, which is useful for SQL `IN` clauses and similar multi-value patterns.
+
+### Enabling List Mode
+
+1. Open the variable settings panel
+2. Check **"Allow multiple values"** on any text or number variable
+3. The widget automatically switches to a multi-value input
+
+### Widget Behavior
+
+The widget type depends on whether the variable has dropdown options configured:
+
+- **Tag Input** (no dropdown options) — A chip-style input where users type values and press Enter to add them. Each value appears as a tag with an X button to remove it. Supports both text and number types.
+- **Multiselect** (with dropdown options) — A multi-select dropdown that lets users pick multiple values from the configured static or SQL-query options.
+
+### How Values Are Stored
+
+List variable values are stored as comma-separated strings internally and automatically split into individual values at query execution time. For example, entering tags `active`, `pending`, and `completed` stores `"active,pending,completed"` and expands to three separate parameter values.
+
+### Example: Filtering with IN Clauses
+
+```sql
+SELECT *
+FROM orders
+WHERE status IN ({{statuses}})
+  AND region IN ({{regions}})
+```
+
+**Variable Configuration**:
+- `statuses`: Text, Dropdown with static options (`active`, `pending`, `completed`), **Allow multiple values** enabled
+- `regions`: Text, Input, **Allow multiple values** enabled — users type region codes as free-form tags
+
+### Default Values for List Variables
+
+You can set a comma-separated default value for list variables. For example, setting the default to `active,pending` will pre-populate the tag input with two chips or pre-select two options in the multiselect dropdown.
+
 ## Variable Settings Panel
 
 ### Accessing Settings
@@ -211,6 +249,9 @@ ORDER BY product_count DESC
   - Free-form text search
   - Numeric thresholds
   - Custom values not in predefined lists
+- **Enable "Allow multiple values"** for:
+  - SQL `IN` clause filters (e.g., multiple statuses, regions, or IDs)
+  - Any parameter where users need to select more than one value
 
 ### Query Design
 - Design queries to handle empty/null variables gracefully

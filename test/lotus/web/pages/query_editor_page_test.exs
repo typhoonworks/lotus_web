@@ -53,6 +53,56 @@ defmodule Lotus.Web.Pages.QueryEditorPageTest do
     end
   end
 
+  describe "variable default values" do
+    test "auto-runs query with variable default value" do
+      create_test_users()
+
+      query =
+        query_fixture(%{
+          name: "Default Value Query",
+          statement: "SELECT name, email FROM test_users WHERE name = {{name}}",
+          variables: [%{name: "name", type: "text", widget: "input", default: "Alice"}]
+        })
+
+      {:ok, live, _html} = live(build_conn(), "/lotus/queries/#{query.id}")
+
+      # The query should auto-run with default value "Alice"
+      html = render(live)
+      assert html =~ "Alice"
+      assert html =~ "alice@test.com"
+      refute html =~ "bob@test.com"
+    end
+
+    test "empty toolbar input does not override variable default on run" do
+      create_test_users()
+
+      query =
+        query_fixture(%{
+          name: "Default Value Query",
+          statement: "SELECT name, email FROM test_users WHERE name = {{name}}",
+          variables: [%{name: "name", type: "text", widget: "input", default: "Alice"}]
+        })
+
+      {:ok, live, _html} = live(build_conn(), "/lotus/queries/#{query.id}")
+
+      # Wait for auto-run to complete
+      assert render(live) =~ "alice@test.com"
+
+      # Manually run with empty toolbar input — should still use default
+      live
+      |> element(~s(form[phx-submit="run_query"]))
+      |> render_submit(%{
+        "query" => %{"statement" => "SELECT name, email FROM test_users WHERE name = {{name}}"},
+        "variables" => %{"name" => ""}
+      })
+
+      # Wait for async query execution and verify default was used
+      html = render_async(live)
+      assert html =~ "alice@test.com"
+      refute html =~ "bob@test.com"
+    end
+  end
+
   describe "query timeout selector (enabled via features: [:timeout_options])" do
     test "renders the timeout selector with default value of 5s" do
       {:ok, _live, html} = live(build_conn(), "/lotus/queries/new")

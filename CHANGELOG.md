@@ -2,9 +2,32 @@
 
 ## Unreleased
 
+## [0.13.0] - 2026-02-16
+
+### Added
+
+- **List Variables for Multi-Value Query Parameters** - Variables can now accept multiple values for use in SQL `IN` clauses and similar patterns
+  - New "Allow multiple values" checkbox in variable settings
+  - Tag input widget for free-form multi-value entry with chip-style display (supports text and number types)
+  - Multiselect widget for selecting multiple values from configured select options
+  - Comma-separated value storage with automatic splitting at query execution time
+  - Backspace-to-delete and scroll overflow for tag chips
+- **Toast Notification System** - Replaced flash-based notifications with a push_event toast system
+  - Dismissible, styled toast messages (info and error variants) with auto-timeout
+  - New `Toast` LiveView hook and `toast.js` library
+
 ### Changed
 
-- Bump gettext version to `~> 0.26 or ~> 1.0`. According to the [CHANGELOG](https://hexdocs.pm/gettext/changelog.html), there aren't any breaking changes between 0.26 and 1.0, but some other libraries still point to `0.26.x`.
+- Bumped `lotus` dependency from `~> 0.13` to `~> 0.14`
+- Bumped `gettext` dependency to `~> 0.26 or ~> 1.0`
+- Widened toolbar widget inputs from `w-32` to `w-40` for better readability
+- Variable values are now normalized on validate: defaults are applied, list values are split, and values are cleared when widget type or default changes
+- Disabled default value input for select variables with no configured options
+
+### Fixed
+
+- Empty toolbar inputs no longer override variable default values on query run
+- Flaky async test assertions replaced with `render_async`
 
 ## [0.12.0] - 2026-02-10
 

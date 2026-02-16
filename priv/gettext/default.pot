@@ -13,17 +13,17 @@ msgstr ""
 msgid "%{stats} • %{duration}ms"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:215
+#: lib/lotus/web/live/queries/variable_settings_component.ex:241
 #, elixir-autogen, elixir-format
 msgid "(or a single %{value} column)."
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:174
+#: lib/lotus/web/live/queries/variable_settings_component.ex:200
 #, elixir-autogen, elixir-format
 msgid "Add variables in SQL with %{variable_code}. When you type one, Lotus detects it and adds an input in the toolbar."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:246
+#: lib/lotus/web/pages/query_editor_page.ex:247
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to delete this query? This action cannot be undone."
 msgstr ""
@@ -41,8 +41,8 @@ msgstr ""
 #: lib/lotus/web/live/dashboards/add_card_modal.ex:89
 #: lib/lotus/web/pages/dashboard_editor_page.ex:243
 #: lib/lotus/web/pages/dashboard_editor_page.ex:273
-#: lib/lotus/web/pages/query_editor_page.ex:226
-#: lib/lotus/web/pages/query_editor_page.ex:254
+#: lib/lotus/web/pages/query_editor_page.ex:227
+#: lib/lotus/web/pages/query_editor_page.ex:255
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr ""
@@ -75,26 +75,26 @@ msgid "Database"
 msgstr ""
 
 #: lib/lotus/web/live/queries/variable_settings_component.ex:106
-#: lib/lotus/web/live/queries/variable_settings_component.ex:194
+#: lib/lotus/web/live/queries/variable_settings_component.ex:220
 #, elixir-autogen, elixir-format
 msgid "Date"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:145
-#: lib/lotus/web/live/queries/variable_settings_component.ex:232
+#: lib/lotus/web/live/queries/variable_settings_component.ex:148
+#: lib/lotus/web/live/queries/variable_settings_component.ex:258
 #, elixir-autogen, elixir-format
 msgid "Default value"
 msgstr ""
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:194
 #: lib/lotus/web/pages/dashboard_editor_page.ex:281
-#: lib/lotus/web/pages/query_editor_page.ex:179
-#: lib/lotus/web/pages/query_editor_page.ex:262
+#: lib/lotus/web/pages/query_editor_page.ex:180
+#: lib/lotus/web/pages/query_editor_page.ex:263
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:244
+#: lib/lotus/web/pages/query_editor_page.ex:245
 #, elixir-autogen, elixir-format
 msgid "Delete query"
 msgstr ""
@@ -102,7 +102,7 @@ msgstr ""
 #: lib/lotus/web/pages/dashboard_editor_page.ex:231
 #: lib/lotus/web/pages/queries_page.ex:95
 #: lib/lotus/web/pages/queries_page.ex:131
-#: lib/lotus/web/pages/query_editor_page.ex:215
+#: lib/lotus/web/pages/query_editor_page.ex:216
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr ""
@@ -112,7 +112,7 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:203
+#: lib/lotus/web/live/queries/variable_settings_component.ex:229
 #, elixir-autogen, elixir-format
 msgid "Dropdown"
 msgstr ""
@@ -138,7 +138,7 @@ msgstr ""
 msgid "Enter SQL to run query"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:146
+#: lib/lotus/web/live/queries/variable_settings_component.ex:149
 #, elixir-autogen, elixir-format
 msgid "Enter a default value..."
 msgstr ""
@@ -148,18 +148,18 @@ msgstr ""
 msgid "Enter one value per line. Use \"value | label\" format to add display labels."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:216
+#: lib/lotus/web/pages/query_editor_page.ex:217
 #, elixir-autogen, elixir-format
 msgid "Enter query description (optional)"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:209
+#: lib/lotus/web/pages/query_editor_page.ex:210
 #, elixir-autogen, elixir-format
 msgid "Enter query name"
 msgstr ""
 
 #: lib/lotus/web/live/queries/toolbar_components.ex:209
-#: lib/lotus/web/live/queries/widget_component.ex:75
+#: lib/lotus/web/live/queries/widget_component.ex:98
 #, elixir-autogen, elixir-format
 msgid "Enter value"
 msgstr ""
@@ -186,17 +186,17 @@ msgstr ""
 msgid "Export query results to CSV"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:703
+#: lib/lotus/web/pages/query_editor_page.ex:722
 #, elixir-autogen, elixir-format
 msgid "Failed to copy to clipboard!"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:1531
+#: lib/lotus/web/pages/query_editor_page.ex:1601
 #, elixir-autogen, elixir-format
 msgid "Failed to delete query"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:421
+#: lib/lotus/web/pages/query_editor_page.ex:438
 #, elixir-autogen, elixir-format
 msgid "Failed to save query"
 msgstr ""
@@ -216,7 +216,7 @@ msgstr ""
 msgid "Here's where your results will appear"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:201
+#: lib/lotus/web/live/queries/variable_settings_component.ex:227
 #, elixir-autogen, elixir-format
 msgid "Input"
 msgstr ""
@@ -231,7 +231,7 @@ msgstr ""
 msgid "Input label"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:228
+#: lib/lotus/web/live/queries/variable_settings_component.ex:254
 #, elixir-autogen, elixir-format
 msgid "Label defaults to title-cased variable name"
 msgstr ""
@@ -241,12 +241,12 @@ msgstr ""
 msgid "Label for %{name}"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:225
+#: lib/lotus/web/live/queries/variable_settings_component.ex:251
 #, elixir-autogen, elixir-format
 msgid "Labels & defaults"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:229
+#: lib/lotus/web/live/queries/variable_settings_component.ex:255
 #, elixir-autogen, elixir-format
 msgid "Min Age"
 msgstr ""
@@ -260,12 +260,12 @@ msgstr ""
 #: lib/lotus/web/pages/dashboard_editor_page.ex:224
 #: lib/lotus/web/pages/queries_page.ex:87
 #: lib/lotus/web/pages/queries_page.ex:123
-#: lib/lotus/web/pages/query_editor_page.ex:208
+#: lib/lotus/web/pages/query_editor_page.ex:209
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:166
+#: lib/lotus/web/pages/query_editor_page.ex:167
 #, elixir-autogen, elixir-format
 msgid "New Query"
 msgstr ""
@@ -275,8 +275,8 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:716
-#: lib/lotus/web/pages/query_editor_page.ex:720
+#: lib/lotus/web/pages/query_editor_page.ex:734
+#: lib/lotus/web/pages/query_editor_page.ex:737
 #, elixir-autogen, elixir-format
 msgid "No query results to export"
 msgstr ""
@@ -292,7 +292,7 @@ msgid "No saved queries yet."
 msgstr ""
 
 #: lib/lotus/web/live/queries/variable_settings_component.ex:105
-#: lib/lotus/web/live/queries/variable_settings_component.ex:193
+#: lib/lotus/web/live/queries/variable_settings_component.ex:219
 #, elixir-autogen, elixir-format
 msgid "Number"
 msgstr ""
@@ -302,7 +302,7 @@ msgstr ""
 msgid "Option 1\nOption 2\nOption 3"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:736
+#: lib/lotus/web/pages/query_editor_page.ex:752
 #, elixir-autogen, elixir-format
 msgid "Please enter a SQL statement"
 msgstr ""
@@ -332,31 +332,31 @@ msgstr ""
 msgid "Queries"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:697
+#: lib/lotus/web/pages/query_editor_page.ex:717
 #, elixir-autogen, elixir-format
 msgid "Query copied to clipboard!"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:1527
+#: lib/lotus/web/pages/query_editor_page.ex:1595
 #, elixir-autogen, elixir-format
 msgid "Query deleted successfully"
 msgstr ""
 
 #: lib/lotus/web/pages/public_dashboard_page.ex:149
-#: lib/lotus/web/pages/query_editor_page.ex:938
-#: lib/lotus/web/pages/query_editor_page.ex:942
+#: lib/lotus/web/pages/query_editor_page.ex:954
+#: lib/lotus/web/pages/query_editor_page.ex:958
 #, elixir-autogen, elixir-format
 msgid "Query execution failed"
 msgstr ""
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:733
-#: lib/lotus/web/pages/query_editor_page.ex:1418
+#: lib/lotus/web/pages/query_editor_page.ex:1486
 #, elixir-autogen, elixir-format
 msgid "Query execution failed: %{reason}"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:284
-#: lib/lotus/web/pages/query_editor_page.ex:1519
+#: lib/lotus/web/pages/query_editor_page.ex:285
+#: lib/lotus/web/pages/query_editor_page.ex:1587
 #, elixir-autogen, elixir-format
 msgid "Query not found"
 msgstr ""
@@ -366,7 +366,7 @@ msgstr ""
 msgid "Query running..."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:415
+#: lib/lotus/web/pages/query_editor_page.ex:430
 #, elixir-autogen, elixir-format
 msgid "Query saved successfully!"
 msgstr ""
@@ -394,7 +394,7 @@ msgstr ""
 msgid "SELECT value_column, label_column FROM table_name\n-- OR --\nSELECT value_column FROM table_name"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:211
+#: lib/lotus/web/live/queries/variable_settings_component.ex:237
 #, elixir-autogen, elixir-format
 msgid "SQL query"
 msgstr ""
@@ -405,13 +405,13 @@ msgid "SQL query cannot be empty"
 msgstr ""
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:202
-#: lib/lotus/web/pages/query_editor_page.ex:188
+#: lib/lotus/web/pages/query_editor_page.ex:189
 #, elixir-autogen, elixir-format
 msgid "Save"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:198
-#: lib/lotus/web/pages/query_editor_page.ex:233
+#: lib/lotus/web/pages/query_editor_page.ex:199
+#: lib/lotus/web/pages/query_editor_page.ex:234
 #, elixir-autogen, elixir-format
 msgid "Save Query"
 msgstr ""
@@ -451,7 +451,7 @@ msgstr ""
 msgid "Select source"
 msgstr ""
 
-#: lib/lotus/web/live/queries/widget_component.ex:63
+#: lib/lotus/web/live/queries/widget_component.ex:86
 #, elixir-autogen, elixir-format
 msgid "Select value"
 msgstr ""
@@ -477,7 +477,7 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:206
+#: lib/lotus/web/live/queries/variable_settings_component.ex:232
 #, elixir-autogen, elixir-format
 msgid "Static options"
 msgstr ""
@@ -507,7 +507,7 @@ msgstr ""
 #: lib/lotus/web/live/dashboards/card_component.ex:124
 #: lib/lotus/web/live/dashboards/card_settings_drawer.ex:400
 #: lib/lotus/web/live/queries/variable_settings_component.ex:104
-#: lib/lotus/web/live/queries/variable_settings_component.ex:192
+#: lib/lotus/web/live/queries/variable_settings_component.ex:218
 #, elixir-autogen, elixir-format
 msgid "Text"
 msgstr ""
@@ -522,23 +522,23 @@ msgstr ""
 msgid "Toolbar"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:190
+#: lib/lotus/web/live/queries/variable_settings_component.ex:216
 #, elixir-autogen, elixir-format
 msgid "Types"
 msgstr ""
 
 #: lib/lotus/web/pages/dashboard_editor_page.ex:154
-#: lib/lotus/web/pages/query_editor_page.ex:168
+#: lib/lotus/web/pages/query_editor_page.ex:169
 #, elixir-autogen, elixir-format
 msgid "Untitled"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:170
+#: lib/lotus/web/live/queries/variable_settings_component.ex:196
 #, elixir-autogen, elixir-format
 msgid "Using variables"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:238
+#: lib/lotus/web/live/queries/variable_settings_component.ex:264
 #, elixir-autogen, elixir-format
 msgid "Values are always sent as prepared parameters (no string interpolation), using your DB dialect’s placeholders."
 msgstr ""
@@ -568,7 +568,7 @@ msgstr ""
 msgid "Widget type"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:199
+#: lib/lotus/web/live/queries/variable_settings_component.ex:225
 #, elixir-autogen, elixir-format
 msgid "Widgets"
 msgstr ""
@@ -578,12 +578,12 @@ msgstr ""
 msgid "Write a SQL query that returns value and label columns (or just a value column)."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:435
+#: lib/lotus/web/pages/query_editor_page.ex:449
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to delete queries"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:398
+#: lib/lotus/web/pages/query_editor_page.ex:413
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to save queries"
 msgstr ""
@@ -593,12 +593,12 @@ msgstr ""
 msgid "Your query returned no rows"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:203
+#: lib/lotus/web/live/queries/variable_settings_component.ex:229
 #, elixir-autogen, elixir-format
 msgid "choose one:"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:194
+#: lib/lotus/web/live/queries/variable_settings_component.ex:220
 #, elixir-autogen, elixir-format
 msgid "date picker, ISO date"
 msgstr ""
@@ -608,32 +608,32 @@ msgstr ""
 msgid "default"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:201
+#: lib/lotus/web/live/queries/variable_settings_component.ex:227
 #, elixir-autogen, elixir-format
 msgid "free text/number entry"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:193
+#: lib/lotus/web/live/queries/variable_settings_component.ex:219
 #, elixir-autogen, elixir-format
 msgid "integers/decimals"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:232
+#: lib/lotus/web/live/queries/variable_settings_component.ex:258
 #, elixir-autogen, elixir-format
 msgid "is used if the toolbar input is empty."
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:207
+#: lib/lotus/web/live/queries/variable_settings_component.ex:233
 #, elixir-autogen, elixir-format
 msgid "one per line."
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:192
+#: lib/lotus/web/live/queries/variable_settings_component.ex:218
 #, elixir-autogen, elixir-format
 msgid "plain strings (quoted for you)"
 msgstr ""
 
-#: lib/lotus/web/live/queries/variable_settings_component.ex:212
+#: lib/lotus/web/live/queries/variable_settings_component.ex:238
 #, elixir-autogen, elixir-format
 msgid "return columns as"
 msgstr ""
@@ -1424,17 +1424,17 @@ msgstr ""
 msgid "AI Assistant"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:861
+#: lib/lotus/web/pages/query_editor_page.ex:877
 #, elixir-autogen, elixir-format
 msgid "AI features are not configured"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:511
+#: lib/lotus/web/pages/query_editor_page.ex:525
 #, elixir-autogen, elixir-format
 msgid "AI features are not configured. Please add AI configuration."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:873
+#: lib/lotus/web/pages/query_editor_page.ex:889
 #, elixir-autogen, elixir-format
 msgid "API key is missing or invalid"
 msgstr ""
@@ -1444,7 +1444,7 @@ msgstr ""
 msgid "Describe your query in plain English"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:901
+#: lib/lotus/web/pages/query_editor_page.ex:917
 #, elixir-autogen, elixir-format
 msgid "Failed to generate query: %{error}"
 msgstr ""
@@ -1459,12 +1459,12 @@ msgstr ""
 msgid "Generating query..."
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:543
+#: lib/lotus/web/pages/query_editor_page.ex:557
 #, elixir-autogen, elixir-format
 msgid "Please select a data source first"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:915
+#: lib/lotus/web/pages/query_editor_page.ex:931
 #, elixir-autogen, elixir-format
 msgid "Query generation timed out or crashed"
 msgstr ""
@@ -1510,12 +1510,12 @@ msgstr ""
 msgid "Find top 10 products by revenue"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:846
+#: lib/lotus/web/pages/query_editor_page.ex:862
 #, elixir-autogen, elixir-format
 msgid "Here's your SQL query:"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:584
+#: lib/lotus/web/pages/query_editor_page.ex:598
 #, elixir-autogen, elixir-format
 msgid "Please fix the error and generate a corrected query"
 msgstr ""
@@ -1525,7 +1525,7 @@ msgstr ""
 msgid "Query Failed"
 msgstr ""
 
-#: lib/lotus/web/pages/query_editor_page.ex:576
+#: lib/lotus/web/pages/query_editor_page.ex:590
 #, elixir-autogen, elixir-format
 msgid "Query inserted into editor"
 msgstr ""
@@ -1558,4 +1558,29 @@ msgstr ""
 #: lib/lotus/web/live/queries/ai_assistant_component.ex:172
 #, elixir-autogen, elixir-format
 msgid "Use this query"
+msgstr ""
+
+#: lib/lotus/web/live/queries/variable_settings_component.ex:152
+#, elixir-autogen, elixir-format
+msgid "Add select options above to enable default values."
+msgstr ""
+
+#: lib/lotus/web/live/queries/variable_settings_component.ex:141
+#, elixir-autogen, elixir-format
+msgid "Allow multiple values"
+msgstr ""
+
+#: lib/lotus/web/live/queries/variable_settings_component.ex:149
+#, elixir-autogen, elixir-format
+msgid "Configure select options first"
+msgstr ""
+
+#: lib/lotus/web/live/queries/widget_component.ex:159
+#, elixir-autogen, elixir-format
+msgid "Enter values"
+msgstr ""
+
+#: lib/lotus/web/live/queries/widget_component.ex:63
+#, elixir-autogen, elixir-format
+msgid "Select values"
 msgstr ""
