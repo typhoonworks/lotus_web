@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Bot icon in the Query Editor toolbar now turns pink when the AI Assistant drawer is open, matching the active-state behavior of other toolbar icons
+
 ## [0.13.0] - 2026-02-16
 
 ### Added
