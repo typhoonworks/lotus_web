@@ -54,6 +54,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           data_repo_names={@data_repo_names}
           schema_explorer_visible={@schema_explorer_visible}
           variable_settings_visible={@variable_settings_visible}
+          ai_assistant_visible={@ai_assistant_visible}
           target={@target}
           minimized={@minimized}
           running={@running}
@@ -134,6 +135,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:data_repo_names, :list, default: [])
   attr(:schema_explorer_visible, :boolean, default: false)
   attr(:variable_settings_visible, :boolean, default: false)
+  attr(:ai_assistant_visible, :boolean, default: false)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
@@ -182,6 +184,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
             target={@target}
             schema_explorer_visible={@schema_explorer_visible}
             variable_settings_visible={@variable_settings_visible}
+            ai_assistant_visible={@ai_assistant_visible}
             minimized={@minimized}
             running={@running}
             statement_empty={@statement_empty}
@@ -232,6 +235,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:schema_explorer_visible, :boolean, default: false)
   attr(:variable_settings_visible, :boolean, default: false)
+  attr(:ai_assistant_visible, :boolean, default: false)
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
   attr(:statement_empty, :boolean, default: false)
