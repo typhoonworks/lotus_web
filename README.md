@@ -22,7 +22,7 @@
 
 ## Why Lotus Web?
 
-You shouldn't need to deploy Metabase or Redash just to query your database. Lotus Web gives your team a full BI interface inside your existing Phoenix app — one dependency, one route, done. It shares your app's authentication, runs on your existing infrastructure, and is read-only by design.
+You shouldn't need to deploy Metabase or Redash just to query your database. Lotus Web gives your team a full BI interface inside your existing Phoenix app — one dependency, one route, done. It shares your app's authentication, runs on your existing infrastructure, and is read-only by default.
 
 We're running Lotus Web in production at [Accomplish](https://accomplish.dev).
 
@@ -214,7 +214,7 @@ end
 
 Additional security layers:
 
-- **Read-only execution** — all queries run in read-only transactions via Lotus
+- **Read-only execution** — all queries run in read-only transactions by default via Lotus (configurable with `read_only: false`)
 - **Table visibility controls** — hide sensitive tables and columns from the interface
 - **Session safety** — secured by LiveView architecture with automatic session state restoration
 - **Export security** — CSV exports use short-lived, signed, encrypted tokens
@@ -242,7 +242,7 @@ config :lotus,
 | **Dashboards** | Yes | Yes | Yes | No | No |
 | **Charts** | 5 types | Many | Many | 3 types | Via libraries |
 | **AI query gen** | Yes (BYOK) | No | No | No | No |
-| **Read-only** | By design | Configurable | Configurable | Configurable | No |
+| **Read-only** | By default (configurable) | Configurable | Configurable | Configurable | No |
 | **Cost** | Free | Free/Paid | Free | Free | Free |
 
 ## Requirements

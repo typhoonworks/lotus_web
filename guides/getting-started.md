@@ -98,7 +98,7 @@ If you have multiple repositories configured:
 
 LotusWeb inherits Lotus's security features:
 
-- **Read-Only Queries** - Only SELECT statements are allowed
+- **Read-Only Queries** - Only SELECT statements are allowed by default (set `read_only: false` in Lotus config to allow writes)
 - **Table Visibility** - Some tables may be hidden based on configuration
 - **Safe Parameters** - All queries use parameterized execution
 - **Timeouts** - Long-running queries timeout automatically (default: 5 seconds)

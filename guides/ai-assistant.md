@@ -11,7 +11,7 @@ The AI Assistant:
 - **BYOK (Bring Your Own Key)** - You provide and manage your own API keys
 - **Schema-aware** - Automatically understands your database structure
 - **Respects visibility** - Only sees tables and columns you can access
-- **Read-only** - Inherits Lotus's read-only safety guarantees
+- **Read-only by default** - Only generates SELECT queries unless `read_only: false` is configured
 - **Multi-provider** - Supports OpenAI, Anthropic (Claude), and Google Gemini
 
 ## Enabling the Feature
