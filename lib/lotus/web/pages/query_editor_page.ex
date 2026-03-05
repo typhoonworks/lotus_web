@@ -155,13 +155,18 @@ defmodule Lotus.Web.QueryEditorPage do
   defp header(assigns) do
     ~H"""
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-      <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
+      <div class="flex items-center gap-3">
+        <.link navigate={lotus_path("")} class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <Icons.chevron_left class="h-5 w-5" />
+        </.link>
+        <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
         <%= if @mode == :new do %>
           <%= gettext("New Query") %>
         <% else %>
           <%= @query.name || gettext("Untitled") %>
         <% end %>
       </h2>
+      </div>
       <div class="flex gap-3">
         <%= if @mode == :edit do %>
           <.button

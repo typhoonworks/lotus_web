@@ -12,6 +12,7 @@
   - Current SQL and variable context sent to AI for more relevant suggestions
 - **Visualization toolbar button** - Added a chart icon to the editor toolbar to toggle the visualization settings drawer
 - **Keyboard shortcuts** - Wired up `⌘/Ctrl+Shift+V` for visualization toggle, `⌘/Ctrl+1` for table view, `⌘/Ctrl+2` for chart view
+- **Query editor back link** - Added a back navigation chevron to the query editor header, consistent with the dashboard editor
 
 ### Changed
 
