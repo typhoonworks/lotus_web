@@ -103,8 +103,8 @@ GROUP BY status;
 ### Opening the Settings Drawer
 
 Access visualization settings in two ways:
-- Click the **chart icon** in the results toolbar
-- Press **Cmd/Ctrl+G** keyboard shortcut
+- Click the **chart icon** in the editor toolbar
+- Press **Cmd/Ctrl+Shift+V** keyboard shortcut
 
 ### Chart Type Tab
 
@@ -138,7 +138,7 @@ A status indicator shows whether your chart is ready:
 
 | Shortcut | Action |
 |----------|--------|
-| Cmd/Ctrl+G | Toggle visualization settings drawer |
+| Cmd/Ctrl+Shift+V | Toggle visualization settings drawer |
 | Cmd/Ctrl+1 | Switch to table view |
 | Cmd/Ctrl+2 | Switch to chart view |
 

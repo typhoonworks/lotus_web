@@ -58,7 +58,23 @@ The AI responds in a chat bubble with the generated SQL. **Always review the que
 
 Click the **"Use this query"** button on any AI message containing SQL to insert it into the editor.
 
-### 4. Iterating with Follow-Up Messages
+### 4. AI-Generated Variables
+
+When your query uses `{{variable}}` placeholders, the AI can also generate variable configurations alongside the SQL — including type, widget, label, default value, and static options.
+
+- A **variable summary** is displayed in each AI response bubble showing the variable names and widget types
+- Clicking **"Use this query"** applies both the SQL and the variable settings in one action
+- If only the variable configuration differs from the current query, the button label changes to **"Apply variable changes"**
+- The AI receives your current SQL and variable context, so follow-up messages can refine both the query and its variables
+
+**Example prompt:**
+```
+Show orders filtered by status with a dropdown, and by date range
+```
+
+The AI may generate a query like `SELECT * FROM orders WHERE status = {{status}} AND created_at >= {{start_date}}` along with variable configs: `status` as a select widget with options from the `status` column, and `start_date` as a date input.
+
+### 5. Iterating with Follow-Up Messages
 
 The conversation keeps full context, so you can refine queries naturally:
 - "Add a LIMIT 100 to that"
@@ -66,11 +82,11 @@ The conversation keeps full context, so you can refine queries naturally:
 - "Also include the customer email"
 - "That's not right — the status column is called `state`"
 
-### 5. Fixing Errors Automatically
+### 6. Fixing Errors Automatically
 
 When a query execution fails while the AI drawer is open, the error appears in the conversation. Click **"Ask AI to fix this"** to send the error context to the AI, which will attempt to generate a corrected query.
 
-### 6. Managing the Conversation
+### 7. Managing the Conversation
 
 - The header shows the message count and how many queries have been generated
 - Click the **trash icon** to clear the conversation and start fresh
