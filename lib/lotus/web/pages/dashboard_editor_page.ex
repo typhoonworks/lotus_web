@@ -144,7 +144,7 @@ defmodule Lotus.Web.DashboardEditorPage do
     ~H"""
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <.link navigate={lotus_path("")} class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <.link navigate={lotus_path("", %{tab: "dashboards"})} class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
           <Icons.chevron_left class="h-5 w-5" />
         </.link>
         <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
@@ -325,7 +325,7 @@ defmodule Lotus.Web.DashboardEditorPage do
             {:noreply,
              socket
              |> put_flash(:error, gettext("Dashboard not found"))
-             |> push_navigate(to: lotus_path(""))}
+             |> push_navigate(to: lotus_path("", %{tab: "dashboards"}))}
 
           dashboard ->
             {:noreply,
@@ -886,13 +886,13 @@ defmodule Lotus.Web.DashboardEditorPage do
       {:noreply,
        socket
        |> put_flash(:info, gettext("Dashboard deleted successfully"))
-       |> push_navigate(to: lotus_path(""))}
+       |> push_navigate(to: lotus_path("", %{tab: "dashboards"}))}
     else
       nil ->
         {:noreply,
          socket
          |> put_flash(:error, gettext("Dashboard not found"))
-         |> push_navigate(to: lotus_path(""))}
+         |> push_navigate(to: lotus_path("", %{tab: "dashboards"}))}
 
       {:error, _} ->
         send(self(), {:put_flash, [:error, gettext("Failed to delete dashboard")]})

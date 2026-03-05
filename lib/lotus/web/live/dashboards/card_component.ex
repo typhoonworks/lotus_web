@@ -212,11 +212,12 @@ defmodule Lotus.Web.Dashboards.CardComponent do
   defp text_content(assigns) do
     text = get_content_text(assigns.content)
     is_public = Map.get(assigns, :public, false)
-    assigns = assign(assigns, text: text, is_public: is_public)
+    html = render_markdown(text)
+    assigns = assign(assigns, html: html, is_public: is_public)
 
     ~H"""
     <div class={["prose prose-sm dark:prose-invert max-w-none", @is_public && "p-3"]}>
-      <%= @text %>
+      <%= @html %>
     </div>
     """
   end
@@ -255,6 +256,15 @@ defmodule Lotus.Web.Dashboards.CardComponent do
       </a>
     </div>
     """
+  end
+
+  defp render_markdown(""), do: ""
+
+  defp render_markdown(text) do
+    case Earmark.as_html(text) do
+      {:ok, html, _warnings} -> Phoenix.HTML.raw(html)
+      {:error, _html, _errors} -> text
+    end
   end
 
   defp get_content_text(nil), do: ""

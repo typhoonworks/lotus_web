@@ -164,6 +164,10 @@ defmodule Lotus.Web.QueriesPage do
   end
 
   @impl Page
+  def handle_params(%{"tab" => "dashboards"}, _uri, socket) do
+    {:noreply, assign(socket, active_tab: :dashboards)}
+  end
+
   def handle_params(_params, _uri, socket), do: {:noreply, socket}
 
   @impl Phoenix.LiveComponent
