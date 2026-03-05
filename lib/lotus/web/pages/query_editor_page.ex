@@ -8,7 +8,6 @@ defmodule Lotus.Web.QueryEditorPage do
   @default_page_size 1000
 
   alias Lotus.Storage.Query
-  alias Lotus.Storage.QueryVariable
   alias Lotus.Web.ExportController
   alias Lotus.Web.Formatters.VariableOptionsFormatter, as: OptionsFormatter
   alias Lotus.Web.Page
@@ -17,6 +16,7 @@ defmodule Lotus.Web.QueryEditorPage do
   alias Lotus.Web.Queries.SchemaExplorerComponent
   alias Lotus.Web.Queries.VariableSettingsComponent
   alias Lotus.Web.Queries.VisualizationSettingsComponent
+  alias Lotus.Web.QueryEditor.Variables
   alias Lotus.Web.SchemaBuilder
   alias Lotus.Web.SourcesMap
   alias Lotus.Web.VegaSpecBuilder
@@ -35,14 +35,9 @@ defmodule Lotus.Web.QueryEditorPage do
           <.header statement_empty={@statement_empty} query={@query} mode={@page.mode} />
 
           <div class="relative flex-1 sm:overflow-hidden">
-            <%= if @schema_explorer_visible or @variable_settings_visible or @visualization_visible or @ai_assistant_visible do %>
+            <%= if @left_drawer != nil or @right_drawer != nil do %>
               <div class="fixed inset-0 bg-black/50 z-10 sm:hidden"
-                   phx-click={cond do
-                     @visualization_visible -> "close_visualization_settings"
-                     @schema_explorer_visible -> "close_schema_explorer"
-                     @ai_assistant_visible -> "close_ai_assistant"
-                     true -> "close_variable_settings"
-                   end}
+                   phx-click={if @left_drawer, do: "close_left_drawer", else: "close_right_drawer"}
                    phx-target={@myself}>
               </div>
             <% end %>
@@ -50,7 +45,7 @@ defmodule Lotus.Web.QueryEditorPage do
             <.live_component
               module={VisualizationSettingsComponent}
               id="visualization-settings"
-              visible={@visualization_visible}
+              visible={@left_drawer == :visualization}
               parent={@myself}
               drawer_tab={@visualization_drawer_tab}
               config={@visualization_config}
@@ -60,7 +55,7 @@ defmodule Lotus.Web.QueryEditorPage do
             <.live_component
               module={SchemaExplorerComponent}
               id="schema-explorer"
-              visible={@schema_explorer_visible}
+              visible={@right_drawer == :schema_explorer}
               parent={@myself}
               initial_db={@query_form[:data_repo].value}
             />
@@ -68,7 +63,7 @@ defmodule Lotus.Web.QueryEditorPage do
             <.live_component
               module={VariableSettingsComponent}
               id="variable-settings"
-              visible={@variable_settings_visible}
+              visible={@right_drawer == :variable_settings}
               form={@query_form}
               parent={@myself}
               active_tab={@variable_settings_active_tab}
@@ -77,7 +72,7 @@ defmodule Lotus.Web.QueryEditorPage do
             <.live_component
               module={AiAssistantComponent}
               id="ai-assistant"
-              visible={@ai_assistant_visible}
+              visible={@left_drawer == :ai_assistant}
               parent={@myself}
               data_source={@query_form[:data_repo].value}
               generating={@ai_generating}
@@ -87,12 +82,10 @@ defmodule Lotus.Web.QueryEditorPage do
 
             <div class={[
               "transition-all duration-300 ease-in-out flex flex-col h-full sm:overflow-y-auto",
-              # Left-side drawers (visualizations OR AI assistant)
-              if(@visualization_visible, do: "sm:ml-80", else: ""),
-              if(@ai_assistant_visible, do: "sm:ml-96", else: ""),
-              # Right-side drawers (schema explorer OR variable settings - can coexist with left drawers!)
-              if(@schema_explorer_visible, do: "sm:mr-80", else: ""),
-              if(@variable_settings_visible, do: "sm:mr-80", else: "")
+              if(@left_drawer == :visualization, do: "sm:ml-80", else: ""),
+              if(@left_drawer == :ai_assistant, do: "sm:ml-96", else: ""),
+              if(@right_drawer == :schema_explorer, do: "sm:mr-80", else: ""),
+              if(@right_drawer == :variable_settings, do: "sm:mr-80", else: "")
             ]}>
 
               <div id={"results-visibility-tracker-#{Map.get(@page, :id, "new")}"} phx-hook="ResultsVisibility">
@@ -105,9 +98,8 @@ defmodule Lotus.Web.QueryEditorPage do
                   dialect={@editor_dialect}
                   running={@running}
                   statement_empty={@statement_empty}
-                  schema_explorer_visible={@schema_explorer_visible}
-                  variable_settings_visible={@variable_settings_visible}
-                  ai_assistant_visible={@ai_assistant_visible}
+                  right_drawer={@right_drawer}
+                  left_drawer={@left_drawer}
                   ai_generating={@ai_generating}
                   variables={@query.variables}
                   variable_values={Map.get(assigns, :variable_values, %{})}
@@ -135,7 +127,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   is_saved_query={@page.mode == :edit}
                   visualization_config={@visualization_config}
                   visualization_view_mode={@visualization_view_mode}
-                  visualization_visible={@visualization_visible}
+                  visualization_visible={@left_drawer == :visualization}
                 />
               </div>
 
@@ -147,12 +139,12 @@ defmodule Lotus.Web.QueryEditorPage do
       <.save_modal query_form={@query_form} target={@myself} />
       <.delete_modal :if={@page.mode == :edit} target={@myself} />
 
-      <%= if @dropdown_options_modal_visible do %>
+      <%= if @modal == :dropdown_options do %>
         <.live_component
           module={DropdownOptionsModal}
           id="dropdown_options_modal"
           variable_name={@dropdown_options_variable_name}
-          variable_data={get_variable_data(@query_form, @dropdown_options_variable_name)}
+          variable_data={Variables.get_data(@query_form, @dropdown_options_variable_name)}
           parent={@myself}
         />
       <% end %>
@@ -163,13 +155,18 @@ defmodule Lotus.Web.QueryEditorPage do
   defp header(assigns) do
     ~H"""
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-      <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
+      <div class="flex items-center gap-3">
+        <.link navigate={lotus_path("")} class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+          <Icons.chevron_left class="h-5 w-5" />
+        </.link>
+        <h2 class="text-xl font-semibold text-text-light dark:text-text-dark">
         <%= if @mode == :new do %>
           <%= gettext("New Query") %>
         <% else %>
           <%= @query.name || gettext("Untitled") %>
         <% end %>
       </h2>
+      </div>
       <div class="flex gap-3">
         <%= if @mode == :edit do %>
           <.button
@@ -308,10 +305,19 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
+  # ── UI State Machine ──────────────────────────────────────────────────
+
   @impl Phoenix.LiveComponent
+  def handle_event("close_left_drawer", _params, socket) do
+    {:noreply, assign(socket, left_drawer: nil)}
+  end
+
+  def handle_event("close_right_drawer", _params, socket) do
+    {:noreply, assign(socket, right_drawer: nil, variable_settings_active_tab: nil)}
+  end
+
   def handle_event("close_variable_settings", _params, socket) do
-    {:noreply,
-     assign(socket, variable_settings_visible: false, variable_settings_active_tab: nil)}
+    {:noreply, assign(socket, right_drawer: nil, variable_settings_active_tab: nil)}
   end
 
   @impl Phoenix.LiveComponent
@@ -363,9 +369,9 @@ defmodule Lotus.Web.QueryEditorPage do
     normalized_vars =
       (socket.assigns.variable_values || %{})
       |> Map.merge(var_params)
-      |> clear_values_on_widget_change(query.variables, socket.assigns.query.variables)
-      |> clear_values_on_default_change(query.variables, socket.assigns.query.variables)
-      |> normalize_variable_values(query.variables)
+      |> Variables.clear_values_on_widget_change(query.variables, socket.assigns.query.variables)
+      |> Variables.clear_values_on_default_change(query.variables, socket.assigns.query.variables)
+      |> Variables.normalize_values(query.variables)
 
     socket =
       socket
@@ -474,51 +480,42 @@ defmodule Lotus.Web.QueryEditorPage do
     {:noreply, assign(socket, editor_minimized: true)}
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("toggle_schema_explorer", _params, socket) do
-    socket =
-      socket
-      |> assign(schema_explorer_visible: not socket.assigns.schema_explorer_visible)
-      |> assign(variable_settings_visible: false)
+    current = socket.assigns.right_drawer
 
-    {:noreply, socket}
+    {:noreply,
+     assign(socket,
+       right_drawer: if(current == :schema_explorer, do: nil, else: :schema_explorer)
+     )}
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("close_schema_explorer", _params, socket) do
-    {:noreply, assign(socket, schema_explorer_visible: false)}
+    {:noreply, assign(socket, right_drawer: nil)}
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("toggle_variable_settings", _params, socket) do
-    socket =
-      socket
-      |> assign(variable_settings_visible: not socket.assigns.variable_settings_visible)
-      |> assign(schema_explorer_visible: false)
+    current = socket.assigns.right_drawer
 
-    {:noreply, socket}
+    {:noreply,
+     assign(socket,
+       right_drawer: if(current == :variable_settings, do: nil, else: :variable_settings)
+     )}
   end
 
   # AI Assistant event handlers
 
-  @impl Phoenix.LiveComponent
   def handle_event("toggle_ai_assistant", _params, socket) do
     if Lotus.AI.enabled?() do
-      # Initialize conversation if opening for the first time or if it doesn't exist
       conversation =
-        if socket.assigns.ai_assistant_visible do
+        if socket.assigns.left_drawer == :ai_assistant do
           socket.assigns.ai_conversation
         else
           socket.assigns[:ai_conversation] || new_conversation()
         end
 
-      socket =
-        socket
-        |> assign(ai_assistant_visible: not socket.assigns.ai_assistant_visible)
-        |> assign(visualization_visible: false)
-        |> assign(ai_conversation: conversation)
+      new_drawer = if socket.assigns.left_drawer == :ai_assistant, do: nil, else: :ai_assistant
 
-      {:noreply, socket}
+      {:noreply, assign(socket, left_drawer: new_drawer, ai_conversation: conversation)}
     else
       {:noreply,
        socket
@@ -529,9 +526,8 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("close_ai_assistant", _params, socket) do
-    {:noreply, assign(socket, ai_assistant_visible: false)}
+    {:noreply, assign(socket, left_drawer: nil)}
   end
 
   @impl Phoenix.LiveComponent
@@ -613,33 +609,21 @@ defmodule Lotus.Web.QueryEditorPage do
 
   # Visualization event handlers
 
-  @impl Phoenix.LiveComponent
   def handle_event("smart_toggle_visualization_drawer", _params, socket) do
-    socket =
-      if socket.assigns.visualization_visible do
-        # Close the drawer if already open
-        assign(socket, visualization_visible: false)
-      else
-        # Open the drawer - pick tab based on whether config exists
-        tab =
-          if has_valid_config?(socket.assigns.visualization_config),
-            do: :config,
-            else: :types
+    if socket.assigns.left_drawer == :visualization do
+      {:noreply, assign(socket, left_drawer: nil)}
+    else
+      tab =
+        if has_valid_config?(socket.assigns.visualization_config),
+          do: :config,
+          else: :types
 
-        socket
-        |> assign(visualization_visible: true)
-        |> assign(visualization_drawer_tab: tab)
-        |> assign(schema_explorer_visible: false)
-        |> assign(ai_assistant_visible: false)
-        |> assign(variable_settings_visible: false)
-      end
-
-    {:noreply, socket}
+      {:noreply, assign(socket, left_drawer: :visualization, visualization_drawer_tab: tab)}
+    end
   end
 
-  @impl Phoenix.LiveComponent
   def handle_event("close_visualization_settings", _params, socket) do
-    {:noreply, assign(socket, visualization_visible: false)}
+    {:noreply, assign(socket, left_drawer: nil)}
   end
 
   @impl Phoenix.LiveComponent
@@ -693,7 +677,7 @@ defmodule Lotus.Web.QueryEditorPage do
       Map.reject(incoming, fn {name, v} -> v == "" and not Map.has_key?(existing_vars, name) end)
 
     merged = Map.merge(existing_vars, filtered)
-    normalized = normalize_variable_values(merged, socket.assigns.query.variables)
+    normalized = Variables.normalize_values(merged, socket.assigns.query.variables)
     {:noreply, assign(socket, variable_values: normalized)}
   end
 
@@ -701,7 +685,7 @@ defmodule Lotus.Web.QueryEditorPage do
   def handle_event("open_dropdown_options_modal", %{"variable" => variable_name}, socket) do
     {:noreply,
      assign(socket,
-       dropdown_options_modal_visible: true,
+       modal: :dropdown_options,
        dropdown_options_variable_name: variable_name
      )}
   end
@@ -719,7 +703,7 @@ defmodule Lotus.Web.QueryEditorPage do
     existing_variables = socket.assigns.query.variables
     ai_variables = socket.assigns.ai_pending_variables
 
-    ordered_vars = build_ordered_variables(names, existing_variables, ai_variables)
+    ordered_vars = Variables.build_ordered(names, existing_variables, ai_variables)
 
     socket =
       socket
@@ -979,15 +963,14 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def update(%{action: :close_dropdown_options_modal}, socket) do
-    {:ok,
-     assign(socket, dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)}
+    {:ok, assign(socket, modal: nil, dropdown_options_variable_name: nil)}
   end
 
   def update(%{action: :save_dropdown_options} = assigns, socket) do
     socket =
       socket
       |> update_variable_options(assigns.variable_name, assigns.options_data)
-      |> assign(dropdown_options_modal_visible: false, dropdown_options_variable_name: nil)
+      |> assign(modal: nil, dropdown_options_variable_name: nil)
 
     {:ok, socket}
   end
@@ -1039,10 +1022,10 @@ defmodule Lotus.Web.QueryEditorPage do
       page_size: @default_page_size,
       page_index: 0,
       editor_minimized: false,
-      schema_explorer_visible: false,
-      variable_settings_visible: false,
+      left_drawer: nil,
+      right_drawer: nil,
+      modal: nil,
       variable_settings_active_tab: nil,
-      dropdown_options_modal_visible: false,
       dropdown_options_variable_name: nil,
       editor_schema: nil,
       editor_dialect: nil,
@@ -1051,12 +1034,10 @@ defmodule Lotus.Web.QueryEditorPage do
       resolved_variable_options: %{},
       # Visualization state
       query_timeout: 5_000,
-      visualization_visible: false,
       visualization_config: nil,
       visualization_view_mode: :table,
       visualization_drawer_tab: :types,
       # AI Assistant state
-      ai_assistant_visible: false,
       ai_generating: false,
       ai_conversation: new_conversation(),
       ai_pending_variables: nil
@@ -1140,188 +1121,9 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp variable_to_params(%QueryVariable{} = v) do
-    %{
-      "name" => v.name,
-      "type" => v.type,
-      "widget" => v.widget,
-      "label" => v.label,
-      "default" => v.default,
-      "list" => v.list,
-      "static_options" => static_options_to_params(v.static_options),
-      "options_query" => v.options_query
-    }
-  end
-
-  defp static_options_to_params(static_options) do
-    OptionsFormatter.static_options_to_storage(static_options)
-  end
-
-  defp format_variable_label(var_name) when is_binary(var_name) do
-    var_name
-    |> String.split("_")
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join(" ")
-  end
-
-  defp format_variable_label(var_name), do: var_name
-
-  defp default_variable(name) do
-    %QueryVariable{
-      name: name,
-      type: :text,
-      widget: :input,
-      label: format_variable_label(name),
-      default: nil,
-      static_options: [],
-      options_query: nil
-    }
-  end
-
-  defp build_variable_from_ai(name, ai_config) do
-    alias Lotus.Storage.QueryVariable.StaticOption
-
-    static_options =
-      case ai_config["static_options"] do
-        opts when is_list(opts) and opts != [] ->
-          opts |> Enum.map(&StaticOption.from_input/1) |> Enum.reject(&is_nil/1)
-
-        _ ->
-          []
-      end
-
-    %QueryVariable{
-      name: name,
-      type: parse_variable_type(ai_config["type"]),
-      widget: parse_variable_widget(ai_config["widget"]),
-      label: ai_config["label"] || format_variable_label(name),
-      default: ai_config["default"],
-      list: ai_config["list"] || false,
-      static_options: static_options,
-      options_query: ai_config["options_query"]
-    }
-  end
-
-  defp parse_variable_type("number"), do: :number
-  defp parse_variable_type("date"), do: :date
-  defp parse_variable_type(_), do: :text
-
-  defp parse_variable_widget("select"), do: :select
-  defp parse_variable_widget(_), do: :input
-
-  defp normalize_query_params(params) do
-    case Map.get(params, "variables") do
-      nil ->
-        params
-
-      variables_map when is_map(variables_map) ->
-        normalized_variables =
-          variables_map
-          |> Enum.map(fn {idx, var_attrs} ->
-            normalized_attrs = normalize_variable_attrs(var_attrs)
-            {idx, normalized_attrs}
-          end)
-          |> Map.new()
-
-        Map.put(params, "variables", normalized_variables)
-
-      _ ->
-        params
-    end
-  end
-
-  defp normalize_variable_attrs(attrs) when is_map(attrs) do
-    case Map.get(attrs, "static_options") do
-      options_string when is_binary(options_string) and options_string != "" ->
-        options_maps = OptionsFormatter.from_display_format(options_string)
-        Map.put(attrs, "static_options", options_maps)
-
-      "" ->
-        Map.put(attrs, "static_options", [])
-
-      options_list when is_list(options_list) ->
-        normalized_options = OptionsFormatter.normalize_to_maps(options_list)
-        Map.put(attrs, "static_options", normalized_options)
-
-      _ ->
-        attrs
-    end
-  end
-
-  defp normalize_variable_attrs(attrs), do: attrs
-
-  defp clear_values_on_widget_change(values, new_variables, old_variables) do
-    old_by_name = Map.new(old_variables, &{&1.name, &1})
-
-    Enum.reduce(new_variables, values, fn var, acc ->
-      maybe_clear_value(acc, var, Map.get(old_by_name, var.name))
-    end)
-  end
-
-  defp maybe_clear_value(values, _var, nil), do: values
-
-  defp maybe_clear_value(values, var, old) do
-    widget_changed = Map.get(old, :widget) != var.widget
-    list_changed = Map.get(old, :list, false) != Map.get(var, :list, false)
-
-    if widget_changed or list_changed, do: Map.put(values, var.name, nil), else: values
-  end
-
-  defp clear_values_on_default_change(values, new_variables, old_variables) do
-    old_defaults = Map.new(old_variables, &{&1.name, &1.default})
-
-    Enum.reduce(new_variables, values, fn var, acc ->
-      old_default = Map.get(old_defaults, var.name)
-      maybe_clear_for_default(acc, var, old_default)
-    end)
-  end
-
-  defp maybe_clear_for_default(values, %{default: same}, same), do: values
-
-  defp maybe_clear_for_default(values, var, old_default) do
-    current = Map.get(values, var.name)
-
-    if empty_value?(current) or matches_default?(current, old_default),
-      do: Map.put(values, var.name, nil),
-      else: values
-  end
-
-  defp matches_default?(value, default) when is_list(value) and is_binary(default) do
-    value == String.split(default, ",", trim: true) |> Enum.map(&String.trim/1)
-  end
-
-  defp matches_default?(value, default), do: value == default
-
-  defp normalize_variable_values(values, variables) do
-    defaults = Map.new(variables, fn v -> {v.name, v.default} end)
-
-    list_var_names =
-      variables
-      |> Enum.filter(&Map.get(&1, :list, false))
-      |> MapSet.new(& &1.name)
-
-    Map.new(values, fn {name, value} ->
-      # Apply default when value is empty
-      default = Map.get(defaults, name)
-      value = if empty_value?(value) and not empty_value?(default), do: default, else: value
-
-      # Then normalize list values
-      if name in list_var_names and is_binary(value) do
-        {name, value |> String.split(",", trim: true) |> Enum.map(&String.trim/1)}
-      else
-        {name, value}
-      end
-    end)
-  end
-
-  defp empty_value?(nil), do: true
-  defp empty_value?(""), do: true
-  defp empty_value?([]), do: true
-  defp empty_value?(_), do: false
-
   defp build_query_changeset(query, params, action \\ :validate) do
     query
-    |> Query.update(normalize_query_params(params))
+    |> Query.update(Variables.normalize_query_params(params))
     |> Map.put(:action, action)
   end
 
@@ -1400,35 +1202,9 @@ defmodule Lotus.Web.QueryEditorPage do
     end)
   end
 
-  defp build_ordered_variables(names, existing_variables, ai_variables) do
-    existing_by_name = Map.new(existing_variables, &{&1.name, &1})
-
-    ai_by_name =
-      case ai_variables do
-        vars when is_list(vars) and vars != [] ->
-          Map.new(vars, fn v -> {v["name"], v} end)
-
-        _ ->
-          %{}
-      end
-
-    Enum.map(names, fn name ->
-      case Map.get(ai_by_name, name) do
-        nil -> Map.get(existing_by_name, name) || default_variable(name)
-        ai_config -> build_variable_from_ai(name, ai_config)
-      end
-    end)
-  end
-
-  defp merge_variable_defaults(current_values, ordered_vars) do
-    Enum.reduce(ordered_vars, current_values, fn v, acc ->
-      Map.update(acc, v.name, v.default, & &1)
-    end)
-  end
-
   defp update_variable_state(socket, ordered_vars, names, extra_params) do
     params =
-      Map.merge(%{"variables" => Enum.map(ordered_vars, &variable_to_params/1)}, extra_params)
+      Map.merge(%{"variables" => Enum.map(ordered_vars, &Variables.to_params/1)}, extra_params)
 
     changeset = build_query_changeset(socket.assigns.query, params)
 
@@ -1438,13 +1214,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
     with_defaults =
       keep
-      |> merge_variable_defaults(ordered_vars)
-      |> clear_values_on_widget_change(ordered_vars, old_variables)
-      |> normalize_variable_values(ordered_vars)
+      |> Variables.merge_defaults(ordered_vars)
+      |> Variables.clear_values_on_widget_change(ordered_vars, old_variables)
+      |> Variables.normalize_values(ordered_vars)
 
     prev_names = Enum.map(old_variables, & &1.name)
     new_names = names -- prev_names
-    show_settings = new_names != [] and not socket.assigns.variable_settings_visible
+    show_settings = new_names != [] and socket.assigns.right_drawer != :variable_settings
 
     query = Ecto.Changeset.apply_changes(changeset)
     resolved_options = resolve_variable_options(query)
@@ -1452,11 +1228,9 @@ defmodule Lotus.Web.QueryEditorPage do
     update_query_state(socket, changeset,
       variable_values: with_defaults,
       resolved_variable_options: resolved_options,
-      variable_settings_visible: show_settings || socket.assigns.variable_settings_visible,
+      right_drawer: if(show_settings, do: :variable_settings, else: socket.assigns.right_drawer),
       variable_settings_active_tab:
-        if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab),
-      schema_explorer_visible:
-        if(show_settings, do: false, else: socket.assigns.schema_explorer_visible)
+        if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab)
     )
   end
 
@@ -1467,7 +1241,7 @@ defmodule Lotus.Web.QueryEditorPage do
       "statement" => current_query.statement,
       "data_repo" => current_query.data_repo,
       "search_path" => current_query.search_path,
-      "variables" => Enum.map(current_query.variables, &variable_to_params/1)
+      "variables" => Enum.map(current_query.variables, &Variables.to_params/1)
     }
   end
 
@@ -1481,34 +1255,6 @@ defmodule Lotus.Web.QueryEditorPage do
 
       %{mode: :new} ->
         Lotus.create_query(query_attrs)
-    end
-  end
-
-  defp get_variable_data(form, variable_name) do
-    variables = form[:variables].value || []
-
-    case Enum.find(variables, &variable_matches_name?(&1, variable_name)) do
-      nil ->
-        %{}
-
-      %Ecto.Changeset{} = changeset ->
-        Ecto.Changeset.apply_changes(changeset)
-
-      variable ->
-        variable
-    end
-  end
-
-  defp variable_matches_name?(var, variable_name) do
-    case var do
-      %Ecto.Changeset{} = changeset ->
-        Ecto.Changeset.get_field(changeset, :name) == variable_name
-
-      %{name: name} ->
-        name == variable_name
-
-      _ ->
-        false
     end
   end
 
@@ -1529,7 +1275,7 @@ defmodule Lotus.Web.QueryEditorPage do
       end)
 
     updated_query = %{current_query | variables: updated_variables}
-    params = %{"variables" => Enum.map(updated_variables, &variable_to_params/1)}
+    params = %{"variables" => Enum.map(updated_variables, &Variables.to_params/1)}
     changeset = build_query_changeset(updated_query, params)
 
     resolved_options = resolve_variable_options(updated_query)
@@ -1655,7 +1401,7 @@ defmodule Lotus.Web.QueryEditorPage do
           %{
             "query_attrs" => %{
               "statement" => query.statement,
-              "variables" => Enum.map(query.variables || [], &variable_to_params/1)
+              "variables" => Enum.map(query.variables || [], &Variables.to_params/1)
             },
             "repo" => repo,
             "vars" => vars,
@@ -1805,7 +1551,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp apply_ai_query(socket, sql, ai_variables) when is_list(ai_variables) do
     names = Query.extract_variables_from_statement(sql)
     existing_variables = socket.assigns.query.variables
-    ordered = build_ordered_variables(names, existing_variables, ai_variables)
+    ordered = Variables.build_ordered(names, existing_variables, ai_variables)
 
     socket
     |> assign(ai_pending_variables: ai_variables)
@@ -1850,7 +1596,7 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp maybe_add_query_error(socket, error_msg) do
-    if socket.assigns.ai_assistant_visible do
+    if socket.assigns.left_drawer == :ai_assistant do
       # Get the current SQL from the editor (what the user just ran)
       current_sql = socket.assigns.query.statement
       add_error_message(socket.assigns.ai_conversation, to_string(error_msg), current_sql)

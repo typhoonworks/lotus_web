@@ -115,6 +115,11 @@ defmodule Lotus.Web.Layouts do
                 keys={["⌘", "X"]}
                 alt_keys={["Ctrl", "X"]}
               />
+              <.shortcut_item
+                description={gettext("Toggle Visualization Settings")}
+                keys={["⌘", "Shift", "V"]}
+                alt_keys={["Ctrl", "Shift", "V"]}
+              />
               <%= if ai_enabled?() do %>
                 <.shortcut_item
                   description={gettext("Toggle AI Assistant")}
@@ -138,11 +143,6 @@ defmodule Lotus.Web.Layouts do
           <div>
             <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider"><%= gettext("Query Results") %></h4>
             <div class="space-y-2">
-              <.shortcut_item
-                description={gettext("Toggle visualization settings")}
-                keys={["⌘", "G"]}
-                alt_keys={["Ctrl", "G"]}
-              />
               <.shortcut_item
                 description={gettext("Switch to table view")}
                 keys={["⌘", "1"]}
