@@ -10,6 +10,13 @@
   - Contextual button label ("Apply variable changes") when only variables differ from the current query
   - Variable summary displayed in AI conversation bubbles showing name and widget type
   - Current SQL and variable context sent to AI for more relevant suggestions
+- **Visualization toolbar button** - Added a chart icon to the editor toolbar to toggle the visualization settings drawer
+- **Keyboard shortcuts** - Wired up `⌘/Ctrl+Shift+V` for visualization toggle, `⌘/Ctrl+1` for table view, `⌘/Ctrl+2` for chart view
+
+### Changed
+
+- Replaced drawer visibility booleans with a state machine (`left_drawer`, `right_drawer`, `modal` enums) for cleaner mutual exclusion
+- Extracted pure variable data-transformation logic into `QueryEditor.Variables` module
 
 ## [0.13.1] - 2026-03-05
 
