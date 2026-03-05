@@ -41,7 +41,7 @@ defmodule Lotus.Web.Pages.DashboardEditorPageTest do
 
     test "redirects when dashboard not found" do
       # When trying to access a non-existent dashboard, it redirects to the home page
-      assert {:error, {:live_redirect, %{to: "/lotus/", flash: %{"error" => _}}}} =
+      assert {:error, {:live_redirect, %{to: "/lotus?tab=dashboards", flash: %{"error" => _}}}} =
                live(build_conn(), "/lotus/dashboards/999999")
     end
 

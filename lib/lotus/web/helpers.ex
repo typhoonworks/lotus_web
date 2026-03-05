@@ -34,7 +34,8 @@ defmodule Lotus.Web.Helpers do
 
     case Process.get(@pdict_key) do
       {socket, prefix} ->
-        VerifiedRoutes.unverified_path(socket, socket.router, "#{prefix}/#{route}", params)
+        path = if route == "", do: prefix, else: "#{prefix}/#{route}"
+        VerifiedRoutes.unverified_path(socket, socket.router, path, params)
 
       :nowhere ->
         "/"
