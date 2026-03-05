@@ -2,9 +2,14 @@
 
 ## Unreleased
 
+## [0.13.1] - 2026-03-05
+
 ### Fixed
 
 - Bot icon in the Query Editor toolbar now turns pink when the AI Assistant drawer is open, matching the active-state behavior of other toolbar icons
+- Dashboard text cards now render Markdown content as HTML instead of displaying raw text ([#67](https://github.com/typhoonworks/lotus_web/issues/67))
+  - Added `earmark` dependency for Markdown parsing
+  - Added `@tailwindcss/typography` plugin so `prose` styles are applied to rendered content
 
 ## [0.13.0] - 2026-02-16
 

@@ -167,5 +167,23 @@ defmodule Lotus.Web.Pages.DashboardEditorPageTest do
 
       assert html =~ "card-#{card.id}"
     end
+
+    test "renders markdown content as HTML", %{dashboard: dashboard} do
+      markdown = "**bold text**\n\n- item one\n- item two"
+
+      _card =
+        dashboard_card_fixture(dashboard, %{
+          title: "Markdown Card",
+          card_type: :text,
+          content: %{"text" => markdown}
+        })
+
+      {:ok, _live, html} = live(build_conn(), "/lotus/dashboards/#{dashboard.id}")
+
+      assert html =~ "<strong>bold text</strong>"
+      assert html =~ "item one"
+      assert html =~ "item two"
+      assert html =~ "<ul>"
+    end
   end
 end
