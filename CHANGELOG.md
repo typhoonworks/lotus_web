@@ -4,6 +4,10 @@
 
 ## [0.13.1] - 2026-03-05
 
+### Changed
+
+- Added `locals_without_parens` export to `.formatter.exs` so `lotus_dashboard` calls are not reformatted with parentheses in consumer projects
+
 ### Fixed
 
 - Bot icon in the Query Editor toolbar now turns pink when the AI Assistant drawer is open, matching the active-state behavior of other toolbar icons
