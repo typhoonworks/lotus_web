@@ -280,6 +280,24 @@ defmodule Lotus.Web.Queries.EditorComponent do
         <Icons.clipboard_copy class="h-5 w-5" />
       </button>
 
+      <button
+        id="visualization-btn"
+        type="button"
+        phx-click="smart_toggle_visualization_drawer"
+        phx-target={@target}
+        class={[
+          "p-2 transition-colors",
+          if(@left_drawer == :visualization,
+            do: "text-pink-600 hover:text-pink-700",
+            else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+          )
+        ]}
+        data-title={gettext("Visualization settings")}
+        phx-hook="Tippy"
+      >
+        <Icons.chart_bar class="h-5 w-5" />
+      </button>
+
       <%!-- AI Assistant button --%>
       <%= if ai_enabled?() do %>
         <button
