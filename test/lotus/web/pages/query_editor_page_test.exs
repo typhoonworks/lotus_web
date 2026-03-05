@@ -110,7 +110,7 @@ defmodule Lotus.Web.Pages.QueryEditorPageTest do
         Lotus.Web.QueryEditorPage,
         id: "page",
         ai_conversation: conversation,
-        ai_assistant_visible: true
+        left_drawer: :ai_assistant
       )
 
       render(live)

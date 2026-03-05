@@ -6,6 +6,9 @@ defmodule Lotus.Web.Queries.EditorComponent do
   alias Lotus.Web.Queries.SegmentedDataSelectorComponent
   import Lotus.Web.Queries.WidgetComponent
 
+  @left_drawer_values [nil, :visualization, :ai_assistant]
+  @right_drawer_values [nil, :schema_explorer, :variable_settings]
+
   defp ai_enabled? do
     Lotus.AI.enabled?()
   end
@@ -13,9 +16,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
   attr(:statement_empty, :boolean, default: false)
-  attr(:schema_explorer_visible, :boolean, default: false)
-  attr(:variable_settings_visible, :boolean, default: false)
-  attr(:ai_assistant_visible, :boolean, default: false)
+  attr(:right_drawer, :atom, default: nil, values: @right_drawer_values)
+  attr(:left_drawer, :atom, default: nil, values: @left_drawer_values)
   attr(:ai_generating, :boolean, default: false)
   attr(:form, Phoenix.HTML.Form, required: true)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
@@ -52,9 +54,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
         <.render_toolbar
           form={@form}
           data_repo_names={@data_repo_names}
-          schema_explorer_visible={@schema_explorer_visible}
-          variable_settings_visible={@variable_settings_visible}
-          ai_assistant_visible={@ai_assistant_visible}
+          right_drawer={@right_drawer}
+          left_drawer={@left_drawer}
           target={@target}
           minimized={@minimized}
           running={@running}
@@ -133,9 +134,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
 
   attr(:form, Phoenix.HTML.Form, required: true)
   attr(:data_repo_names, :list, default: [])
-  attr(:schema_explorer_visible, :boolean, default: false)
-  attr(:variable_settings_visible, :boolean, default: false)
-  attr(:ai_assistant_visible, :boolean, default: false)
+  attr(:right_drawer, :atom, default: nil, values: @right_drawer_values)
+  attr(:left_drawer, :atom, default: nil, values: @left_drawer_values)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
@@ -182,9 +182,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <.timeout_selector :if={@timeout_options_enabled} query_timeout={@query_timeout} />
           <.render_actions
             target={@target}
-            schema_explorer_visible={@schema_explorer_visible}
-            variable_settings_visible={@variable_settings_visible}
-            ai_assistant_visible={@ai_assistant_visible}
+            right_drawer={@right_drawer}
+            left_drawer={@left_drawer}
             minimized={@minimized}
             running={@running}
             statement_empty={@statement_empty}
@@ -233,9 +232,8 @@ defmodule Lotus.Web.Queries.EditorComponent do
   end
 
   attr(:target, Phoenix.LiveComponent.CID, required: true)
-  attr(:schema_explorer_visible, :boolean, default: false)
-  attr(:variable_settings_visible, :boolean, default: false)
-  attr(:ai_assistant_visible, :boolean, default: false)
+  attr(:right_drawer, :atom, default: nil, values: @right_drawer_values)
+  attr(:left_drawer, :atom, default: nil, values: @left_drawer_values)
   attr(:minimized, :boolean, default: false)
   attr(:running, :boolean, default: false)
   attr(:statement_empty, :boolean, default: false)
@@ -291,7 +289,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           phx-target={@target}
           class={[
             "p-2 transition-colors",
-            if(Map.get(assigns, :ai_assistant_visible, false),
+            if(Map.get(assigns, :left_drawer) == :ai_assistant,
               do: "text-pink-600 hover:text-pink-700",
               else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
             )
@@ -310,7 +308,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         phx-target={@target}
         class={[
           "p-2 transition-colors",
-          if(@variable_settings_visible,
+          if(@right_drawer == :variable_settings,
             do: "text-pink-600 hover:text-pink-700",
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
@@ -327,7 +325,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         phx-target={@target}
         class={[
           "p-2 transition-colors",
-          if(@schema_explorer_visible,
+          if(@right_drawer == :schema_explorer,
             do: "text-pink-600 hover:text-pink-700",
             else: "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
           )
