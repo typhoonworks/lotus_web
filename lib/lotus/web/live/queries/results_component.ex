@@ -3,6 +3,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   use Lotus.Web, :html
 
+  alias Lotus.Result.Statistics
   alias Lotus.Web.CellFormatter
   alias Lotus.Web.VegaSpecBuilder
 
@@ -75,12 +76,45 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   end
 
   defp render_table(assigns) do
+    stats = Statistics.compute_all(assigns.result)
+    assigns = assign(assigns, :column_stats, stats)
+
     ~H"""
-    <.table id="query-results" rows={@result.rows} sticky_header={true}>
-      <:col :let={row} :for={{col, index} <- Enum.with_index(@result.columns)} label={col}>
-        <%= CellFormatter.format(Enum.at(row, index)) %>
-      </:col>
-    </.table>
+    <div class="flow-root h-full">
+      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 overflow-y-auto h-full">
+        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <table class="relative min-w-full">
+            <thead class="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-[0_1px_0_0] shadow-gray-300 dark:shadow-gray-600">
+              <tr>
+                <th
+                  :for={{col, _index} <- Enum.with_index(@result.columns)}
+                  scope="col"
+                  id={"col-stats-#{col}"}
+                  phx-hook="ColumnStats"
+                  data-stats={Jason.encode!(encode_stats(@column_stats[col]))}
+                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 select-none transition-colors"
+                >
+                  <span class="inline-flex items-center gap-1">
+                    {col}
+                    <Icons.chart_bar_big class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="query-results" class="bg-white dark:bg-gray-800">
+              <tr :for={row <- @result.rows} class="even:bg-gray-50 dark:even:bg-gray-700">
+                <td
+                  :for={{_col, index} <- Enum.with_index(@result.columns)}
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3"
+                >
+                  {CellFormatter.format(Enum.at(row, index))}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
     <%= if Enum.empty?(@result.rows) do %>
       <div class="text-center py-12 text-gray-500 dark:text-gray-400">
         <p class="text-base"><%= gettext("No results found") %></p>
@@ -88,6 +122,20 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       </div>
     <% end %>
     """
+  end
+
+  defp encode_stats(nil), do: %{}
+
+  defp encode_stats(stats) do
+    stats
+    |> Enum.map(fn
+      {k, %Date{} = v} -> {k, Date.to_iso8601(v)}
+      {k, %DateTime{} = v} -> {k, DateTime.to_iso8601(v)}
+      {k, %NaiveDateTime{} = v} -> {k, NaiveDateTime.to_iso8601(v)}
+      {k, %Time{} = v} -> {k, Time.to_iso8601(v)}
+      {k, v} -> {k, v}
+    end)
+    |> Map.new()
   end
 
   defp render_chart(assigns) do
