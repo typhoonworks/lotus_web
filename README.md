@@ -104,7 +104,7 @@ Browse your database tables, columns, and statistics interactively. Click to ins
 
 ### Visualizations
 
-Toggle between table and chart views for any query result. 5 chart types available: bar, line, area, scatter, and pie. Configure axes and color grouping, then save the visualization alongside the query.
+Toggle between table and chart views for any query result. 16 chart types available across four categories — standard charts (bar, horizontal bar, line, area, combo), distribution (scatter, bubble, histogram, heatmap), part-of-whole (pie, donut, funnel, waterfall), and single-value displays (KPI, trend, gauge, progress bar, sparkline). Configure axes, color grouping, and type-specific options, then save the visualization alongside the query.
 
 Keyboard shortcuts: Cmd/Ctrl+G (chart settings), Cmd/Ctrl+1 (table view), Cmd/Ctrl+2 (chart view).
 
@@ -240,7 +240,7 @@ config :lotus,
 | **Auth** | Uses your app's auth | Separate system | Separate system | Uses your app's auth | Token-based |
 | **SQL editor** | Yes | Yes | Yes | Yes | Code cells |
 | **Dashboards** | Yes | Yes | Yes | No | No |
-| **Charts** | 5 types | Many | Many | 3 types | Via libraries |
+| **Charts** | 16 types | Many | Many | 3 types | Via libraries |
 | **AI query gen** | Yes (BYOK) | No | No | No | No |
 | **Read-only** | By default (configurable) | Configurable | Configurable | Configurable | No |
 | **Cost** | Free | Free/Paid | Free | Free | Free |
