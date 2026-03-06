@@ -181,7 +181,14 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
         series_field: config["series_field"],
         value_field: config["value_field"],
         kpi_label: config["kpi_label"] || "",
-        bin_count: config["bin_count"] || "10"
+        bin_count: config["bin_count"] || "10",
+        size_field: config["size_field"],
+        min_value: config["min_value"] || "0",
+        max_value: config["max_value"] || "100",
+        goal_value: config["goal_value"] || "100",
+        comparison_field: config["comparison_field"],
+        y2_field: config["y2_field"],
+        y2_axis_title: config["y2_axis_title"] || ""
       )
 
     ~H"""
@@ -208,7 +215,7 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
             </select>
           </div>
 
-          <%= if @chart_type == "kpi" do %>
+          <%= if @chart_type in ~w(kpi gauge progress trend) do %>
             <div>
               <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                 <%= gettext("Value Field") %>
@@ -235,6 +242,43 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
                 class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
               />
             </div>
+            <%= if @chart_type == "gauge" do %>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1"><%= gettext("Min") %></label>
+                  <input type="number" name="visualization[min_value]" value={@min_value}
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500" />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1"><%= gettext("Max") %></label>
+                  <input type="number" name="visualization[max_value]" value={@max_value}
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500" />
+                </div>
+              </div>
+            <% end %>
+            <%= if @chart_type == "progress" do %>
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1"><%= gettext("Goal Value") %></label>
+                <input type="number" name="visualization[goal_value]" value={@goal_value}
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500" />
+              </div>
+            <% end %>
+            <%= if @chart_type == "trend" do %>
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <%= gettext("Comparison Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+                </label>
+                <select
+                  name="visualization[comparison_field]"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value=""><%= gettext("Use previous row") %></option>
+                  <%= for col <- @columns do %>
+                    <option value={col} selected={@comparison_field == col}><%= col %></option>
+                  <% end %>
+                </select>
+              </div>
+            <% end %>
           <% else %>
             <%= if @chart_type do %>
               <div>
@@ -252,10 +296,10 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
                 </select>
               </div>
 
-              <%= if @chart_type != "histogram" do %>
+              <%= if @chart_type not in ~w(histogram sparkline) do %>
                 <div>
                   <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    <%= gettext("Y-Axis Field") %>
+                    <%= if @chart_type == "combo", do: gettext("Bar Series (Y-Axis)"), else: gettext("Y-Axis Field") %>
                   </label>
                   <select
                     name="visualization[y_field]"
@@ -264,6 +308,23 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
                     <option value=""><%= gettext("Select field...") %></option>
                     <%= for col <- @columns do %>
                       <option value={col} selected={@y_field == col}><%= col %></option>
+                    <% end %>
+                  </select>
+                </div>
+              <% end %>
+
+              <%= if @chart_type == "combo" do %>
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <%= gettext("Line Series") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+                  </label>
+                  <select
+                    name="visualization[y2_field]"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                  >
+                    <option value=""><%= gettext("None") %></option>
+                    <%= for col <- @columns do %>
+                      <option value={col} selected={@y2_field == col}><%= col %></option>
                     <% end %>
                   </select>
                 </div>
@@ -282,6 +343,23 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
                     max="100"
                     class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
                   />
+                </div>
+              <% end %>
+
+              <%= if @chart_type == "bubble" do %>
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <%= gettext("Size Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+                  </label>
+                  <select
+                    name="visualization[size_field]"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                  >
+                    <option value=""><%= gettext("None") %></option>
+                    <%= for col <- @columns do %>
+                      <option value={col} selected={@size_field == col}><%= col %></option>
+                    <% end %>
+                  </select>
                 </div>
               <% end %>
 

@@ -621,6 +621,55 @@ defmodule Lotus.Web.Components.Icons do
 
   attr(:rest, :global)
 
+  def chart_waterfall(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <rect x="6" y="5" width="3" height="6" rx="0.5" />
+      <rect x="10" y="8" width="3" height="5" rx="0.5" />
+      <rect x="14" y="11" width="3" height="3" rx="0.5" />
+      <rect x="18" y="6" width="3" height="11" rx="0.5" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_gauge(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M5.636 18.364A9 9 0 1 1 18.364 5.636" />
+      <path d="M12 12l4-6" stroke-linecap="round" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_progress(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="3" y="9" width="18" height="6" rx="3" opacity="0.3" />
+      <rect x="3" y="9" width="12" height="6" rx="3" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_trend(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="2" y="3" width="20" height="18" rx="2" />
+      <text x="12" y="13" text-anchor="middle" font-size="8" font-weight="bold" fill="currentColor" stroke="none">42</text>
+      <path d="M10 16l2-2 2 2" stroke-linecap="round" stroke-linejoin="round" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
   def chart_kpi(assigns) do
     ~H"""
     <.svg_outline {@rest}>

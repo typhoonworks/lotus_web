@@ -13,6 +13,7 @@ defmodule Lotus.Web.DashboardEditorPage do
   alias Lotus.Web.Dashboards.FilterBarComponent
   alias Lotus.Web.Dashboards.SettingsDrawer
   alias Lotus.Web.Page
+  alias Lotus.Web.VegaSpecBuilder
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
@@ -479,15 +480,7 @@ defmodule Lotus.Web.DashboardEditorPage do
       ) do
     card_id = parse_id(card_id)
 
-    config = %{
-      "chart_type" => viz["chart_type"],
-      "x_field" => viz["x_field"],
-      "y_field" => viz["y_field"],
-      "series_field" => viz["series_field"]
-    }
-
-    # Remove empty values
-    config = Map.reject(config, fn {_k, v} -> is_nil(v) or v == "" end)
+    config = VegaSpecBuilder.build_config(viz)
 
     socket =
       update_card_and_selection(socket, card_id, fn card ->

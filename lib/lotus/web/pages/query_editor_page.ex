@@ -655,6 +655,12 @@ defmodule Lotus.Web.QueryEditorPage do
       |> put_or_remove_config("kpi_label", params["kpi_label"])
       |> maybe_put_config("bin_count", params["bin_count"])
       |> put_or_remove_config("size_field", params["size_field"])
+      |> put_or_remove_config("min_value", params["min_value"])
+      |> put_or_remove_config("max_value", params["max_value"])
+      |> put_or_remove_config("goal_value", params["goal_value"])
+      |> put_or_remove_config("comparison_field", params["comparison_field"])
+      |> put_or_remove_config("y2_field", params["y2_field"])
+      |> put_or_remove_config("y2_axis_title", params["y2_axis_title"])
       |> maybe_put_axis_config(params)
 
     socket =

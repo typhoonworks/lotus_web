@@ -210,6 +210,12 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
     """
   end
 
+  defp chart_icon(%{type: "waterfall"} = assigns) do
+    ~H"""
+    <Icons.chart_waterfall class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
   defp chart_icon(%{type: "heatmap"} = assigns) do
     ~H"""
     <Icons.chart_heatmap class={["h-6 w-6 mb-1", icon_color(@selected)]} />
@@ -225,6 +231,30 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
   defp chart_icon(%{type: "kpi"} = assigns) do
     ~H"""
     <Icons.chart_kpi class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "trend"} = assigns) do
+    ~H"""
+    <Icons.chart_trend class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "gauge"} = assigns) do
+    ~H"""
+    <Icons.chart_gauge class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "progress"} = assigns) do
+    ~H"""
+    <Icons.chart_progress class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "combo"} = assigns) do
+    ~H"""
+    <Icons.chart_combined class={["h-6 w-6 mb-1", icon_color(@selected)]} />
     """
   end
 
@@ -280,6 +310,14 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
           <%= case @chart_type do %>
             <% "kpi" -> %>
               <.kpi_fields config={@config} columns={@columns} />
+            <% "gauge" -> %>
+              <.gauge_fields config={@config} columns={@columns} />
+            <% "progress" -> %>
+              <.progress_fields config={@config} columns={@columns} />
+            <% "trend" -> %>
+              <.trend_fields config={@config} columns={@columns} />
+            <% "combo" -> %>
+              <.combo_fields config={@config} columns={@columns} />
             <% "histogram" -> %>
               <.histogram_fields config={@config} columns={@columns} />
             <% "heatmap" -> %>
@@ -335,6 +373,228 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
       <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
         <%= gettext("Custom text displayed below the number") %>
       </p>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp gauge_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Value Field") %>
+      </label>
+      <select
+        name="value_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["value_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <input
+        type="text"
+        name="kpi_label"
+        value={@config && @config["kpi_label"]}
+        placeholder={gettext("e.g. Completion Rate")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <%= gettext("Min Value") %>
+        </label>
+        <input
+          type="number"
+          name="min_value"
+          value={Map.get(@config || %{}, "min_value", "0")}
+          class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <%= gettext("Max Value") %>
+        </label>
+        <input
+          type="number"
+          name="max_value"
+          value={Map.get(@config || %{}, "max_value", "100")}
+          class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+        />
+      </div>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp progress_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Value Field") %>
+      </label>
+      <select
+        name="value_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["value_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <input
+        type="text"
+        name="kpi_label"
+        value={@config && @config["kpi_label"]}
+        placeholder={gettext("e.g. Quota")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Goal Value") %>
+      </label>
+      <input
+        type="number"
+        name="goal_value"
+        value={Map.get(@config || %{}, "goal_value", "100")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Target value (100%% mark)") %>
+      </p>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp trend_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Value Field") %>
+      </label>
+      <select
+        name="value_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["value_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <input
+        type="text"
+        name="kpi_label"
+        value={@config && @config["kpi_label"]}
+        placeholder={gettext("e.g. Revenue")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Comparison Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <select
+        name="comparison_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Use previous row") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["comparison_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Field to compare against for trend calculation") %>
+      </p>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp combo_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("X-Axis Field") %>
+      </label>
+      <select
+        name="x_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["x_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Bar Series (Y-Axis)") %>
+      </label>
+      <select
+        name="y_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["y_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Line Series") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <select
+        name="y2_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("None") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["y2_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Second field rendered as a line on the right Y-axis") %>
+      </p>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Right Y-Axis Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <input
+        type="text"
+        name="y2_axis_title"
+        value={@config && @config["y2_axis_title"]}
+        placeholder={gettext("e.g. Revenue")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
     </div>
     """
   end
@@ -676,6 +936,9 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
   end
 
   defp config_incomplete_hint("kpi"), do: gettext("Select a Value Field to display the KPI card.")
+  defp config_incomplete_hint("gauge"), do: gettext("Select a Value Field to display the gauge.")
+  defp config_incomplete_hint("progress"), do: gettext("Select a Value Field to display the progress bar.")
+  defp config_incomplete_hint("trend"), do: gettext("Select a Value Field to display the trend.")
 
   defp config_incomplete_hint("histogram"),
     do: gettext("Select a Data Field to show the histogram.")

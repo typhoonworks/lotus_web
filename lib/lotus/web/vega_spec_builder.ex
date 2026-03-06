@@ -50,8 +50,8 @@ defmodule Lotus.Web.VegaSpecBuilder do
   @spec valid_config?(map() | nil) :: boolean()
   def valid_config?(nil), do: false
 
-  def valid_config?(%{"chart_type" => "kpi", "value_field" => vf})
-      when is_binary(vf) and vf != "",
+  def valid_config?(%{"chart_type" => ct, "value_field" => vf})
+      when ct in ~w(kpi gauge progress trend) and is_binary(vf) and vf != "",
       do: true
 
   def valid_config?(%{"chart_type" => "histogram", "x_field" => xf})
@@ -86,8 +86,12 @@ defmodule Lotus.Web.VegaSpecBuilder do
     fields =
       case chart_type do
         "kpi" -> ~w(value_field kpi_label)
+        "gauge" -> ~w(value_field kpi_label min_value max_value)
+        "progress" -> ~w(value_field kpi_label goal_value)
+        "trend" -> ~w(value_field kpi_label comparison_field)
         "histogram" -> ~w(x_field bin_count series_field)
         "bubble" -> ~w(x_field y_field series_field size_field)
+        "combo" -> ~w(x_field y_field y2_field series_field y2_axis_title)
         _ -> ~w(x_field y_field series_field)
       end
 
@@ -144,6 +148,11 @@ defmodule Lotus.Web.VegaSpecBuilder do
       "funnel" -> build_funnel(result, config)
       "heatmap" -> build_heatmap(result, config)
       "horizontal_bar" -> build_horizontal_bar(result, config)
+      "waterfall" -> build_waterfall(result, config)
+      "gauge" -> build_gauge(result, config)
+      "progress" -> build_progress(result, config)
+      "trend" -> build_trend(result, config)
+      "combo" -> build_combo(result, config)
       _ -> build_standard(result, config)
     end
   end
@@ -543,6 +552,427 @@ defmodule Lotus.Web.VegaSpecBuilder do
       }
     }
   end
+
+  # --- Gauge chart ---
+  # Semicircular arc showing value within a min/max range
+  defp build_gauge(result, config) do
+    value_field = config["value_field"]
+    kpi_label = config["kpi_label"]
+    min_val = parse_number(config["min_value"], 0)
+    max_val = parse_number(config["max_value"], 100)
+    data = transform_data(result)
+
+    first_row = List.first(data) || %{}
+    raw_value = Map.get(first_row, value_field)
+
+    numeric_value =
+      case raw_value do
+        v when is_number(v) -> v
+        _ -> 0
+      end
+
+    # Clamp and calculate proportion
+    range = max(max_val - min_val, 1)
+    proportion = min(max((numeric_value - min_val) / range, 0), 1)
+
+    # Arc angles: -π/2 to π/2 (semicircle)
+    start_angle = -:math.pi() / 2
+    end_angle = :math.pi() / 2
+    value_angle = start_angle + proportion * (end_angle - start_angle)
+
+    label = kpi_label || value_field || ""
+
+    %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{"values" => [%{"_v" => 1}]},
+      "layer" => [
+        # Background arc
+        %{
+          "mark" => %{
+            "type" => "arc",
+            "innerRadius" => 60,
+            "outerRadius" => 80,
+            "theta" => end_angle,
+            "theta2" => start_angle,
+            "color" => "#e5e7eb"
+          }
+        },
+        # Foreground arc (value)
+        %{
+          "mark" => %{
+            "type" => "arc",
+            "innerRadius" => 60,
+            "outerRadius" => 80,
+            "theta" => value_angle,
+            "theta2" => start_angle,
+            "color" => "#ec4899"
+          }
+        },
+        # Value text
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 36,
+            "fontWeight" => "bold",
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => -5
+          },
+          "encoding" => %{
+            "text" => %{"value" => format_display_value(numeric_value)}
+          }
+        },
+        # Label text
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 14,
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => 20,
+            "color" => "#6b7280"
+          },
+          "encoding" => %{
+            "text" => %{"value" => label}
+          }
+        }
+      ]
+    }
+  end
+
+  # --- Progress bar chart ---
+  # Horizontal bar showing value as proportion of a goal
+  defp build_progress(result, config) do
+    value_field = config["value_field"]
+    kpi_label = config["kpi_label"]
+    goal = parse_number(config["goal_value"], 100)
+    data = transform_data(result)
+
+    first_row = List.first(data) || %{}
+    raw_value = Map.get(first_row, value_field)
+
+    numeric_value =
+      case raw_value do
+        v when is_number(v) -> v
+        _ -> 0
+      end
+
+    label = kpi_label || value_field || ""
+    pct = if goal > 0, do: Float.round(numeric_value / goal * 100, 1), else: 0
+
+    %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{
+        "values" => [
+          %{"_type" => "background", "_value" => goal},
+          %{"_type" => "value", "_value" => min(numeric_value, goal)}
+        ]
+      },
+      "layer" => [
+        # Background bar
+        %{
+          "mark" => %{"type" => "bar", "height" => 24, "cornerRadius" => 4, "color" => "#e5e7eb"},
+          "encoding" => %{
+            "x" => %{
+              "field" => "_value",
+              "type" => "quantitative",
+              "scale" => %{"domain" => [0, goal]},
+              "axis" => nil
+            }
+          },
+          "transform" => [%{"filter" => "datum._type === 'background'"}]
+        },
+        # Value bar
+        %{
+          "mark" => %{
+            "type" => "bar",
+            "height" => 24,
+            "cornerRadius" => 4,
+            "color" => "#ec4899"
+          },
+          "encoding" => %{
+            "x" => %{
+              "field" => "_value",
+              "type" => "quantitative",
+              "scale" => %{"domain" => [0, goal]},
+              "axis" => nil
+            }
+          },
+          "transform" => [%{"filter" => "datum._type === 'value'"}]
+        },
+        # Percentage text
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 28,
+            "fontWeight" => "bold",
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => -30
+          },
+          "encoding" => %{
+            "text" => %{"value" => "#{pct}%"}
+          }
+        },
+        # Label text
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 14,
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => 30,
+            "color" => "#6b7280"
+          },
+          "encoding" => %{
+            "text" => %{"value" => label}
+          }
+        }
+      ]
+    }
+  end
+
+  # --- Trend indicator ---
+  # Shows a large number with comparison delta (arrow + percentage)
+  defp build_trend(result, config) do
+    value_field = config["value_field"]
+    comparison_field = config["comparison_field"]
+    kpi_label = config["kpi_label"]
+    data = transform_data(result)
+
+    first_row = List.first(data) || %{}
+    second_row = Enum.at(data, 1) || %{}
+
+    current_value =
+      case Map.get(first_row, value_field) do
+        v when is_number(v) -> v
+        _ -> 0
+      end
+
+    comparison_value =
+      if comparison_field && comparison_field != "" do
+        case Map.get(first_row, comparison_field) do
+          v when is_number(v) -> v
+          _ -> nil
+        end
+      else
+        case Map.get(second_row, value_field) do
+          v when is_number(v) -> v
+          _ -> nil
+        end
+      end
+
+    label = kpi_label || value_field || ""
+
+    {delta_text, delta_color} =
+      if comparison_value && comparison_value != 0 do
+        pct = Float.round((current_value - comparison_value) / abs(comparison_value) * 100, 1)
+
+        if pct >= 0 do
+          {"\u25B2 +#{pct}%", "#10b981"}
+        else
+          {"\u25BC #{pct}%", "#ef4444"}
+        end
+      else
+        {"", "#6b7280"}
+      end
+
+    %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{"values" => [%{"_v" => 1}]},
+      "layer" => [
+        # Current value
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 48,
+            "fontWeight" => "bold",
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => -20
+          },
+          "encoding" => %{
+            "text" => %{"value" => format_display_value(current_value)}
+          }
+        },
+        # Label
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 14,
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => 10,
+            "color" => "#6b7280"
+          },
+          "encoding" => %{
+            "text" => %{"value" => label}
+          }
+        },
+        # Delta
+        %{
+          "mark" => %{
+            "type" => "text",
+            "fontSize" => 16,
+            "fontWeight" => "bold",
+            "align" => "center",
+            "baseline" => "middle",
+            "dy" => 35,
+            "color" => delta_color
+          },
+          "encoding" => %{
+            "text" => %{"value" => delta_text}
+          }
+        }
+      ]
+    }
+  end
+
+  # --- Waterfall chart ---
+  # Uses window transforms to create cumulative running totals
+  defp build_waterfall(result, config) do
+    x_field = config["x_field"]
+    y_field = config["y_field"]
+
+    %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{"values" => transform_data(result)},
+      "transform" => [
+        %{
+          "window" => [%{"op" => "sum", "field" => y_field, "as" => "_cumulative"}],
+          "frame" => [nil, 0]
+        },
+        %{
+          "calculate" => "datum._cumulative - datum['#{y_field}']",
+          "as" => "_prev_cumulative"
+        },
+        %{
+          "calculate" => "datum['#{y_field}'] >= 0 ? '#10b981' : '#ef4444'",
+          "as" => "_color"
+        }
+      ],
+      "mark" => %{"type" => "bar"},
+      "encoding" => %{
+        "x" => %{
+          "field" => x_field,
+          "type" => "nominal",
+          "sort" => nil,
+          "axis" => build_axis_config(config, :x, x_field)
+        },
+        "y" => %{
+          "field" => "_prev_cumulative",
+          "type" => "quantitative",
+          "axis" => build_axis_config(config, :y, y_field)
+        },
+        "y2" => %{"field" => "_cumulative"},
+        "color" => %{
+          "field" => "_color",
+          "type" => "nominal",
+          "scale" => nil,
+          "legend" => nil
+        }
+      }
+    }
+  end
+
+  # --- Combo / dual-axis chart ---
+  # Bar layer for y_field + optional line layer for y2_field with independent y scales
+  defp build_combo(result, config) do
+    x_field = config["x_field"]
+    y_field = config["y_field"]
+    y2_field = config["y2_field"]
+    series_field = config["series_field"]
+    y2_axis_title = config["y2_axis_title"]
+
+    data = transform_data(result)
+
+    bar_layer = %{
+      "mark" => %{"type" => "bar"},
+      "encoding" => %{
+        "x" => %{
+          "field" => x_field,
+          "type" => infer_type(x_field, %{columns: Map.keys(List.first(data) || %{}), rows: []}),
+          "axis" => build_axis_config(config, :x, x_field)
+        },
+        "y" => %{
+          "field" => y_field,
+          "type" => "quantitative",
+          "axis" => build_axis_config(config, :y, y_field)
+        }
+      }
+    }
+
+    bar_layer =
+      if series_field && series_field != "" do
+        put_in(bar_layer, ["encoding", "color"], %{
+          "field" => series_field,
+          "type" => "nominal"
+        })
+      else
+        bar_layer
+      end
+
+    layers =
+      if y2_field && y2_field != "" do
+        line_layer = %{
+          "mark" => %{"type" => "line", "point" => true, "color" => "#f97316"},
+          "encoding" => %{
+            "x" => %{
+              "field" => x_field,
+              "type" =>
+                infer_type(x_field, %{
+                  columns: Map.keys(List.first(data) || %{}),
+                  rows: []
+                })
+            },
+            "y" => %{
+              "field" => y2_field,
+              "type" => "quantitative",
+              "axis" => %{"title" => y2_axis_title || y2_field}
+            }
+          }
+        }
+
+        [bar_layer, line_layer]
+      else
+        [bar_layer]
+      end
+
+    spec = %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{"values" => data},
+      "layer" => layers
+    }
+
+    if y2_field && y2_field != "" do
+      Map.put(spec, "resolve", %{"scale" => %{"y" => "independent"}})
+    else
+      spec
+    end
+  end
+
+  defp parse_number(nil, default), do: default
+  defp parse_number(val, _default) when is_number(val), do: val
+
+  defp parse_number(val, default) when is_binary(val) do
+    case Float.parse(val) do
+      {n, _} -> n
+      :error -> default
+    end
+  end
+
+  defp parse_number(_, default), do: default
+
+  defp format_display_value(value) when is_float(value) do
+    if value == Float.round(value) do
+      value |> round() |> Integer.to_string()
+    else
+      :erlang.float_to_binary(value, decimals: 1)
+    end
+  end
+
+  defp format_display_value(value) when is_integer(value), do: Integer.to_string(value)
+  defp format_display_value(value), do: to_string(value)
 
   # Infer field type based on sample data
   defp infer_type(field, %{columns: columns, rows: [_ | _] = rows}) do
