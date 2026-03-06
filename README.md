@@ -124,9 +124,9 @@ See the [variables and widgets guide](guides/variables-and-widgets.md) for advan
 
 ### AI Query Assistant
 
-Ask your database questions in plain English. The AI assistant discovers your schema, respects table visibility rules, and supports multi-turn conversations for iterative refinement — no other embeddable BI tool does this. Bring your own OpenAI, Anthropic, or Gemini API key. Open it with Cmd/Ctrl+K.
+Ask your database questions in plain English. The AI assistant discovers your schema, respects table visibility rules, and supports multi-turn conversations for iterative refinement — no other embeddable BI tool does this. Bring your own API key for any provider supported by [ReqLLM](https://github.com/agentjido/req_llm). Open it with Cmd/Ctrl+K.
 
-See the [AI assistant guide](guides/ai-assistant.md) for setup and provider options.
+See the [AI assistant guide](guides/ai-assistant.md) for setup and configuration.
 
 ### Multi-Database Support
 
@@ -282,7 +282,7 @@ mix test
 mix lotus.gen.dev.secret
 ```
 
-Edit `config/dev.secret.exs` with your API key, then restart the dev server. See the [AI assistant guide](guides/ai-assistant.md) for provider options.
+Edit `config/dev.secret.exs` with your API key and model, then restart the dev server. See the [AI assistant guide](guides/ai-assistant.md) for configuration.
 
 ## Contributing
 
