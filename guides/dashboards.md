@@ -139,7 +139,7 @@ Select any card to open the settings drawer on the right:
 - **Layout** - X, Y, Width, Height controls
 
 ### Query Card Settings
-- **Visualization** - Configure chart type and fields
+- **Visualization** - Configure chart type (16 types available) and fields directly from the card settings drawer
 - **Title Override** - Custom display name
 
 ### Text/Heading/Link Settings

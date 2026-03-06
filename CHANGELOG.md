@@ -4,6 +4,14 @@
 
 ### Added
 
+- **11 New Chart Types** - Expanded from 5 to 16 chart types organized into four categories
+  - **Charts**: Horizontal Bar (swapped axes), Combo (dual-axis bar+line with independent Y scales)
+  - **Distribution**: Bubble (scatter with size encoding), Histogram, Heatmap
+  - **Part of whole**: Donut (arc with inner radius), Funnel, Waterfall (stepped bar with running totals)
+  - **Single value**: KPI Card, Trend (KPI with delta comparison), Gauge (semicircular arc), Progress Bar, Sparkline
+  - New config options: `value_field`, `size_field`, `min_value`, `max_value`, `goal_value`, `comparison_field`, `y2_field`, `y2_axis_title`
+  - Chart type selector reorganized into grouped sections (Charts, Distribution, Part of whole, Single value)
+- **French Translations** - Added French translations for all new chart types and visualization settings
 - **Column Statistics Popover** - Click any column header in the results table to view computed statistics
   - Numeric columns show min, max, avg, median, sum, and a distribution histogram
   - String columns show distinct count, top values with frequency bars, and min/max length
@@ -25,6 +33,9 @@
 
 - Replaced drawer visibility booleans with a state machine (`left_drawer`, `right_drawer`, `modal` enums) for cleaner mutual exclusion
 - Extracted pure variable data-transformation logic into `QueryEditor.Variables` module
+- Extracted shared `chart_type_label/1` to `VegaSpecBuilder` — both `VisualizationSettingsComponent` and `CardSettingsDrawer` now delegate to it
+- `ResultsComponent` delegates to `VegaSpecBuilder.valid_config?/1` instead of duplicating validation logic
+- Reduced cyclomatic complexity in `VegaSpecBuilder` by extracting multi-head function clauses and helpers
 
 ## [0.13.1] - 2026-03-05
 

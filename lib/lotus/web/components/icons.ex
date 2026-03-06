@@ -473,6 +473,18 @@ defmodule Lotus.Web.Components.Icons do
 
   attr(:rest, :global)
 
+  def chart_horizontal_bar(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <rect x="5" y="5" width="12" height="4" rx="1" />
+      <rect x="5" y="13" width="8" height="4" rx="1" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
   def chart_combined(assigns) do
     ~H"""
     <.svg_outline {@rest}>
@@ -525,11 +537,153 @@ defmodule Lotus.Web.Components.Icons do
 
   attr(:rest, :global)
 
+  def chart_bubble(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.3" />
+      <circle cx="16" cy="6" r="2" fill="currentColor" opacity="0.3" />
+      <circle cx="12" cy="14" r="4" fill="currentColor" opacity="0.3" />
+      <circle cx="18" cy="16" r="2.5" fill="currentColor" opacity="0.3" />
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
   def chart_pie(assigns) do
     ~H"""
     <.svg_outline {@rest}>
       <path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z" />
       <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_donut(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M21 12a9 9 0 1 1-9-9" />
+      <path d="M21 12a9 9 0 0 0-9-9" />
+      <circle cx="12" cy="12" r="4" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_funnel(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 4h18l-3 5H6L3 4Z" />
+      <path d="M6 9h12l-2.5 4H8.5L6 9Z" />
+      <path d="M8.5 13h7l-2 4h-3l-2-4Z" />
+      <path d="M10.5 17h3v3h-3v-3Z" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_heatmap(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="3" y="3" width="5" height="5" rx="0.5" opacity="0.3" />
+      <rect x="9.5" y="3" width="5" height="5" rx="0.5" opacity="0.7" />
+      <rect x="16" y="3" width="5" height="5" rx="0.5" opacity="1.0" />
+      <rect x="3" y="9.5" width="5" height="5" rx="0.5" opacity="0.6" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="0.5" opacity="0.4" />
+      <rect x="16" y="9.5" width="5" height="5" rx="0.5" opacity="0.8" />
+      <rect x="3" y="16" width="5" height="5" rx="0.5" opacity="0.9" />
+      <rect x="9.5" y="16" width="5" height="5" rx="0.5" opacity="0.5" />
+      <rect x="16" y="16" width="5" height="5" rx="0.5" opacity="0.2" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_histogram(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <rect x="6" y="14" width="3" height="3" rx="0.5" />
+      <rect x="9" y="10" width="3" height="7" rx="0.5" />
+      <rect x="12" y="6" width="3" height="11" rx="0.5" />
+      <rect x="15" y="9" width="3" height="8" rx="0.5" />
+      <rect x="18" y="13" width="3" height="4" rx="0.5" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_waterfall(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <rect x="6" y="5" width="3" height="6" rx="0.5" />
+      <rect x="10" y="8" width="3" height="5" rx="0.5" />
+      <rect x="14" y="11" width="3" height="3" rx="0.5" />
+      <rect x="18" y="6" width="3" height="11" rx="0.5" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_gauge(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M5.636 18.364A9 9 0 1 1 18.364 5.636" />
+      <path d="M12 12l4-6" stroke-linecap="round" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_progress(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="3" y="9" width="18" height="6" rx="3" opacity="0.3" />
+      <rect x="3" y="9" width="12" height="6" rx="3" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_trend(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="2" y="3" width="20" height="18" rx="2" />
+      <text x="12" y="13" text-anchor="middle" font-size="8" font-weight="bold" fill="currentColor" stroke="none">42</text>
+      <path d="M10 16l2-2 2 2" stroke-linecap="round" stroke-linejoin="round" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_kpi(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <rect x="2" y="3" width="20" height="18" rx="2" />
+      <text x="12" y="15" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor" stroke="none">42</text>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
+  def chart_sparkline(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="M3 17l3-4 3 2 4-8 4 5 4-3" stroke-linecap="round" stroke-linejoin="round" />
     </.svg_outline>
     """
   end

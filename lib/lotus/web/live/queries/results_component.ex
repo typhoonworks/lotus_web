@@ -306,15 +306,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     """
   end
 
-  defp has_valid_config?(nil), do: false
-
-  defp has_valid_config?(config) when is_map(config) do
-    Map.has_key?(config, "chart_type") and
-      Map.has_key?(config, "x_field") and
-      Map.has_key?(config, "y_field")
-  end
-
-  defp has_valid_config?(_), do: false
+  defp has_valid_config?(config), do: VegaSpecBuilder.valid_config?(config)
 
   defp info_text(%{num_rows: n, duration_ms: ms, meta: meta}) do
     {range_text, total_text} =

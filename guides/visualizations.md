@@ -6,39 +6,45 @@ LotusWeb includes built-in charting capabilities to visualize your query results
 
 After running a query, you can switch between table and chart views to visualize your data:
 
-- **5 chart types** - Bar, Line, Area, Scatter, and Pie charts
-- **Flexible configuration** - Configure axes and grouping fields
+- **16 chart types** across four categories — Charts, Distribution, Part of whole, and Single value
+- **Flexible configuration** - Configure axes, grouping fields, and type-specific options
 - **Dark mode support** - Charts automatically adapt to your theme
 - **Keyboard shortcuts** - Quick access to visualization features
 
 ## Chart Types
 
-### Bar Chart
+Chart types are organized into four categories in the settings panel.
+
+### Charts
+
+#### Bar Chart
 
 Best for comparing categorical data with discrete values.
 
-**When to use:**
-- Comparing values across categories (e.g., sales by region)
-- Displaying counts or totals for different groups
-- Showing rankings or relative sizes
+**When to use:** Comparing values across categories (e.g., sales by region), displaying counts or totals, showing rankings.
 
-**Example query:**
+**Config:** X-Axis Field, Y-Axis Field, optional Color/Series Field.
+
 ```sql
 SELECT department, COUNT(*) as employee_count
 FROM employees
 GROUP BY department;
 ```
 
-### Line Chart
+#### Horizontal Bar
+
+Same as bar chart but with swapped axes — the category field is on the Y-axis and the value field on the X-axis. Useful for long category labels.
+
+**Config:** X-Axis Field (value), Y-Axis Field (category), optional Color/Series Field.
+
+#### Line Chart
 
 Best for showing trends and changes over time.
 
-**When to use:**
-- Tracking metrics over time (e.g., daily active users)
-- Showing continuous data with a natural order
-- Comparing multiple series over the same time period
+**When to use:** Tracking metrics over time, showing continuous data, comparing multiple series.
 
-**Example query:**
+**Config:** X-Axis Field (typically a date), Y-Axis Field, optional Color/Series Field.
+
 ```sql
 SELECT DATE(created_at) as date, COUNT(*) as signups
 FROM users
@@ -47,16 +53,12 @@ GROUP BY DATE(created_at)
 ORDER BY date;
 ```
 
-### Area Chart
+#### Area Chart
 
-Best for showing cumulative totals or volume over time.
+Best for showing cumulative totals or volume over time. Like line chart but with filled area.
 
-**When to use:**
-- Emphasizing the magnitude of change over time
-- Showing stacked comparisons across categories
-- Visualizing cumulative growth
+**Config:** X-Axis Field, Y-Axis Field, optional Color/Series Field.
 
-**Example query:**
 ```sql
 SELECT DATE(order_date) as date, SUM(amount) as revenue
 FROM orders
@@ -64,39 +66,169 @@ GROUP BY DATE(order_date)
 ORDER BY date;
 ```
 
-### Scatter Plot
+#### Combo Chart
+
+Dual-axis chart combining bars and a line with independent Y scales. Useful for overlaying two related metrics with different units.
+
+**Config:** X-Axis Field, Y-Axis Field (bars), Y2 Field (line), optional Y2 Axis Title.
+
+```sql
+SELECT DATE(order_date) as date,
+       COUNT(*) as order_count,
+       SUM(amount) as revenue
+FROM orders
+GROUP BY DATE(order_date)
+ORDER BY date;
+```
+Set X-Axis to `date`, Y-Axis to `order_count`, and Y2 Field to `revenue`.
+
+### Distribution
+
+#### Scatter Plot
 
 Best for exploring relationships between two numeric variables.
 
-**When to use:**
-- Finding correlations between two metrics
-- Identifying outliers in your data
-- Analyzing distribution patterns
+**Config:** X-Axis Field, Y-Axis Field, optional Color/Series Field.
 
-**Example query:**
 ```sql
 SELECT price, quantity_sold
 FROM products
 WHERE quantity_sold > 0;
 ```
 
-### Pie Chart
+#### Bubble Chart
 
-Best for showing proportions of a whole. Use sparingly.
+Extends scatter with a third dimension — circle size varies by a numeric field.
 
-**When to use:**
-- Displaying market share or percentage breakdowns
-- Showing simple part-to-whole relationships
-- When you have 5 or fewer categories
+**Config:** X-Axis Field, Y-Axis Field, Size Field, optional Color/Series Field.
 
-**Example query:**
+```sql
+SELECT price, quantity_sold, revenue
+FROM products
+WHERE quantity_sold > 0;
+```
+Set Size Field to `revenue` to make bubble size proportional to revenue.
+
+#### Histogram
+
+Shows the distribution of a single numeric variable as binned bars.
+
+**Config:** X-Axis Field (the numeric field to bin).
+
+```sql
+SELECT salary FROM employees;
+```
+
+#### Heatmap
+
+Color-encoded matrix showing the relationship between two categorical or ordinal fields.
+
+**Config:** X-Axis Field, Y-Axis Field, Color/Series Field (the value to encode as color intensity).
+
+```sql
+SELECT day_of_week, hour_of_day, COUNT(*) as events
+FROM activity_log
+GROUP BY day_of_week, hour_of_day;
+```
+
+### Part of whole
+
+#### Pie Chart
+
+Shows proportions of a whole. Use sparingly — best with 5 or fewer categories.
+
+**Config:** X-Axis Field (category), Y-Axis Field (value).
+
 ```sql
 SELECT status, COUNT(*) as count
 FROM orders
 GROUP BY status;
 ```
 
-**Note:** Pie charts become hard to read with many categories. Consider using a bar chart instead for more than 5-6 categories.
+#### Donut Chart
+
+Same as pie chart but with a hollow center. Uses the same configuration.
+
+**Config:** X-Axis Field (category), Y-Axis Field (value).
+
+#### Funnel Chart
+
+Shows sequential stages with decreasing values — useful for conversion funnels.
+
+**Config:** X-Axis Field (stage name), Y-Axis Field (value).
+
+```sql
+SELECT stage, user_count
+FROM conversion_funnel
+ORDER BY step_order;
+```
+
+#### Waterfall Chart
+
+Stepped bar chart showing how an initial value is affected by a series of positive or negative changes, with a running total.
+
+**Config:** X-Axis Field (category), Y-Axis Field (value).
+
+```sql
+SELECT category, amount
+FROM budget_changes
+ORDER BY display_order;
+```
+
+### Single value
+
+These chart types use a **Value Field** instead of X/Y axes. They display a single metric prominently.
+
+#### KPI Card
+
+Displays a single number prominently — ideal for dashboard headline metrics.
+
+**Config:** Value Field.
+
+```sql
+SELECT COUNT(*) as total_users FROM users;
+```
+
+#### Trend
+
+KPI-style display with a delta comparison showing change vs. a previous period or comparison field.
+
+**Config:** Value Field, optional Comparison Field.
+
+```sql
+SELECT
+  SUM(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '7 days' THEN 1 ELSE 0 END) as this_week,
+  SUM(CASE WHEN created_at < CURRENT_DATE - INTERVAL '7 days'
+           AND created_at >= CURRENT_DATE - INTERVAL '14 days' THEN 1 ELSE 0 END) as last_week
+FROM orders;
+```
+Set Value Field to `this_week` and Comparison Field to `last_week`.
+
+#### Gauge
+
+Semicircular arc showing a value within a defined range.
+
+**Config:** Value Field, Min Value (default 0), Max Value (default 100).
+
+```sql
+SELECT AVG(score) as avg_score FROM reviews;
+```
+
+#### Progress Bar
+
+Horizontal bar showing progress toward a goal.
+
+**Config:** Value Field, Goal Value.
+
+```sql
+SELECT COUNT(*) as completed FROM tasks WHERE status = 'done';
+```
+
+#### Sparkline
+
+Compact inline line chart — useful in dashboards for showing trends without axis labels.
+
+**Config:** X-Axis Field (typically a date), Value Field.
 
 ## Configuring Charts
 
@@ -108,11 +240,13 @@ Access visualization settings in two ways:
 
 ### Chart Type Tab
 
-The first tab displays all 5 chart types as icon buttons. Click any icon to select that chart type.
+The first tab displays all 16 chart types organized into four groups: Charts, Distribution, Part of whole, and Single value. Click any icon to select that chart type.
 
 ### Configure Tab
 
-The second tab contains the field configuration:
+The second tab shows configuration fields that vary by chart type:
+
+**Standard charts** (bar, horizontal bar, line, area, scatter, heatmap, pie, donut, funnel, waterfall):
 
 | Setting | Description | Required |
 |---------|-------------|----------|
@@ -120,9 +254,35 @@ The second tab contains the field configuration:
 | **Y-Axis Field** | The field for the vertical axis (should be numeric) | Yes |
 | **Color/Series Field** | Optional field to group data by color | No |
 
+**Bubble chart** adds:
+
+| Setting | Description | Required |
+|---------|-------------|----------|
+| **Size Field** | Numeric field controlling circle size | No |
+
+**Combo chart** adds:
+
+| Setting | Description | Required |
+|---------|-------------|----------|
+| **Y2 Field** | Field for the secondary Y-axis (line) | Yes |
+| **Y2 Axis Title** | Custom label for the secondary axis | No |
+
+**Histogram** requires only the X-Axis Field (the numeric field to bin).
+
+**Single value charts** (KPI, trend, gauge, progress):
+
+| Setting | Description | Required |
+|---------|-------------|----------|
+| **Value Field** | The numeric field to display | Yes |
+| **Comparison Field** | Field to compare against (trend only) | No |
+| **Min Value / Max Value** | Range for gauge display | No |
+| **Goal Value** | Target value for progress bar | No |
+
+**Sparkline** uses X-Axis Field and Value Field.
+
 ### Axis Options
 
-Fine-tune your chart display:
+Fine-tune your chart display (available on cartesian chart types):
 
 - **Show Labels** - Toggle axis labels on/off
 - **X-Axis Title** - Custom label for the horizontal axis
@@ -148,10 +308,19 @@ A status indicator shows whether your chart is ready:
 
 | Data Type | Recommended Chart |
 |-----------|-------------------|
-| Categories with values | Bar chart |
-| Time series data | Line or Area chart |
-| Two numeric variables | Scatter plot |
-| Simple proportions (≤5 items) | Pie chart |
+| Categories with values | Bar or Horizontal Bar |
+| Time series data | Line, Area, or Sparkline |
+| Two metrics, different scales | Combo chart |
+| Two numeric variables | Scatter or Bubble |
+| Distribution of a variable | Histogram |
+| Two-dimensional density | Heatmap |
+| Simple proportions (≤5 items) | Pie or Donut |
+| Sequential stages / conversion | Funnel |
+| Running totals / changes | Waterfall |
+| Single headline metric | KPI Card |
+| Metric with period comparison | Trend |
+| Value within a range | Gauge |
+| Progress toward a goal | Progress Bar |
 
 ### Preparing Your Data
 

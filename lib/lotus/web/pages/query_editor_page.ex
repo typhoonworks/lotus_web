@@ -628,7 +628,10 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("select_chart_type", %{"type" => chart_type}, socket) do
-    config = Map.put(socket.assigns.visualization_config || %{}, "chart_type", chart_type)
+    # Reset to a clean config with only chart_type to prevent stale fields
+    # from a previous type leaking through (e.g. KPI's value_field surviving
+    # a switch to bar chart).
+    config = %{"chart_type" => chart_type}
 
     socket =
       socket
@@ -648,6 +651,16 @@ defmodule Lotus.Web.QueryEditorPage do
       |> maybe_put_config("x_field", params["x_field"])
       |> maybe_put_config("y_field", params["y_field"])
       |> put_or_remove_config("series_field", params["series_field"])
+      |> maybe_put_config("value_field", params["value_field"])
+      |> put_or_remove_config("kpi_label", params["kpi_label"])
+      |> maybe_put_config("bin_count", params["bin_count"])
+      |> put_or_remove_config("size_field", params["size_field"])
+      |> put_or_remove_config("min_value", params["min_value"])
+      |> put_or_remove_config("max_value", params["max_value"])
+      |> put_or_remove_config("goal_value", params["goal_value"])
+      |> put_or_remove_config("comparison_field", params["comparison_field"])
+      |> put_or_remove_config("y2_field", params["y2_field"])
+      |> put_or_remove_config("y2_axis_title", params["y2_axis_title"])
       |> maybe_put_axis_config(params)
 
     socket =
@@ -1490,15 +1503,7 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp has_valid_config?(nil), do: false
-
-  defp has_valid_config?(config) when is_map(config) do
-    Map.has_key?(config, "chart_type") &&
-      Map.has_key?(config, "x_field") && config["x_field"] != "" &&
-      Map.has_key?(config, "y_field") && config["y_field"] != ""
-  end
-
-  defp has_valid_config?(_), do: false
+  defp has_valid_config?(config), do: VegaSpecBuilder.valid_config?(config)
 
   defp maybe_put_config(map, _key, nil), do: map
   defp maybe_put_config(map, _key, ""), do: map
