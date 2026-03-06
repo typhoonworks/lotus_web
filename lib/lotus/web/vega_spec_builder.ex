@@ -168,12 +168,13 @@ defmodule Lotus.Web.VegaSpecBuilder do
   defp chart_mark("area"), do: %{"type" => "area", "line" => true}
   defp chart_mark("scatter"), do: %{"type" => "point"}
   defp chart_mark("pie"), do: %{"type" => "arc"}
+  defp chart_mark("donut"), do: %{"type" => "arc", "innerRadius" => 50}
   defp chart_mark(_), do: %{"type" => "bar"}
 
   defp build_encoding(config, result) do
     chart_type = config["chart_type"]
 
-    if chart_type == "pie" do
+    if chart_type in ~w(pie donut) do
       build_pie_encoding(config, result)
     else
       build_cartesian_encoding(config, result)

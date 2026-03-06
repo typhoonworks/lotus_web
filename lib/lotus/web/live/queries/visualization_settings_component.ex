@@ -186,6 +186,12 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
     """
   end
 
+  defp chart_icon(%{type: "donut"} = assigns) do
+    ~H"""
+    <Icons.chart_donut class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
   defp chart_icon(%{type: "funnel"} = assigns) do
     ~H"""
     <Icons.chart_funnel class={["h-6 w-6 mb-1", icon_color(@selected)]} />
@@ -505,8 +511,8 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
       </p>
     </div>
 
-    <%!-- Axis display options (only for cartesian charts, not sparkline/pie/heatmap) --%>
-    <%= if @config && @chart_type in ~w(bar line area scatter) do %>
+    <%!-- Axis display options (only for cartesian charts) --%>
+    <%= if @config && @chart_type in ~w(bar line area scatter horizontal_bar) do %>
       <.axis_display_options config={@config} />
     <% end %>
     """
