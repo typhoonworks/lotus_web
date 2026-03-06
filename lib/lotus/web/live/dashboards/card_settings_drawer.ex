@@ -6,6 +6,8 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
 
   use Lotus.Web, :live_component
 
+  alias Lotus.Web.VegaSpecBuilder
+
   @impl Phoenix.LiveComponent
   def mount(socket) do
     {:ok,
@@ -169,14 +171,17 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
   end
 
   defp visualization_section(assigns) do
-    config = assigns.card.visualization_config || %{}
+    config = stringify_config(assigns.card.visualization_config || %{})
 
     assigns =
       assign(assigns,
-        chart_type: Map.get(config, "chart_type", Map.get(config, :chart_type)),
-        x_field: Map.get(config, "x_field", Map.get(config, :x_field)),
-        y_field: Map.get(config, "y_field", Map.get(config, :y_field)),
-        series_field: Map.get(config, "series_field", Map.get(config, :series_field))
+        chart_type: config["chart_type"],
+        x_field: config["x_field"],
+        y_field: config["y_field"],
+        series_field: config["series_field"],
+        value_field: config["value_field"],
+        kpi_label: config["kpi_label"] || "",
+        bin_count: config["bin_count"] || "10"
       )
 
     ~H"""
@@ -197,59 +202,104 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
               class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
             >
               <option value=""><%= gettext("Table (default)") %></option>
-              <option value="bar" selected={@chart_type == "bar"}><%= gettext("Bar Chart") %></option>
-              <option value="line" selected={@chart_type == "line"}><%= gettext("Line Chart") %></option>
-              <option value="area" selected={@chart_type == "area"}><%= gettext("Area Chart") %></option>
-              <option value="scatter" selected={@chart_type == "scatter"}><%= gettext("Scatter Plot") %></option>
-              <option value="pie" selected={@chart_type == "pie"}><%= gettext("Pie Chart") %></option>
+              <option :for={type <- VegaSpecBuilder.chart_type_ids()} value={type} selected={@chart_type == type}>
+                <%= chart_type_label(type) %>
+              </option>
             </select>
           </div>
 
-          <%= if @chart_type do %>
+          <%= if @chart_type == "kpi" do %>
             <div>
               <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                <%= gettext("X-Axis Field") %>
+                <%= gettext("Value Field") %>
               </label>
               <select
-                name="visualization[x_field]"
+                name="visualization[value_field]"
                 class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
               >
                 <option value=""><%= gettext("Select field...") %></option>
                 <%= for col <- @columns do %>
-                  <option value={col} selected={@x_field == col}><%= col %></option>
+                  <option value={col} selected={@value_field == col}><%= col %></option>
                 <% end %>
               </select>
             </div>
-
             <div>
               <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                <%= gettext("Y-Axis Field") %>
+                <%= gettext("Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
               </label>
-              <select
-                name="visualization[y_field]"
+              <input
+                type="text"
+                name="visualization[kpi_label]"
+                value={@kpi_label}
+                placeholder={gettext("e.g. Total Orders")}
                 class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
-              >
-                <option value=""><%= gettext("Select field...") %></option>
-                <%= for col <- @columns do %>
-                  <option value={col} selected={@y_field == col}><%= col %></option>
-                <% end %>
-              </select>
+              />
             </div>
+          <% else %>
+            <%= if @chart_type do %>
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <%= if @chart_type == "histogram", do: gettext("Data Field"), else: gettext("X-Axis Field") %>
+                </label>
+                <select
+                  name="visualization[x_field]"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value=""><%= gettext("Select field...") %></option>
+                  <%= for col <- @columns do %>
+                    <option value={col} selected={@x_field == col}><%= col %></option>
+                  <% end %>
+                </select>
+              </div>
 
-            <div>
-              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                <%= gettext("Color/Series Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
-              </label>
-              <select
-                name="visualization[series_field]"
-                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
-              >
-                <option value=""><%= gettext("None") %></option>
-                <%= for col <- @columns do %>
-                  <option value={col} selected={@series_field == col}><%= col %></option>
-                <% end %>
-              </select>
-            </div>
+              <%= if @chart_type != "histogram" do %>
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <%= gettext("Y-Axis Field") %>
+                  </label>
+                  <select
+                    name="visualization[y_field]"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                  >
+                    <option value=""><%= gettext("Select field...") %></option>
+                    <%= for col <- @columns do %>
+                      <option value={col} selected={@y_field == col}><%= col %></option>
+                    <% end %>
+                  </select>
+                </div>
+              <% end %>
+
+              <%= if @chart_type == "histogram" do %>
+                <div>
+                  <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <%= gettext("Number of Bins") %>
+                  </label>
+                  <input
+                    type="number"
+                    name="visualization[bin_count]"
+                    value={@bin_count}
+                    min="2"
+                    max="100"
+                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                  />
+                </div>
+              <% end %>
+
+              <div>
+                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <%= gettext("Color/Series Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+                </label>
+                <select
+                  name="visualization[series_field]"
+                  class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value=""><%= gettext("None") %></option>
+                  <%= for col <- @columns do %>
+                    <option value={col} selected={@series_field == col}><%= col %></option>
+                  <% end %>
+                </select>
+              </div>
+            <% end %>
           <% end %>
         </div>
       </form>
@@ -401,6 +451,15 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
   defp default_title(%{card_type: :heading}), do: gettext("Heading")
   defp default_title(%{card_type: :link}), do: gettext("Link")
   defp default_title(_), do: gettext("Card")
+
+  defp stringify_config(config) when is_map(config) do
+    Map.new(config, fn
+      {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+      {k, v} -> {k, v}
+    end)
+  end
+
+  defp chart_type_label(type), do: VegaSpecBuilder.chart_type_label(type)
 
   @impl Phoenix.LiveComponent
   def update(params, socket) do

@@ -5,6 +5,8 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
   """
   use Lotus.Web, :live_component
 
+  alias Lotus.Web.VegaSpecBuilder
+
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
@@ -93,17 +95,22 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
   attr(:config, :map, default: nil)
 
   defp chart_type_grid(assigns) do
+    selected_type = get_chart_type(assigns.config)
+    assigns = assign(assigns, :selected_type, selected_type)
+
     ~H"""
     <div class="p-4">
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
         <%= gettext("Choose a chart type to visualize your data.") %>
       </p>
       <div class="grid grid-cols-2 gap-2">
-        <.chart_type_option type="bar" label={gettext("Bar")} parent={@parent} selected={get_chart_type(@config) == "bar"} />
-        <.chart_type_option type="line" label={gettext("Line")} parent={@parent} selected={get_chart_type(@config) == "line"} />
-        <.chart_type_option type="area" label={gettext("Area")} parent={@parent} selected={get_chart_type(@config) == "area"} />
-        <.chart_type_option type="scatter" label={gettext("Scatter")} parent={@parent} selected={get_chart_type(@config) == "scatter"} />
-        <.chart_type_option type="pie" label={gettext("Pie")} parent={@parent} selected={get_chart_type(@config) == "pie"} />
+        <.chart_type_option
+          :for={type <- VegaSpecBuilder.chart_type_ids()}
+          type={type}
+          label={chart_type_label(type)}
+          parent={@parent}
+          selected={@selected_type == type}
+        />
       </div>
     </div>
     """
@@ -174,6 +181,42 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
     """
   end
 
+  defp chart_icon(%{type: "funnel"} = assigns) do
+    ~H"""
+    <Icons.chart_funnel class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "heatmap"} = assigns) do
+    ~H"""
+    <Icons.chart_heatmap class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "histogram"} = assigns) do
+    ~H"""
+    <Icons.chart_histogram class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "kpi"} = assigns) do
+    ~H"""
+    <Icons.chart_kpi class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(%{type: "sparkline"} = assigns) do
+    ~H"""
+    <Icons.chart_sparkline class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
+  defp chart_icon(assigns) do
+    ~H"""
+    <Icons.chart_bar class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
   defp icon_color(true), do: "text-pink-500 dark:text-pink-400"
   defp icon_color(false), do: "text-gray-400 dark:text-gray-500"
 
@@ -182,6 +225,9 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
   attr(:columns, :list, default: [])
 
   defp config_panel(assigns) do
+    chart_type = get_chart_type(assigns.config)
+    assigns = assign(assigns, :chart_type, chart_type)
+
     ~H"""
     <div class="p-4 space-y-4">
       <%!-- Current chart type indicator --%>
@@ -190,7 +236,7 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
           <div class="flex items-center gap-2">
             <.chart_icon type={@config["chart_type"] || "bar"} selected={true} />
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
-              <%= @config["chart_type"] || gettext("Bar") %> <%= gettext("Chart") %>
+              <%= chart_type_label(@config["chart_type"]) %>
             </span>
           </div>
           <button
@@ -208,176 +254,393 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
       <%!-- Field selectors wrapped in form --%>
       <form phx-change="update_visualization_config" phx-target={@parent}>
         <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <%= gettext("X-Axis Field") %>
-            </label>
-            <select
-              name="x_field"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
-            >
-              <option value=""><%= gettext("Select field...") %></option>
-              <%= for col <- @columns do %>
-                <option value={col} selected={@config && @config["x_field"] == col}><%= col %></option>
-              <% end %>
-            </select>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              <%= gettext("The field to use for the horizontal axis") %>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <%= gettext("Y-Axis Field") %>
-            </label>
-            <select
-              name="y_field"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
-            >
-              <option value=""><%= gettext("Select field...") %></option>
-              <%= for col <- @columns do %>
-                <option value={col} selected={@config && @config["y_field"] == col}><%= col %></option>
-              <% end %>
-            </select>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              <%= gettext("The field to use for the vertical axis (should be numeric)") %>
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              <%= gettext("Color/Series Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
-            </label>
-            <select
-              name="series_field"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
-            >
-              <option value=""><%= gettext("None") %></option>
-              <%= for col <- @columns do %>
-                <option value={col} selected={@config && @config["series_field"] == col}><%= col %></option>
-              <% end %>
-            </select>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              <%= gettext("Group data by this field using different colors") %>
-            </p>
-          </div>
-
-          <%!-- Axis display options (only for cartesian charts) --%>
-          <%= if @config && @config["chart_type"] != "pie" do %>
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-600">
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                <%= gettext("Axis Display") %>
-              </h4>
-
-              <%!-- X-Axis options --%>
-              <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  <%= gettext("X-Axis") %>
-                </span>
-                <div class="mt-2 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label for="x_axis_show_label" class="text-sm text-gray-700 dark:text-gray-300">
-                      <%= gettext("Show label") %>
-                    </label>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="x_axis_show_label"
-                        id="x_axis_show_label"
-                        value="true"
-                        checked={Map.get(@config, "x_axis_show_label", true)}
-                        class="sr-only peer"
-                      />
-                      <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-pink-500"></div>
-                    </label>
-                  </div>
-                  <div>
-                    <label for="x_axis_title" class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      <%= gettext("Label") %>
-                    </label>
-                    <input
-                      type="text"
-                      name="x_axis_title"
-                      id="x_axis_title"
-                      value={Map.get(@config, "x_axis_title", @config["x_field"] || "")}
-                      placeholder={@config["x_field"] || gettext("Enter label...")}
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <%!-- Y-Axis options --%>
-              <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
-                <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  <%= gettext("Y-Axis") %>
-                </span>
-                <div class="mt-2 space-y-2">
-                  <div class="flex items-center justify-between">
-                    <label for="y_axis_show_label" class="text-sm text-gray-700 dark:text-gray-300">
-                      <%= gettext("Show label") %>
-                    </label>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="y_axis_show_label"
-                        id="y_axis_show_label"
-                        value="true"
-                        checked={Map.get(@config, "y_axis_show_label", true)}
-                        class="sr-only peer"
-                      />
-                      <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-pink-500"></div>
-                    </label>
-                  </div>
-                  <div>
-                    <label for="y_axis_title" class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
-                      <%= gettext("Label") %>
-                    </label>
-                    <input
-                      type="text"
-                      name="y_axis_title"
-                      id="y_axis_title"
-                      value={Map.get(@config, "y_axis_title", @config["y_field"] || "")}
-                      placeholder={@config["y_field"] || gettext("Enter label...")}
-                      class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+          <%= case @chart_type do %>
+            <% "kpi" -> %>
+              <.kpi_fields config={@config} columns={@columns} />
+            <% "histogram" -> %>
+              <.histogram_fields config={@config} columns={@columns} />
+            <% "heatmap" -> %>
+              <.heatmap_fields config={@config} columns={@columns} />
+            <% _ -> %>
+              <.standard_fields config={@config} columns={@columns} chart_type={@chart_type} />
           <% end %>
         </div>
       </form>
 
       <%!-- Config preview --%>
-      <%= if @config && Map.get(@config, "x_field") && Map.get(@config, "y_field") do %>
-        <div class="mt-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-          <div class="flex items-center gap-2">
-            <Icons.check class="h-4 w-4 text-green-600 dark:text-green-400" />
-            <span class="text-sm font-medium text-green-700 dark:text-green-400">
-              <%= gettext("Visualization configured") %>
-            </span>
-          </div>
-          <p class="mt-1 text-xs text-green-600 dark:text-green-500">
-            <%= gettext("Use the chart icon in the bottom bar to view.") %>
-          </p>
-        </div>
-      <% else %>
-        <div class="mt-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
-          <div class="flex items-center gap-2">
-            <Icons.exclamation_triangle class="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <span class="text-sm font-medium text-amber-700 dark:text-amber-400">
-              <%= gettext("Configuration incomplete") %>
-            </span>
-          </div>
-          <p class="mt-1 text-xs text-amber-600 dark:text-amber-500">
-            <%= gettext("Select both X-Axis and Y-Axis fields to enable the chart view.") %>
-          </p>
-        </div>
-      <% end %>
+      <.config_status config={@config} chart_type={@chart_type} />
     </div>
     """
   end
+
+  defp chart_type_label(type), do: VegaSpecBuilder.chart_type_label(type)
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp kpi_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Value Field") %>
+      </label>
+      <select
+        name="value_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["value_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The numeric field to display as a big number") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Label") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <input
+        type="text"
+        name="kpi_label"
+        value={@config && @config["kpi_label"]}
+        placeholder={gettext("e.g. Total Orders")}
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Custom text displayed below the number") %>
+      </p>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp histogram_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Data Field") %>
+      </label>
+      <select
+        name="x_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["x_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The numeric field to compute frequency distribution for") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Number of Bins") %>
+      </label>
+      <input
+        type="number"
+        name="bin_count"
+        value={Map.get(@config || %{}, "bin_count", "10")}
+        min="2"
+        max="100"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      />
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Maximum number of bins for the distribution (default: 10)") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Color/Series Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <select
+        name="series_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("None") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["series_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Group data by this field using different colors") %>
+      </p>
+    </div>
+
+    <%!-- Axis display options --%>
+    <.axis_display_options config={@config} />
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+
+  defp heatmap_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Column Field") %>
+      </label>
+      <select
+        name="x_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["x_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The categorical field for columns (X-axis)") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Row Field") %>
+      </label>
+      <select
+        name="y_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["y_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The categorical field for rows (Y-axis)") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Value Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <select
+        name="series_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("None (use Row Field)") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["series_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The numeric field for color intensity") %>
+      </p>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:columns, :list, required: true)
+  attr(:chart_type, :string, default: nil)
+
+  defp standard_fields(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("X-Axis Field") %>
+      </label>
+      <select
+        name="x_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["x_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The field to use for the horizontal axis") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Y-Axis Field") %>
+      </label>
+      <select
+        name="y_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("Select field...") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["y_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("The field to use for the vertical axis (should be numeric)") %>
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <%= gettext("Color/Series Field") %> <span class="text-gray-400">(<%= gettext("optional") %>)</span>
+      </label>
+      <select
+        name="series_field"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+      >
+        <option value=""><%= gettext("None") %></option>
+        <%= for col <- @columns do %>
+          <option value={col} selected={@config && @config["series_field"] == col}><%= col %></option>
+        <% end %>
+      </select>
+      <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+        <%= gettext("Group data by this field using different colors") %>
+      </p>
+    </div>
+
+    <%!-- Axis display options (only for cartesian charts, not sparkline/pie/heatmap) --%>
+    <%= if @config && @chart_type in ~w(bar line area scatter) do %>
+      <.axis_display_options config={@config} />
+    <% end %>
+    """
+  end
+
+  attr(:config, :map, required: true)
+
+  defp axis_display_options(assigns) do
+    ~H"""
+    <div class="pt-4 border-t border-gray-200 dark:border-gray-600">
+      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <%= gettext("Axis Display") %>
+      </h4>
+
+      <%!-- X-Axis options --%>
+      <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <%= gettext("X-Axis") %>
+        </span>
+        <div class="mt-2 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="x_axis_show_label" class="text-sm text-gray-700 dark:text-gray-300">
+              <%= gettext("Show label") %>
+            </label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="x_axis_show_label"
+                id="x_axis_show_label"
+                value="true"
+                checked={Map.get(@config, "x_axis_show_label", true)}
+                class="sr-only peer"
+              />
+              <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-pink-500"></div>
+            </label>
+          </div>
+          <div>
+            <label for="x_axis_title" class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Label") %>
+            </label>
+            <input
+              type="text"
+              name="x_axis_title"
+              id="x_axis_title"
+              value={Map.get(@config, "x_axis_title", @config["x_field"] || "")}
+              placeholder={@config["x_field"] || gettext("Enter label...")}
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <%!-- Y-Axis options --%>
+      <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+          <%= gettext("Y-Axis") %>
+        </span>
+        <div class="mt-2 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="y_axis_show_label" class="text-sm text-gray-700 dark:text-gray-300">
+              <%= gettext("Show label") %>
+            </label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="y_axis_show_label"
+                id="y_axis_show_label"
+                value="true"
+                checked={Map.get(@config, "y_axis_show_label", true)}
+                class="sr-only peer"
+              />
+              <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-pink-500"></div>
+            </label>
+          </div>
+          <div>
+            <label for="y_axis_title" class="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Label") %>
+            </label>
+            <input
+              type="text"
+              name="y_axis_title"
+              id="y_axis_title"
+              value={Map.get(@config, "y_axis_title", @config["y_field"] || "")}
+              placeholder={@config["y_field"] || gettext("Enter label...")}
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr(:config, :map, required: true)
+  attr(:chart_type, :string, default: nil)
+
+  defp config_status(assigns) do
+    configured = VegaSpecBuilder.valid_config?(assigns.config)
+    assigns = assign(assigns, :configured, configured)
+
+    ~H"""
+    <%= if @configured do %>
+      <div class="mt-6 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+        <div class="flex items-center gap-2">
+          <Icons.check class="h-4 w-4 text-green-600 dark:text-green-400" />
+          <span class="text-sm font-medium text-green-700 dark:text-green-400">
+            <%= gettext("Visualization configured") %>
+          </span>
+        </div>
+        <p class="mt-1 text-xs text-green-600 dark:text-green-500">
+          <%= gettext("Use the chart icon in the bottom bar to view.") %>
+        </p>
+      </div>
+    <% else %>
+      <div class="mt-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+        <div class="flex items-center gap-2">
+          <Icons.exclamation_triangle class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <span class="text-sm font-medium text-amber-700 dark:text-amber-400">
+            <%= gettext("Configuration incomplete") %>
+          </span>
+        </div>
+        <p class="mt-1 text-xs text-amber-600 dark:text-amber-500">
+          <%= config_incomplete_hint(@chart_type) %>
+        </p>
+      </div>
+    <% end %>
+    """
+  end
+
+  defp config_incomplete_hint("kpi"), do: gettext("Select a Value Field to display the KPI card.")
+
+  defp config_incomplete_hint("histogram"),
+    do: gettext("Select a Data Field to show the histogram.")
+
+  defp config_incomplete_hint("heatmap"),
+    do: gettext("Select Column and Row fields to enable the heatmap.")
+
+  defp config_incomplete_hint(_),
+    do: gettext("Select both X-Axis and Y-Axis fields to enable the chart view.")
 
   @impl Phoenix.LiveComponent
   def mount(socket) do
