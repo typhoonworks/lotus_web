@@ -308,4 +308,13 @@ ORDER BY product_count DESC
 - **Live preview**: Shows how options will appear in the dropdown
 - **Error handling**: Clear error messages for invalid queries or syntax
 
+## Variables on Dashboards
 
+Query variables are also used by **dashboard filters**. When you add a filter to a dashboard, you map it to a query variable on each card. When a user interacts with the filter widget, the mapped variable is substituted in the query and the card re-runs automatically.
+
+This means:
+- Design your queries with `{{variable}}` placeholders as usual
+- Add filters to the dashboard and map them to these variables in the card settings
+- Filter values are reflected in the URL for shareable, bookmarkable filtered views
+
+See the [Dashboards Guide](dashboards.md) for full details on setting up dashboard filters.

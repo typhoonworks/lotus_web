@@ -73,21 +73,22 @@ defmodule Lotus.Web.Dashboards.CardComponent do
     """
   end
 
-  defp grid_position(%{x: x, w: w, h: h}) do
-    # Use auto-flow for rows, only specify column position
-    # Height is converted to min-height (each row unit = ~100px)
+  defp grid_position(%{x: x, y: y, w: w, h: h}) do
     min_height = h * 100
-    "grid-column: #{x + 1} / span #{w}; min-height: #{min_height}px;"
+
+    "grid-column: #{x + 1} / span #{w}; grid-row: #{y + 1} / span #{h}; min-height: #{min_height}px;"
   end
 
   defp grid_position(nil), do: "grid-column: span 6; min-height: 400px;"
 
   defp grid_position(layout) when is_map(layout) do
     x = Map.get(layout, "x", Map.get(layout, :x, 0))
+    y = Map.get(layout, "y", Map.get(layout, :y, 0))
     w = Map.get(layout, "w", Map.get(layout, :w, 6))
     h = Map.get(layout, "h", Map.get(layout, :h, 4))
     min_height = h * 100
-    "grid-column: #{x + 1} / span #{w}; min-height: #{min_height}px;"
+
+    "grid-column: #{x + 1} / span #{w}; grid-row: #{y + 1} / span #{h}; min-height: #{min_height}px;"
   end
 
   defp card_classes(selected, card_type, show_header, is_public) do

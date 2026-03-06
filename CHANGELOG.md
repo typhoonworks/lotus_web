@@ -4,6 +4,17 @@
 
 ### Added
 
+- **Dashboard Filters** - Add interactive filter widgets to dashboards that dynamically filter query card data
+  - Filter bar component with support for input, select, date picker, and date range picker widgets
+  - Filter management UI in the dashboard editor: add, edit, and delete filters via a modal
+  - Map filters to query variables per card in the card settings drawer
+  - Filters persist to the database alongside dashboards
+  - URL query parameters pre-fill filter values on both editor and public dashboard URLs
+  - Typing in filter inputs updates the URL in real-time for shareable, bookmarkable filtered views
+  - Clearing a filter removes it from the URL
+  - Full support on public (shared) dashboards — filters render in read-only mode
+  - French translations for all new filter-related strings
+- **Query info in card settings** - Card settings drawer now shows the linked query name with a link to edit it in the query editor
 - **11 New Chart Types** - Expanded from 5 to 16 chart types organized into four categories
   - **Charts**: Horizontal Bar (swapped axes), Combo (dual-axis bar+line with independent Y scales)
   - **Distribution**: Bubble (scatter with size encoding), Histogram, Heatmap

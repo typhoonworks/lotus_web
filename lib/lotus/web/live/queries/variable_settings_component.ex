@@ -20,10 +20,16 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
         tab -> tab
       end
 
+    optional_names = Map.get(assigns, :optional_variable_names, MapSet.new())
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(active_tab: active_tab, has_variables: has_variables)}
+     |> assign(
+       active_tab: active_tab,
+       has_variables: has_variables,
+       optional_variable_names: optional_names
+     )}
   end
 
   @impl Phoenix.LiveComponent
@@ -40,7 +46,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
         <%= if @active_tab == :help do %>
           <.variable_settings_help />
         <% else %>
-          <.variable_settings_form form={@form} parent={@parent} />
+          <.variable_settings_form form={@form} parent={@parent} optional_variable_names={@optional_variable_names} />
         <% end %>
       </div>
     </div>
@@ -93,10 +99,17 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
     <div class="flex-1 overflow-y-auto p-4 space-y-6">
         <.form for={@form} phx-change="validate" phx-target={@parent}>
           <.inputs_for :let={vf} field={@form[:variables]}>
+            <% var_name = vf.source.data.name || vf[:name].value %>
+            <% is_optional = MapSet.member?(@optional_variable_names, var_name) %>
             <div class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0 space-y-3">
               <div>
                 <.label><%= gettext("Variable name") %></.label>
-                <div class="mt-1 text-sm text-pink-600 dark:text-pink-400 font-mono"><%= vf.source.data.name || vf[:name].value %></div>
+                <div class="mt-1 flex items-center gap-2">
+                  <span class="text-sm text-pink-600 dark:text-pink-400 font-mono"><%= var_name %></span>
+                  <span :if={is_optional} class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                    <%= gettext("Optional") %>
+                  </span>
+                </div>
                 <input type="hidden" name={vf[:name].name} value={vf[:name].value} />
               </div>
 
@@ -258,6 +271,27 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
             <span class="font-medium"><%= gettext("Default value") %></span> <%= gettext("is used if the toolbar input is empty.") %>
           </li>
         </ul>
+      </div>
+
+      <div class="space-y-2">
+        <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400"><%= gettext("Optional clauses") %></h4>
+        <p>
+          <% bracket_code =
+              "<code class=\"font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded\">[[...]]</code>" %>
+          <%= gettext("Wrap a clause in %{brackets} to make it optional. When the variable has no value, the entire clause is removed.",
+            brackets: bracket_code
+          )
+          |> raw() %>
+        </p>
+      </div>
+
+      <div class="rounded-md bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3">
+        <pre class="font-mono text-xs leading-5 text-gray-800 dark:text-gray-200">
+    SELECT *
+    FROM users
+    WHERE 1=1
+      [[AND "name" ILIKE ‘%’ || &#123;&#123;name&#125;&#125; || ‘%’]]
+      [[AND "status" = &#123;&#123;status&#125;&#125;]]</pre>
       </div>
 
       <div class="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 p-3 text-amber-800 dark:text-amber-200">

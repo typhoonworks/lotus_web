@@ -110,4 +110,91 @@ defmodule Lotus.Web.Pages.PublicDashboardPageTest do
       assert html =~ "Charlie"
     end
   end
+
+  describe "URL query params pre-fill filters" do
+    setup do
+      create_test_users()
+
+      dashboard = public_dashboard_fixture(%{name: "Filtered Dashboard"})
+
+      query =
+        query_fixture(%{
+          name: "Filtered Users",
+          statement: "SELECT name FROM test_users WHERE name = {{user_name}} ORDER BY name"
+        })
+
+      card = query_card_fixture(dashboard, query, %{title: "Filtered Users"})
+
+      {:ok, filter} =
+        Lotus.create_dashboard_filter(dashboard, %{
+          name: "user_name",
+          label: "User Name",
+          filter_type: :text,
+          widget: :input,
+          default_value: "%",
+          position: 0
+        })
+
+      {:ok, _mapping} = Lotus.create_filter_mapping(card, filter, "user_name")
+
+      {:ok, dashboard: dashboard, filter: filter}
+    end
+
+    test "pre-fills filter values from URL query params", %{dashboard: dashboard} do
+      {:ok, live, _html} =
+        live(build_conn(), "/lotus/public/#{dashboard.public_token}?user_name=Alice")
+
+      html = render_async(live)
+
+      # Should show filtered results
+      assert html =~ "Alice"
+      refute html =~ "Bob"
+      refute html =~ "Charlie"
+    end
+
+    test "shows filter bar when dashboard has filters", %{dashboard: dashboard} do
+      {:ok, live, _html} =
+        live(
+          build_conn(),
+          "/lotus/public/#{dashboard.public_token}?user_name=Alice"
+        )
+
+      html = render(live)
+      assert html =~ "Filtered Dashboard"
+      assert html =~ "filter[user_name]"
+      assert html =~ "User Name"
+    end
+
+    test "does not show Add Filter button on public view", %{dashboard: dashboard} do
+      {:ok, _live, html} =
+        live(
+          build_conn(),
+          "/lotus/public/#{dashboard.public_token}?user_name=Alice"
+        )
+
+      refute html =~ "Add Filter"
+    end
+
+    test "ignores unrecognized query params", %{dashboard: dashboard} do
+      {:ok, live, _html} =
+        live(
+          build_conn(),
+          "/lotus/public/#{dashboard.public_token}?unknown_param=foo&user_name=Alice"
+        )
+
+      html = render_async(live)
+
+      # Unrecognized param is ignored; the filter still uses the matched user_name param
+      assert html =~ "Alice"
+      refute html =~ "Bob"
+    end
+
+    test "filter widgets reflect pre-filled values", %{dashboard: dashboard} do
+      {:ok, live, _html} =
+        live(build_conn(), "/lotus/public/#{dashboard.public_token}?user_name=Alice")
+
+      # The filter input should have the pre-filled value
+      assert has_element?(live, "input[name='filter[user_name]'][value='Alice']")
+    end
+  end
 end

@@ -145,6 +145,82 @@ Select any card to open the settings drawer on the right:
 ### Text/Heading/Link Settings
 - **Content** - The actual text or URL to display
 
+## Dashboard Filters
+
+Filters add interactive widgets to your dashboard that dynamically filter data across query cards. They work by mapping each filter to a query variable (`{{variable}}`) on one or more cards.
+
+### How Filters Work
+
+1. Your saved query uses a variable: `SELECT * FROM orders WHERE status = {{status}}`
+2. You add a dashboard filter (e.g. named `status`)
+3. In a card's settings, you map the `status` filter to the `status` query variable
+4. When a user selects a filter value, the query re-runs with that value substituted
+
+### Adding Filters
+
+1. Click **"Add Filter"** in the filter bar at the top of your dashboard
+2. Configure the filter:
+   - **Name** — internal identifier (used in URL params and variable mapping)
+   - **Label** — display label shown to users
+   - **Type** — text, integer, float, date, or datetime
+   - **Widget** — input field, select dropdown, date picker, or date range picker
+   - **Default value** — optional pre-filled value
+   - **Options** — for select widgets, provide comma-separated values (e.g. `active,pending,completed`)
+3. Click **"Save Filter"**
+
+### Mapping Filters to Cards
+
+Each query card can map dashboard filters to its query variables independently:
+
+1. Select a card and open its **Settings** drawer
+2. Under **Filter Mappings**, each dashboard filter is listed
+3. Choose which query variable the filter maps to (from the query's `{{variable}}` placeholders)
+4. Different cards can map the same filter to different variable names
+
+### Filter Widgets
+
+| Widget | Best for | Input |
+|--------|----------|-------|
+| **Input** | Free-form text and numbers | Text field |
+| **Select** | Predefined choices | Dropdown with configured options |
+| **Date Picker** | Single date values | Calendar input |
+| **Date Range Picker** | Start/end date pairs | Two calendar inputs |
+
+### Shareable Filter URLs
+
+Filter values are automatically reflected in the URL as query parameters. For example:
+
+```
+/lotus/dashboards/42?status=active&region=us
+```
+
+- Typing in a filter updates the URL in real-time
+- Clearing a filter removes it from the URL
+- Sharing the URL pre-fills the filters for the recipient
+- Works on both the dashboard editor and public shared dashboards
+
+### Filters on Public Dashboards
+
+Filters are fully supported on public (shared) dashboards:
+- Filter widgets render in the filter bar
+- Users can interact with filters to explore the data
+- The "Add Filter" button and edit/delete controls are hidden
+- URL parameters pre-fill filter values, so you can share filtered views
+
+### Example
+
+A dashboard with an "Orders Overview" that filters by status and date range:
+
+1. **Create queries** with variables:
+   - `SELECT COUNT(*) FROM orders WHERE status = {{status}} AND created_at >= {{start}} AND created_at <= {{end}}`
+2. **Add filters** to the dashboard:
+   - `status` — Select widget with options: `active,pending,completed`
+   - `date_range` — Date Range Picker widget
+3. **Map filters** in each card's settings:
+   - Map `status` filter → `status` variable
+   - Map `date_range` filter → `start` and `end` variables
+4. **Share** the filtered URL: `/lotus/public/dashboards/abc123?status=active`
+
 ## Dashboard Settings
 
 Click the gear icon in the top-right to access dashboard settings:
@@ -239,6 +315,6 @@ Share your dashboard via a secure, public link:
 
 ## What's Next?
 
-- Learn more about [query variables](variables-and-widgets.md) to make your queries dynamic
+- Learn more about [query variables](variables-and-widgets.md) to make your queries dynamic — dashboard filters map directly to these variables
 - Explore [visualization options](visualizations.md) for better data presentation
 - Read the [Getting Started guide](getting-started.md) for general LotusWeb usage

@@ -36,6 +36,7 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
             <.layout_section card={@card} parent={@parent} />
 
             <%= if @card.card_type == :query do %>
+              <.query_section card={@card} />
               <.visualization_section card={@card} columns={@available_columns} parent={@parent} />
               <.filter_mapping_section card={@card} filters={@filters} parent={@parent} />
             <% else %>
@@ -84,6 +85,33 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
           class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
         />
       </form>
+    </div>
+    """
+  end
+
+  defp query_section(assigns) do
+    ~H"""
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <%= gettext("Query") %>
+      </label>
+      <%= if @card.query do %>
+        <div class="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+          <span class="text-sm text-gray-900 dark:text-white truncate">
+            <%= @card.query.name %>
+          </span>
+          <.link
+            navigate={lotus_path(["queries", @card.query.id])}
+            class="ml-2 shrink-0 text-sm text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-300"
+          >
+            <%= gettext("Edit") %>
+          </.link>
+        </div>
+      <% else %>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          <%= gettext("No query assigned") %>
+        </p>
+      <% end %>
     </div>
     """
   end
@@ -409,21 +437,23 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
   defp filter_mapping_row(assigns) do
     query = assigns.card.query
     variables = if query, do: query.variables || [], else: []
-    current_mapping = Map.get(assigns.card.filter_mappings || %{}, assigns.filter.name)
+    current_mapping = find_mapping(assigns.card.filter_mappings, assigns.filter)
     assigns = assign(assigns, variables: variables, current_mapping: current_mapping)
 
     ~H"""
-    <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+    <form
+      phx-change="update_filter_mapping"
+      phx-target={@parent}
+      class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+    >
+      <input type="hidden" name="card-id" value={@card.id} />
+      <input type="hidden" name="filter-name" value={@filter.name} />
       <span class="text-sm text-gray-700 dark:text-gray-300 min-w-[80px]">
         <%= @filter.label || @filter.name %>
       </span>
       <Icons.chevron_right class="h-4 w-4 text-gray-400" />
       <select
         name={"filter_mapping[#{@filter.name}]"}
-        phx-change="update_filter_mapping"
-        phx-target={@parent}
-        phx-value-card-id={@card.id}
-        phx-value-filter-name={@filter.name}
         class="flex-1 border border-gray-300 dark:border-gray-600 rounded p-1.5 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
       >
         <option value=""><%= gettext("Not mapped") %></option>
@@ -433,7 +463,7 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
           </option>
         <% end %>
       </select>
-    </div>
+    </form>
     """
   end
 
@@ -519,6 +549,20 @@ defmodule Lotus.Web.Dashboards.CardSettingsDrawer do
     </div>
     """
   end
+
+  # filter_mappings can be a list of Ecto structs (from DB) or a map (from editor updates)
+  defp find_mapping(mappings, filter) when is_list(mappings) do
+    case Enum.find(mappings, &(&1.filter_id == filter.id)) do
+      nil -> nil
+      mapping -> mapping.variable_name
+    end
+  end
+
+  defp find_mapping(mappings, filter) when is_map(mappings) do
+    Map.get(mappings, filter.name)
+  end
+
+  defp find_mapping(_, _), do: nil
 
   defp default_title(%{card_type: :query, query: query}) when not is_nil(query) do
     query.name || gettext("Query")

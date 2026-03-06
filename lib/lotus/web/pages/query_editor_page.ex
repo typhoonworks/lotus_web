@@ -67,6 +67,7 @@ defmodule Lotus.Web.QueryEditorPage do
               form={@query_form}
               parent={@myself}
               active_tab={@variable_settings_active_tab}
+              optional_variable_names={@optional_variable_names}
             />
 
             <.live_component
@@ -104,6 +105,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   variables={@query.variables}
                   variable_values={Map.get(assigns, :variable_values, %{})}
                   resolved_variable_options={@resolved_variable_options}
+                  optional_variable_names={@optional_variable_names}
                   query_timeout={@query_timeout}
                   timeout_options_enabled={:timeout_options in (@features || [])}
                 />
@@ -1042,6 +1044,7 @@ defmodule Lotus.Web.QueryEditorPage do
       dropdown_options_variable_name: nil,
       editor_schema: nil,
       editor_dialect: nil,
+      optional_variable_names: MapSet.new(),
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
       resolved_variable_options: %{},
@@ -1072,13 +1075,16 @@ defmodule Lotus.Web.QueryEditorPage do
           existing
       end
 
+    optional_names = Query.extract_optional_variable_names(query.statement)
+
     assign(socket,
       query: query,
       query_changeset: changeset,
       query_form: to_form(changeset, as: "query"),
       statement_empty: String.trim(query.statement) == "",
       variable_values: variable_values,
-      resolved_variable_options: resolved_options
+      resolved_variable_options: resolved_options,
+      optional_variable_names: optional_names
     )
   end
 
@@ -1237,10 +1243,12 @@ defmodule Lotus.Web.QueryEditorPage do
 
     query = Ecto.Changeset.apply_changes(changeset)
     resolved_options = resolve_variable_options(query)
+    optional_names = Query.extract_optional_variable_names(query.statement)
 
     update_query_state(socket, changeset,
       variable_values: with_defaults,
       resolved_variable_options: resolved_options,
+      optional_variable_names: optional_names,
       right_drawer: if(show_settings, do: :variable_settings, else: socket.assigns.right_drawer),
       variable_settings_active_tab:
         if(show_settings, do: :settings, else: socket.assigns.variable_settings_active_tab)

@@ -125,7 +125,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       iex> config = %{"chart_type" => "bar", "x_field" => "name", "y_field" => "value"}
       iex> VegaSpecBuilder.build(result, config)
       %{
-        "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+        "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
         "data" => %{"values" => [%{"name" => "A", "value" => 10}, %{"name" => "B", "value" => 20}]},
         "mark" => %{"type" => "bar"},
         "encoding" => %{
@@ -152,7 +152,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
 
   defp build_standard(result, config) do
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "mark" => chart_mark(config["chart_type"]),
       "encoding" => build_encoding(config, result)
@@ -167,7 +167,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     series_field = config["series_field"]
 
     base = %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "mark" => %{"type" => "bar"},
       "encoding" => %{
@@ -316,7 +316,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     y_field = config["y_field"]
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "encoding" => %{
         "y" => %{
@@ -373,7 +373,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       end
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "mark" => %{"type" => "rect"},
       "encoding" => %{
@@ -403,7 +403,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     bin_count = parse_bin_count(config["bin_count"])
 
     base = %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "mark" => %{"type" => "bar"},
       "encoding" => %{
@@ -479,7 +479,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       end
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => kpi_data},
       "layer" => [
         %{
@@ -519,7 +519,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     y_field = config["y_field"]
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "mark" => %{
         "type" => "area",
@@ -576,7 +576,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     label = kpi_label || value_field || ""
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => [%{"_v" => 1}]},
       "layer" => [
         # Background arc
@@ -654,7 +654,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     pct = if goal > 0, do: Float.round(numeric_value / goal * 100, 1), else: 0
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{
         "values" => [
           %{"_type" => "background", "_value" => goal},
@@ -742,7 +742,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     {delta_text, delta_color} = format_delta(current_value, comparison_value)
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => [%{"_v" => 1}]},
       "layer" => [
         %{
@@ -826,7 +826,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     y_field = config["y_field"]
 
     %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => transform_data(result)},
       "transform" => [
         %{
@@ -930,7 +930,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       end
 
     spec = %{
-      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "$schema" => "https://vega.github.io/schema/vega-lite/v6.json",
       "data" => %{"values" => data},
       "layer" => layers
     }

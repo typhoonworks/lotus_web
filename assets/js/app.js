@@ -63,6 +63,17 @@ window.addEventListener("phx:scroll-to-element", (event) => {
   }
 });
 
+window.addEventListener("phx:update-query-params", (event) => {
+  const url = new URL(window.location);
+  url.search = "";
+  for (const [key, value] of Object.entries(event.detail.params || {})) {
+    if (value !== "" && value != null) {
+      url.searchParams.set(key, value);
+    }
+  }
+  history.replaceState(history.state, "", url.toString());
+});
+
 topbar.config({
   barColors: { 0: "#FF8086" },
   shadowColor: "rgba(0, 0, 0, .3)",
