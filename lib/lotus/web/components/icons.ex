@@ -538,6 +538,20 @@ defmodule Lotus.Web.Components.Icons do
 
   attr(:rest, :global)
 
+  def chart_bubble(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.3" />
+      <circle cx="16" cy="6" r="2" fill="currentColor" opacity="0.3" />
+      <circle cx="12" cy="14" r="4" fill="currentColor" opacity="0.3" />
+      <circle cx="18" cy="16" r="2.5" fill="currentColor" opacity="0.3" />
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
   def chart_pie(assigns) do
     ~H"""
     <.svg_outline {@rest}>

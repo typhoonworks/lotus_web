@@ -87,6 +87,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       case chart_type do
         "kpi" -> ~w(value_field kpi_label)
         "histogram" -> ~w(x_field bin_count series_field)
+        "bubble" -> ~w(x_field y_field series_field size_field)
         _ -> ~w(x_field y_field series_field)
       end
 
@@ -204,6 +205,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
   defp chart_mark("line"), do: %{"type" => "line", "point" => true}
   defp chart_mark("area"), do: %{"type" => "area", "line" => true}
   defp chart_mark("scatter"), do: %{"type" => "point"}
+  defp chart_mark("bubble"), do: %{"type" => "point"}
   defp chart_mark("pie"), do: %{"type" => "arc"}
   defp chart_mark("donut"), do: %{"type" => "arc", "innerRadius" => 50}
   defp chart_mark(_), do: %{"type" => "bar"}
@@ -236,10 +238,22 @@ defmodule Lotus.Web.VegaSpecBuilder do
       }
     }
 
-    if series_field && series_field != "" do
-      Map.put(base, "color", %{
-        "field" => series_field,
-        "type" => "nominal"
+    base =
+      if series_field && series_field != "" do
+        Map.put(base, "color", %{
+          "field" => series_field,
+          "type" => "nominal"
+        })
+      else
+        base
+      end
+
+    size_field = config["size_field"]
+
+    if size_field && size_field != "" do
+      Map.put(base, "size", %{
+        "field" => size_field,
+        "type" => "quantitative"
       })
     else
       base
