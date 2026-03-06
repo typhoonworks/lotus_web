@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Column Statistics Popover** - Click any column header in the results table to view computed statistics
+  - Numeric columns show min, max, avg, median, sum, and a distribution histogram
+  - String columns show distinct count, top values with frequency bars, and min/max length
+  - Temporal columns show earliest, latest, and a time distribution chart
+  - Color-coded type badges (blue for numeric, green for string, amber for temporal)
+  - Full dark mode support
+  - New `chart_bar_big` icon and `ColumnStats` JS hook (powered by Tippy.js)
 - **AI-Generated Variables and Widgets** - The AI Assistant can now generate variable configurations alongside SQL queries
   - AI responses include variable metadata (type, widget, label, default, static options)
   - "Use this query" applies both SQL and variable settings in one action
