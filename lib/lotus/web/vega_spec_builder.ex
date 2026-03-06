@@ -142,6 +142,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
       "histogram" -> build_histogram(result, config)
       "funnel" -> build_funnel(result, config)
       "heatmap" -> build_heatmap(result, config)
+      "horizontal_bar" -> build_horizontal_bar(result, config)
       _ -> build_standard(result, config)
     end
   end
@@ -153,6 +154,42 @@ defmodule Lotus.Web.VegaSpecBuilder do
       "mark" => chart_mark(config["chart_type"]),
       "encoding" => build_encoding(config, result)
     }
+  end
+
+  # --- Horizontal bar chart ---
+  # Swaps x/y: nominal field on y-axis, quantitative field on x-axis
+  defp build_horizontal_bar(result, config) do
+    x_field = config["x_field"]
+    y_field = config["y_field"]
+    series_field = config["series_field"]
+
+    base = %{
+      "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
+      "data" => %{"values" => transform_data(result)},
+      "mark" => %{"type" => "bar"},
+      "encoding" => %{
+        "y" => %{
+          "field" => x_field,
+          "type" => infer_type(x_field, result),
+          "axis" => build_axis_config(config, :y, x_field),
+          "sort" => nil
+        },
+        "x" => %{
+          "field" => y_field,
+          "type" => "quantitative",
+          "axis" => build_axis_config(config, :x, y_field)
+        }
+      }
+    }
+
+    if series_field && series_field != "" do
+      put_in(base, ["encoding", "color"], %{
+        "field" => series_field,
+        "type" => "nominal"
+      })
+    else
+      base
+    end
   end
 
   defp transform_data(%{columns: columns, rows: rows}) do

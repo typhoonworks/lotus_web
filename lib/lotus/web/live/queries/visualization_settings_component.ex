@@ -162,6 +162,12 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
     """
   end
 
+  defp chart_icon(%{type: "horizontal_bar"} = assigns) do
+    ~H"""
+    <Icons.chart_horizontal_bar class={["h-6 w-6 mb-1", icon_color(@selected)]} />
+    """
+  end
+
   defp chart_icon(%{type: "line"} = assigns) do
     ~H"""
     <Icons.chart_line class={["h-6 w-6 mb-1", icon_color(@selected)]} />
