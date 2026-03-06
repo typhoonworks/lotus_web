@@ -61,7 +61,6 @@ defmodule Lotus.Web.Components.Icons do
     """
   end
 
-
   attr(:rest, :global)
 
   def check(assigns) do

@@ -937,7 +937,10 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
 
   defp config_incomplete_hint("kpi"), do: gettext("Select a Value Field to display the KPI card.")
   defp config_incomplete_hint("gauge"), do: gettext("Select a Value Field to display the gauge.")
-  defp config_incomplete_hint("progress"), do: gettext("Select a Value Field to display the progress bar.")
+
+  defp config_incomplete_hint("progress"),
+    do: gettext("Select a Value Field to display the progress bar.")
+
   defp config_incomplete_hint("trend"), do: gettext("Select a Value Field to display the trend.")
 
   defp config_incomplete_hint("histogram"),

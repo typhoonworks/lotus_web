@@ -80,22 +80,9 @@ defmodule Lotus.Web.VegaSpecBuilder do
 
   def build_config(viz) do
     chart_type = viz["chart_type"]
-
     base = %{"chart_type" => chart_type}
 
-    fields =
-      case chart_type do
-        "kpi" -> ~w(value_field kpi_label)
-        "gauge" -> ~w(value_field kpi_label min_value max_value)
-        "progress" -> ~w(value_field kpi_label goal_value)
-        "trend" -> ~w(value_field kpi_label comparison_field)
-        "histogram" -> ~w(x_field bin_count series_field)
-        "bubble" -> ~w(x_field y_field series_field size_field)
-        "combo" -> ~w(x_field y_field y2_field series_field y2_axis_title)
-        _ -> ~w(x_field y_field series_field)
-      end
-
-    Enum.reduce(fields, base, fn key, acc ->
+    Enum.reduce(config_fields(chart_type), base, fn key, acc ->
       case viz[key] do
         nil -> acc
         "" -> acc
@@ -103,6 +90,15 @@ defmodule Lotus.Web.VegaSpecBuilder do
       end
     end)
   end
+
+  defp config_fields("kpi"), do: ~w(value_field kpi_label)
+  defp config_fields("gauge"), do: ~w(value_field kpi_label min_value max_value)
+  defp config_fields("progress"), do: ~w(value_field kpi_label goal_value)
+  defp config_fields("trend"), do: ~w(value_field kpi_label comparison_field)
+  defp config_fields("histogram"), do: ~w(x_field bin_count series_field)
+  defp config_fields("bubble"), do: ~w(x_field y_field series_field size_field)
+  defp config_fields("combo"), do: ~w(x_field y_field y2_field series_field y2_axis_title)
+  defp config_fields(_), do: ~w(x_field y_field series_field)
 
   @doc """
   Builds a Vega-Lite spec from query result and visualization config.
@@ -138,24 +134,21 @@ defmodule Lotus.Web.VegaSpecBuilder do
         }
       }
   """
-  def build(result, config) do
-    chart_type = config["chart_type"]
+  def build(result, %{"chart_type" => "kpi"} = config), do: build_kpi(result, config)
+  def build(result, %{"chart_type" => "sparkline"} = config), do: build_sparkline(result, config)
+  def build(result, %{"chart_type" => "histogram"} = config), do: build_histogram(result, config)
+  def build(result, %{"chart_type" => "funnel"} = config), do: build_funnel(result, config)
+  def build(result, %{"chart_type" => "heatmap"} = config), do: build_heatmap(result, config)
 
-    case chart_type do
-      "kpi" -> build_kpi(result, config)
-      "sparkline" -> build_sparkline(result, config)
-      "histogram" -> build_histogram(result, config)
-      "funnel" -> build_funnel(result, config)
-      "heatmap" -> build_heatmap(result, config)
-      "horizontal_bar" -> build_horizontal_bar(result, config)
-      "waterfall" -> build_waterfall(result, config)
-      "gauge" -> build_gauge(result, config)
-      "progress" -> build_progress(result, config)
-      "trend" -> build_trend(result, config)
-      "combo" -> build_combo(result, config)
-      _ -> build_standard(result, config)
-    end
-  end
+  def build(result, %{"chart_type" => "horizontal_bar"} = config),
+    do: build_horizontal_bar(result, config)
+
+  def build(result, %{"chart_type" => "waterfall"} = config), do: build_waterfall(result, config)
+  def build(result, %{"chart_type" => "gauge"} = config), do: build_gauge(result, config)
+  def build(result, %{"chart_type" => "progress"} = config), do: build_progress(result, config)
+  def build(result, %{"chart_type" => "trend"} = config), do: build_trend(result, config)
+  def build(result, %{"chart_type" => "combo"} = config), do: build_combo(result, config)
+  def build(result, config), do: build_standard(result, config)
 
   defp build_standard(result, config) do
     %{
@@ -743,45 +736,15 @@ defmodule Lotus.Web.VegaSpecBuilder do
     first_row = List.first(data) || %{}
     second_row = Enum.at(data, 1) || %{}
 
-    current_value =
-      case Map.get(first_row, value_field) do
-        v when is_number(v) -> v
-        _ -> 0
-      end
-
-    comparison_value =
-      if comparison_field && comparison_field != "" do
-        case Map.get(first_row, comparison_field) do
-          v when is_number(v) -> v
-          _ -> nil
-        end
-      else
-        case Map.get(second_row, value_field) do
-          v when is_number(v) -> v
-          _ -> nil
-        end
-      end
-
+    current_value = extract_numeric(first_row, value_field, 0)
+    comparison_value = resolve_comparison(first_row, second_row, value_field, comparison_field)
     label = kpi_label || value_field || ""
-
-    {delta_text, delta_color} =
-      if comparison_value && comparison_value != 0 do
-        pct = Float.round((current_value - comparison_value) / abs(comparison_value) * 100, 1)
-
-        if pct >= 0 do
-          {"\u25B2 +#{pct}%", "#10b981"}
-        else
-          {"\u25BC #{pct}%", "#ef4444"}
-        end
-      else
-        {"", "#6b7280"}
-      end
+    {delta_text, delta_color} = format_delta(current_value, comparison_value)
 
     %{
       "$schema" => "https://vega.github.io/schema/vega-lite/v5.json",
       "data" => %{"values" => [%{"_v" => 1}]},
       "layer" => [
-        # Current value
         %{
           "mark" => %{
             "type" => "text",
@@ -795,7 +758,6 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "text" => %{"value" => format_display_value(current_value)}
           }
         },
-        # Label
         %{
           "mark" => %{
             "type" => "text",
@@ -809,7 +771,6 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "text" => %{"value" => label}
           }
         },
-        # Delta
         %{
           "mark" => %{
             "type" => "text",
@@ -826,6 +787,36 @@ defmodule Lotus.Web.VegaSpecBuilder do
         }
       ]
     }
+  end
+
+  defp extract_numeric(row, field, default) do
+    case Map.get(row, field) do
+      v when is_number(v) -> v
+      _ -> default
+    end
+  end
+
+  defp resolve_comparison(first_row, _second_row, _value_field, comp)
+       when is_binary(comp) and comp != "" do
+    extract_numeric(first_row, comp, nil)
+  end
+
+  defp resolve_comparison(_first_row, second_row, value_field, _comp) do
+    extract_numeric(second_row, value_field, nil)
+  end
+
+  defp format_delta(_current, nil), do: {"", "#6b7280"}
+  defp format_delta(_current, 0), do: {"", "#6b7280"}
+  defp format_delta(_current, +0.0), do: {"", "#6b7280"}
+
+  defp format_delta(current, comparison) do
+    pct = Float.round((current - comparison) / abs(comparison) * 100, 1)
+
+    if pct >= 0 do
+      {"\u25B2 +#{pct}%", "#10b981"}
+    else
+      {"\u25BC #{pct}%", "#ef4444"}
+    end
   end
 
   # --- Waterfall chart ---
