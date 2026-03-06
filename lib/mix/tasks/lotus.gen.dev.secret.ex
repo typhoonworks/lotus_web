@@ -50,7 +50,7 @@ defmodule Mix.Tasks.Lotus.Gen.Dev.Secret do
           :cyan,
           "\nNext steps:",
           "\n  1. Edit config/dev.secret.exs with your API keys",
-          "\n  2. Uncomment the AI provider you want to use",
+          "\n  2. Uncomment and configure the AI section with your model and API key",
           "\n  3. Make sure to never commit this file to git!\n"
         ])
 

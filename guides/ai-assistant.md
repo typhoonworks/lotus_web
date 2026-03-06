@@ -12,7 +12,7 @@ The AI Assistant:
 - **Schema-aware** - Automatically understands your database structure
 - **Respects visibility** - Only sees tables and columns you can access
 - **Read-only by default** - Only generates SELECT queries unless `read_only: false` is configured
-- **Multi-provider** - Supports OpenAI, Anthropic (Claude), and Google Gemini
+- **Multi-provider** - Works with any provider supported by [ReqLLM](https://github.com/agentjido/req_llm) (OpenAI, Anthropic, Google, Groq, Mistral, and more)
 
 ## Enabling the Feature
 
@@ -24,7 +24,7 @@ Quick example:
 # config/runtime.exs
 config :lotus, :ai,
   enabled: true,
-  provider: "openai",
+  model: "openai:gpt-4o",
   api_key: System.get_env("OPENAI_API_KEY")
 ```
 
@@ -200,11 +200,7 @@ You'll see an error like: `UNABLE_TO_GENERATE: [reason]`
 
 ## Cost Management
 
-Each AI query generation consumes tokens from your API provider. Costs vary by provider and model:
-
-- **OpenAI GPT-4o**: Check [OpenAI Pricing](https://openai.com/pricing)
-- **Anthropic Claude**: Check [Anthropic Pricing](https://www.anthropic.com/pricing)
-- **Google Gemini**: Check [Google AI Pricing](https://ai.google.dev/pricing)
+Each AI query generation consumes tokens from your LLM provider. Costs vary by provider and model — refer to your provider's pricing page for current rates.
 
 ### Reducing Costs
 
@@ -221,7 +217,7 @@ AI is disabled. Check your Lotus configuration includes:
 ```elixir
 config :lotus, :ai,
   enabled: true,
-  provider: "openai",
+  model: "openai:gpt-4o",
   api_key: "..."
 ```
 
@@ -236,7 +232,7 @@ The robot icon only appears when:
 
 Query generation typically takes 2-10 seconds depending on:
 - Database complexity (more tables = more tool calls)
-- LLM provider and model
+- LLM model
 - Network latency
 
 This is normal! The AI is introspecting your schema.
@@ -251,7 +247,7 @@ If generated queries are wrong:
 
 ## Privacy
 
-- **Your data stays private** - API calls go directly from your application to the LLM provider
+- **Your data stays private** - API calls go directly from your application to your LLM provider
 - **No intermediaries** - Lotus doesn't proxy or log AI requests
 - **BYOK model** - You control API keys and can revoke access anytime
 
