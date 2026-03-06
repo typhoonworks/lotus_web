@@ -5,21 +5,39 @@ defmodule Lotus.Web.VegaSpecBuilder do
 
   use Gettext, backend: Lotus.Web.Gettext
 
-  @chart_type_ids ~w(bar line area scatter pie funnel heatmap histogram kpi sparkline)
+  @chart_type_ids ~w(bar horizontal_bar line area combo scatter bubble histogram heatmap pie donut funnel waterfall kpi trend gauge progress sparkline)
 
   @doc "Returns the ordered list of chart type ID strings."
   def chart_type_ids, do: @chart_type_ids
 
+  @doc "Returns chart types organized into display groups for the UI grid."
+  def chart_type_groups do
+    [
+      {gettext("Charts"), ~w(bar horizontal_bar line area combo)},
+      {gettext("Distribution"), ~w(scatter bubble histogram heatmap)},
+      {gettext("Part of whole"), ~w(pie donut funnel waterfall)},
+      {gettext("Single value"), ~w(kpi trend gauge progress sparkline)}
+    ]
+  end
+
   @doc "Returns a human-readable label for the given chart type ID."
   def chart_type_label("bar"), do: gettext("Bar Chart")
+  def chart_type_label("horizontal_bar"), do: gettext("Horizontal Bar")
   def chart_type_label("line"), do: gettext("Line Chart")
   def chart_type_label("area"), do: gettext("Area Chart")
+  def chart_type_label("combo"), do: gettext("Combo Chart")
   def chart_type_label("scatter"), do: gettext("Scatter Plot")
+  def chart_type_label("bubble"), do: gettext("Bubble Chart")
   def chart_type_label("pie"), do: gettext("Pie Chart")
+  def chart_type_label("donut"), do: gettext("Donut Chart")
   def chart_type_label("funnel"), do: gettext("Funnel Chart")
+  def chart_type_label("waterfall"), do: gettext("Waterfall")
   def chart_type_label("heatmap"), do: gettext("Heatmap")
   def chart_type_label("histogram"), do: gettext("Histogram")
   def chart_type_label("kpi"), do: gettext("KPI Card")
+  def chart_type_label("trend"), do: gettext("Trend")
+  def chart_type_label("gauge"), do: gettext("Gauge")
+  def chart_type_label("progress"), do: gettext("Progress Bar")
   def chart_type_label("sparkline"), do: gettext("Sparkline")
   def chart_type_label(_), do: gettext("Chart")
 

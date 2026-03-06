@@ -103,14 +103,19 @@ defmodule Lotus.Web.Queries.VisualizationSettingsComponent do
       <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
         <%= gettext("Choose a chart type to visualize your data.") %>
       </p>
-      <div class="grid grid-cols-2 gap-2">
-        <.chart_type_option
-          :for={type <- VegaSpecBuilder.chart_type_ids()}
-          type={type}
-          label={chart_type_label(type)}
-          parent={@parent}
-          selected={@selected_type == type}
-        />
+      <div :for={{group_label, types} <- VegaSpecBuilder.chart_type_groups()} class="mb-4">
+        <h4 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+          <%= group_label %>
+        </h4>
+        <div class="grid grid-cols-3 gap-2">
+          <.chart_type_option
+            :for={type <- types}
+            type={type}
+            label={chart_type_label(type)}
+            parent={@parent}
+            selected={@selected_type == type}
+          />
+        </div>
       </div>
     </div>
     """
