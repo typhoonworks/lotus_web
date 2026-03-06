@@ -7,22 +7,25 @@ defmodule Lotus.Web.Dashboards.FilterBarComponent do
 
   @impl Phoenix.LiveComponent
   def mount(socket) do
-    {:ok, assign(socket, filters: [], filter_values: %{})}
+    {:ok, assign(socket, filters: [], filter_values: %{}, public: false)}
   end
 
   @impl Phoenix.LiveComponent
   def render(assigns) do
     ~H"""
     <div class="px-4 sm:px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-      <form phx-change="filter_changed" phx-target={@parent} class="flex flex-wrap items-end gap-4">
+      <form phx-change="filter_changed" phx-submit="filter_changed" phx-target={@parent} class="flex flex-wrap items-end gap-4">
         <%= for filter <- Enum.sort_by(@filters, & &1.position) do %>
           <.filter_widget
             filter={filter}
             value={Map.get(@filter_values, filter.name, filter.default_value)}
+            public={@public}
+            parent={@parent}
           />
         <% end %>
 
         <button
+          :if={!@public}
           type="button"
           phx-click="add_filter"
           phx-target={@parent}
@@ -39,9 +42,33 @@ defmodule Lotus.Web.Dashboards.FilterBarComponent do
   defp filter_widget(assigns) do
     ~H"""
     <div class="min-w-[150px]">
-      <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-        <%= @filter.label || @filter.name %>
-      </label>
+      <div class="flex items-center justify-between mb-1">
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400">
+          <%= @filter.label || @filter.name %>
+        </label>
+        <div :if={!@public} class="flex items-center gap-0.5">
+          <button
+            type="button"
+            phx-click="edit_filter"
+            phx-value-filter-id={@filter.id}
+            phx-target={@parent}
+            class="p-0.5 text-gray-400 hover:text-pink-600 dark:hover:text-pink-400"
+            title={gettext("Edit filter")}
+          >
+            <Icons.cog_6_tooth class="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            phx-click="delete_filter"
+            phx-value-filter-id={@filter.id}
+            phx-target={@parent}
+            class="p-0.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+            title={gettext("Remove filter")}
+          >
+            <Icons.x_mark class="h-3 w-3" />
+          </button>
+        </div>
+      </div>
       <%= case @filter.widget do %>
         <% :input -> %>
           <input

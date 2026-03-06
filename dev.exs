@@ -405,7 +405,10 @@ Task.async(fn ->
   {:ok, users_query} = Lotus.create_query(%{
     name: "All Users",
     description: "List all users with their status",
-    statement: "SELECT id, name, email, age, status FROM users ORDER BY id"
+    statement: "SELECT id, name, email, age, status FROM users WHERE 1=1 [[AND name ILIKE {{name}} || '%']] ORDER BY id",
+    variables: [
+      %{name: "name", type: :text, label: "Name"}
+    ]
   })
 
   {:ok, orders_query} = Lotus.create_query(%{
@@ -417,7 +420,10 @@ Task.async(fn ->
   {:ok, user_posts_query} = Lotus.create_query(%{
     name: "User Posts",
     description: "Posts with their authors",
-    statement: "SELECT u.name as author, p.title, p.published FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.id"
+    statement: "SELECT u.name as author, p.title, p.published FROM posts p JOIN users u ON p.user_id = u.id WHERE 1=1 [[AND u.name ILIKE {{author}} || '%']] ORDER BY p.id",
+    variables: [
+      %{name: "author", type: :text, label: "Author"}
+    ]
   })
 
   {:ok, invoices_query} = Lotus.create_query(%{
@@ -441,7 +447,7 @@ Task.async(fn ->
     layout: %{x: 0, y: 0, w: 12, h: 2}
   })
 
-  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+  {:ok, users_card} = Lotus.create_dashboard_card(overview_dashboard, %{
     card_type: :query,
     title: "Users",
     query_id: users_query.id,
@@ -466,13 +472,26 @@ Task.async(fn ->
     layout: %{x: 0, y: 6, w: 4, h: 3}
   })
 
-  {:ok, _} = Lotus.create_dashboard_card(overview_dashboard, %{
+  {:ok, posts_card} = Lotus.create_dashboard_card(overview_dashboard, %{
     card_type: :query,
     title: "Recent Posts",
     query_id: user_posts_query.id,
     position: 4,
     layout: %{x: 4, y: 6, w: 8, h: 4}
   })
+
+  # Add a "Name" filter to the Business Overview dashboard
+  {:ok, name_filter} = Lotus.create_dashboard_filter(overview_dashboard, %{
+    name: "name",
+    label: "Name",
+    filter_type: :text,
+    widget: :input,
+    position: 0
+  })
+
+  # Map the filter to the "name" variable on Users card and "author" variable on Recent Posts card
+  Lotus.create_filter_mapping(users_card, name_filter, "name")
+  Lotus.create_filter_mapping(posts_card, name_filter, "author")
 
   # Create second dashboard
   {:ok, reporting_dashboard} = Lotus.create_dashboard(%{

@@ -114,7 +114,9 @@ See the [visualizations guide](guides/visualizations.md) for chart configuration
 
 Combine saved queries into interactive dashboards with a 12-column grid layout. Add query result cards, text (markdown), headings, and links. Configure auto-refresh intervals and share dashboards publicly via secure token URLs.
 
-See the [dashboards guide](guides/dashboards.md) for layout and sharing details.
+Add **dashboard filters** — interactive widgets (input, select, date picker, date range) that map to query variables across cards. Filter values are reflected in the URL for shareable, bookmarkable filtered views. Filters work on both the editor and public dashboards.
+
+See the [dashboards guide](guides/dashboards.md) for layout, filters, and sharing details.
 
 ### Smart Variables and Widgets
 

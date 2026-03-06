@@ -27,6 +27,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
   attr(:resolved_variable_options, :map, default: %{})
+  attr(:optional_variable_names, :any, default: MapSet.new())
   attr(:query_timeout, :integer, default: 5_000)
   attr(:timeout_options_enabled, :boolean, default: false)
 
@@ -63,6 +64,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
           variables={@variables}
           variable_values={@variable_values}
           resolved_variable_options={@resolved_variable_options}
+          optional_variable_names={@optional_variable_names}
           query_timeout={@query_timeout}
           timeout_options_enabled={@timeout_options_enabled}
         />
@@ -143,6 +145,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:variables, :list, default: [])
   attr(:variable_values, :map, default: %{})
   attr(:resolved_variable_options, :map, default: %{})
+  attr(:optional_variable_names, :any, default: MapSet.new())
   attr(:query_timeout, :integer, default: 5_000)
   attr(:timeout_options_enabled, :boolean, default: false)
 
@@ -174,6 +177,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
               var={v}
               value={Map.get(@variable_values, v.name, v.default)}
               resolved_options={get_variable_options(@resolved_variable_options, v.name)}
+              optional={MapSet.member?(@optional_variable_names, v.name)}
             />
           <% end %>
         </div>

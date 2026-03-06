@@ -22,12 +22,15 @@ defmodule Lotus.Web.Queries.WidgetComponent do
   attr(:value, :any, default: nil)
   attr(:class, :string, default: nil)
   attr(:resolved_options, :list, default: nil)
+  attr(:optional, :boolean, default: false)
 
   def widget(assigns) do
+    base_label = assigns.var.label || format_label(assigns.var.name)
+
     assigns =
       assigns
       |> assign_new(:name, fn -> "variables[#{assigns.var.name}]" end)
-      |> assign_new(:label, fn -> assigns.var.label || format_label(assigns.var.name) end)
+      |> assign_new(:label, fn -> base_label end)
       |> assign_new(:id, fn -> "variable_#{assigns.var.name}" end)
       |> assign_new(:value, fn -> assigns.value || assigns.var.default end)
       |> assign_new(:widget, fn -> widget_type(assigns.var) end)
@@ -37,6 +40,9 @@ defmodule Lotus.Web.Queries.WidgetComponent do
         else
           OptionsFormatter.to_select_options(assigns.var.static_options)
         end
+      end)
+      |> assign_new(:placeholder, fn ->
+        if assigns.optional, do: gettext("All"), else: gettext("Enter value")
       end)
 
     ~H"""
@@ -95,7 +101,7 @@ defmodule Lotus.Web.Queries.WidgetComponent do
             name={@name}
             label={@label}
             value={@value}
-            placeholder={gettext("Enter value")}
+            placeholder={@placeholder}
             class="min-w-40 w-40"
           />
       <% end %>

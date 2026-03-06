@@ -8,6 +8,7 @@ defmodule Lotus.Web.PublicDashboardPage do
   use Lotus.Web, :live_component
 
   alias Lotus.Web.Dashboards.CardGridComponent
+  alias Lotus.Web.Dashboards.FilterBarComponent
   alias Lotus.Web.Page
 
   @impl Phoenix.LiveComponent
@@ -27,6 +28,17 @@ defmodule Lotus.Web.PublicDashboardPage do
               </p>
             <% end %>
           </div>
+
+          <%!-- Filter Bar --%>
+          <.live_component
+            :if={@dashboard.filters != []}
+            module={FilterBarComponent}
+            id="filter-bar"
+            filters={@dashboard.filters}
+            filter_values={@filter_values}
+            parent={@myself}
+            public={true}
+          />
 
           <%!-- Grid Content --%>
           <div class="flex-1 overflow-y-auto p-4">
@@ -67,6 +79,7 @@ defmodule Lotus.Web.PublicDashboardPage do
     socket
     |> assign(
       dashboard: nil,
+      filter_values: %{},
       card_results: %{},
       card_errors: %{},
       running_cards: MapSet.new()
@@ -74,7 +87,7 @@ defmodule Lotus.Web.PublicDashboardPage do
   end
 
   @impl Page
-  def handle_params(_params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
     case socket.assigns.page do
       %{token: token} ->
         case Lotus.get_dashboard_by_token(token) do
@@ -85,12 +98,14 @@ defmodule Lotus.Web.PublicDashboardPage do
              |> assign(dashboard: empty_dashboard())}
 
           dashboard ->
-            cards = Lotus.list_dashboard_cards(dashboard.id, preload: [:query])
-            dashboard = %{dashboard | cards: cards}
+            cards = Lotus.list_dashboard_cards(dashboard.id, preload: [:query, :filter_mappings])
+            filters = Lotus.list_dashboard_filters(dashboard.id)
+            dashboard = %{dashboard | cards: cards, filters: filters}
+            filter_values = extract_filter_values(params, filters)
 
             {:noreply,
              socket
-             |> assign(dashboard: dashboard)
+             |> assign(dashboard: dashboard, filter_values: filter_values)
              |> run_all_cards()}
         end
 
@@ -112,6 +127,14 @@ defmodule Lotus.Web.PublicDashboardPage do
   def handle_event("refresh_card", %{"card-id" => card_id}, socket) do
     card_id = parse_id(card_id)
     {:noreply, run_card(socket, card_id)}
+  end
+
+  def handle_event("filter_changed", %{"filter" => filter_values}, socket) do
+    {:noreply,
+     socket
+     |> assign(filter_values: filter_values)
+     |> run_all_cards()
+     |> push_filter_params_to_url(filter_values)}
   end
 
   @impl Page
@@ -178,12 +201,13 @@ defmodule Lotus.Web.PublicDashboardPage do
     card = Enum.find(socket.assigns.dashboard.cards, &(&1.id == card_id))
 
     if card && card.card_type == :query && card.query do
+      vars = build_card_variables(socket, card)
       running_cards = MapSet.put(socket.assigns.running_cards, card_id)
 
       socket
       |> assign(running_cards: running_cards)
       |> start_async({:run_card, card_id}, fn ->
-        Lotus.run_query(card.query, [])
+        Lotus.run_query(card.query, vars: vars)
       end)
     else
       socket
@@ -198,6 +222,44 @@ defmodule Lotus.Web.PublicDashboardPage do
     Enum.reduce(query_cards, socket, fn card, acc ->
       run_card(acc, card.id)
     end)
+  end
+
+  defp push_filter_params_to_url(socket, filter_values) do
+    params =
+      filter_values
+      |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
+      |> Map.new()
+
+    push_event(socket, "update-query-params", %{params: params})
+  end
+
+  defp extract_filter_values(params, filters) do
+    filter_names = MapSet.new(filters, & &1.name)
+
+    params
+    |> Map.drop(["token"])
+    |> Enum.filter(fn {key, _val} -> MapSet.member?(filter_names, key) end)
+    |> Map.new()
+  end
+
+  defp build_card_variables(socket, card) do
+    filter_values = socket.assigns.filter_values
+    dashboard_filters = socket.assigns.dashboard.filters || []
+
+    Enum.reduce(card.filter_mappings || [], %{}, fn mapping, acc ->
+      add_filter_variable(acc, mapping, dashboard_filters, filter_values)
+    end)
+  end
+
+  defp add_filter_variable(acc, mapping, dashboard_filters, filter_values) do
+    filter = Enum.find(dashboard_filters, &(&1.id == mapping.filter_id))
+
+    if filter && mapping.variable_name && mapping.variable_name != "" do
+      value = Map.get(filter_values, filter.name)
+      if value, do: Map.put(acc, mapping.variable_name, value), else: acc
+    else
+      acc
+    end
   end
 
   defp parse_id(id) when is_integer(id), do: id

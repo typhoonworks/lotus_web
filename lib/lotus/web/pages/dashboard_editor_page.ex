@@ -30,9 +30,8 @@ defmodule Lotus.Web.DashboardEditorPage do
             parent={@myself}
           />
 
-          <%!-- Filter Bar å --%>
+          <%!-- Filter Bar --%>
           <.live_component
-            :if={@dashboard.filters != []}
             module={FilterBarComponent}
             id="filter-bar"
             filters={@dashboard.filters}
@@ -126,6 +125,12 @@ defmodule Lotus.Web.DashboardEditorPage do
       <.delete_modal
         :if={@delete_modal_open}
         dashboard={@dashboard}
+        parent={@myself}
+      />
+
+      <.filter_modal
+        :if={@filter_modal_open}
+        filter={@editing_filter}
         parent={@myself}
       />
 
@@ -286,6 +291,130 @@ defmodule Lotus.Web.DashboardEditorPage do
     """
   end
 
+  defp filter_modal(assigns) do
+    is_new = is_binary(assigns.filter.id)
+
+    assigns =
+      assign(assigns,
+        is_new: is_new,
+        filter_type: to_string(assigns.filter.filter_type),
+        widget: to_string(assigns.filter.widget),
+        options_text: format_options(assigns.filter.config)
+      )
+
+    ~H"""
+    <.modal id="filter-modal" show on_cancel={JS.push("close_filter_modal", target: @parent)}>
+      <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+        <%= if @is_new, do: gettext("Add Filter"), else: gettext("Edit Filter") %>
+      </h3>
+
+      <form phx-submit="save_filter" phx-target={@parent}>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Label") %>
+            </label>
+            <input
+              type="text"
+              name="filter[label]"
+              value={@filter.label}
+              placeholder={gettext("e.g. Region, Date Range")}
+              required
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Name") %>
+            </label>
+            <input
+              type="text"
+              name="filter[name]"
+              value={@filter.name}
+              placeholder={gettext("e.g. region, date_range")}
+              required
+              pattern="[A-Za-z_][A-Za-z0-9_]*"
+              title={gettext("Must start with a letter or underscore, followed by letters, numbers, or underscores")}
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500 font-mono text-sm"
+            />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <%= gettext("Used as the URL parameter name (e.g. ?region=US)") %>
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <%= gettext("Type") %>
+              </label>
+              <select
+                name="filter[filter_type]"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+              >
+                <option value="text" selected={@filter_type == "text"}><%= gettext("Text") %></option>
+                <option value="number" selected={@filter_type == "number"}><%= gettext("Number") %></option>
+                <option value="date" selected={@filter_type == "date"}><%= gettext("Date") %></option>
+                <option value="date_range" selected={@filter_type == "date_range"}><%= gettext("Date Range") %></option>
+                <option value="select" selected={@filter_type == "select"}><%= gettext("Select") %></option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <%= gettext("Widget") %>
+              </label>
+              <select
+                name="filter[widget]"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+              >
+                <option value="input" selected={@widget == "input"}><%= gettext("Input") %></option>
+                <option value="select" selected={@widget == "select"}><%= gettext("Select") %></option>
+                <option value="date_picker" selected={@widget == "date_picker"}><%= gettext("Date Picker") %></option>
+                <option value="date_range_picker" selected={@widget == "date_range_picker"}><%= gettext("Date Range Picker") %></option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Default Value") %>
+            </label>
+            <input
+              type="text"
+              name="filter[default_value]"
+              value={@filter.default_value || ""}
+              placeholder={gettext("Optional")}
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <%= gettext("Options") %>
+              <span class="font-normal text-gray-400">(<%= gettext("for select widgets, one per line") %>)</span>
+            </label>
+            <textarea
+              name="filter[options]"
+              rows="3"
+              placeholder={"us\neu\napac"}
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2.5 bg-white dark:bg-gray-700 dark:text-white focus:ring-pink-500 focus:border-pink-500 font-mono text-sm"
+            ><%= @options_text %></textarea>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <.button
+            type="button"
+            variant="light"
+            phx-click="close_filter_modal"
+            phx-target={@parent}
+          >
+            <%= gettext("Cancel") %>
+          </.button>
+          <.button type="submit">
+            <%= if @is_new, do: gettext("Add Filter"), else: gettext("Save Filter") %>
+          </.button>
+        </div>
+      </form>
+    </.modal>
+    """
+  end
+
   # Page Callbacks
 
   @impl Page
@@ -303,6 +432,8 @@ defmodule Lotus.Web.DashboardEditorPage do
       selected_card: nil,
       selected_card_columns: [],
       add_card_modal_open: false,
+      filter_modal_open: false,
+      editing_filter: nil,
       save_modal_open: false,
       delete_modal_open: false,
       available_queries: Lotus.list_queries(),
@@ -312,7 +443,7 @@ defmodule Lotus.Web.DashboardEditorPage do
   end
 
   @impl Page
-  def handle_params(_params, uri, socket) do
+  def handle_params(params, uri, socket) do
     socket = assign(socket, current_uri: uri)
 
     case socket.assigns.page do
@@ -329,9 +460,12 @@ defmodule Lotus.Web.DashboardEditorPage do
              |> push_navigate(to: lotus_path("", %{tab: "dashboards"}))}
 
           dashboard ->
+            filter_values = extract_filter_values(params, dashboard.filters)
+
             {:noreply,
              socket
              |> assign_dashboard(dashboard)
+             |> assign(filter_values: filter_values)
              |> run_all_cards()}
         end
     end
@@ -501,7 +635,7 @@ defmodule Lotus.Web.DashboardEditorPage do
 
     socket =
       update_card_and_selection(socket, card_id, fn card ->
-        mappings = card.filter_mappings || %{}
+        mappings = normalize_mappings(card.filter_mappings, socket.assigns.dashboard.filters)
         updated_mappings = Map.put(mappings, filter_name, variable_name)
         %{card | filter_mappings: updated_mappings}
       end)
@@ -531,14 +665,89 @@ defmodule Lotus.Web.DashboardEditorPage do
       socket
       |> assign(filter_values: filter_values)
       |> run_all_cards()
+      |> push_filter_params_to_url(filter_values)
 
     {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("add_filter", _params, socket) do
-    # Add filter modal not yet implemented
-    {:noreply, socket}
+    next_position = length(socket.assigns.dashboard.filters)
+
+    new_filter = %{
+      id: "new_#{System.unique_integer([:positive])}",
+      name: "",
+      label: "",
+      filter_type: :text,
+      widget: :input,
+      default_value: nil,
+      config: %{},
+      position: next_position
+    }
+
+    {:noreply, assign(socket, filter_modal_open: true, editing_filter: new_filter)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("edit_filter", %{"filter-id" => filter_id}, socket) do
+    filter_id = maybe_parse_id(filter_id)
+    filter = Enum.find(socket.assigns.dashboard.filters, &(&1.id == filter_id))
+
+    if filter do
+      {:noreply, assign(socket, filter_modal_open: true, editing_filter: filter)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("close_filter_modal", _params, socket) do
+    {:noreply, assign(socket, filter_modal_open: false, editing_filter: nil)}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("save_filter", %{"filter" => filter_params}, socket) do
+    editing = socket.assigns.editing_filter
+    dashboard = socket.assigns.dashboard
+
+    filter = %{
+      editing
+      | name: filter_params["name"] || "",
+        label: filter_params["label"] || "",
+        filter_type: String.to_existing_atom(filter_params["filter_type"]),
+        widget: String.to_existing_atom(filter_params["widget"]),
+        default_value: nullify(filter_params["default_value"]),
+        config: build_filter_config(filter_params)
+    }
+
+    filters = upsert_filter(dashboard.filters, filter)
+
+    dashboard = %{dashboard | filters: filters}
+
+    {:noreply,
+     socket
+     |> assign(dashboard: dashboard, filter_modal_open: false, editing_filter: nil)
+     |> run_all_cards()}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("delete_filter", %{"filter-id" => filter_id}, socket) do
+    filter_id = maybe_parse_id(filter_id)
+    dashboard = socket.assigns.dashboard
+    filters = Enum.reject(dashboard.filters, &(&1.id == filter_id))
+    dashboard = %{dashboard | filters: filters}
+
+    filter_values =
+      Map.drop(socket.assigns.filter_values, [
+        Enum.find_value(socket.assigns.dashboard.filters, fn f ->
+          if f.id == filter_id, do: f.name
+        end)
+      ])
+
+    {:noreply,
+     socket
+     |> assign(dashboard: dashboard, filter_values: filter_values)
+     |> run_all_cards()}
   end
 
   @impl Phoenix.LiveComponent
@@ -855,7 +1064,8 @@ defmodule Lotus.Web.DashboardEditorPage do
   defp perform_save_dashboard(%{mode: :new}, attrs, dashboard) do
     with {:ok, saved} <- Lotus.create_dashboard(attrs),
          :ok <- sync_cards(saved, dashboard.cards),
-         :ok <- sync_filters(saved, dashboard.filters) do
+         :ok <- sync_filters(saved, dashboard.filters),
+         :ok <- sync_card_filter_mappings(saved, dashboard.cards) do
       {:ok, saved}
     end
   end
@@ -864,7 +1074,8 @@ defmodule Lotus.Web.DashboardEditorPage do
     with %{} = existing <- Lotus.get_dashboard(id),
          {:ok, saved} <- Lotus.update_dashboard(existing, attrs),
          :ok <- sync_cards(saved, dashboard.cards),
-         :ok <- sync_filters(saved, dashboard.filters) do
+         :ok <- sync_filters(saved, dashboard.filters),
+         :ok <- sync_card_filter_mappings(saved, dashboard.cards) do
       {:ok, saved}
     else
       nil -> {:error, "Dashboard not found"}
@@ -915,22 +1126,37 @@ defmodule Lotus.Web.DashboardEditorPage do
   defp build_card_variables(socket, card) do
     filter_values = socket.assigns.filter_values
     dashboard_filters = socket.assigns.dashboard.filters || []
+    mappings = card.filter_mappings
 
-    Enum.reduce(card.filter_mappings || [], %{}, fn mapping, acc ->
-      add_filter_variable(acc, mapping, dashboard_filters, filter_values)
+    build_vars_from_mappings(mappings, dashboard_filters, filter_values)
+  end
+
+  # Map format: %{filter_name => variable_name} (in-memory after editing)
+  defp build_vars_from_mappings(mappings, _dashboard_filters, filter_values)
+       when is_map(mappings) do
+    Enum.reduce(mappings, %{}, fn {filter_name, variable_name}, acc ->
+      put_filter_var(acc, variable_name, Map.get(filter_values, filter_name))
     end)
   end
 
-  defp add_filter_variable(acc, mapping, dashboard_filters, filter_values) do
-    filter = Enum.find(dashboard_filters, &(&1.id == mapping.filter_id))
-
-    if filter && mapping.variable_name && mapping.variable_name != "" do
-      value = Map.get(filter_values, filter.name)
-      if value, do: Map.put(acc, mapping.variable_name, value), else: acc
-    else
-      acc
-    end
+  # List format: [%DashboardCardFilterMapping{}] (from DB preload)
+  defp build_vars_from_mappings(mappings, dashboard_filters, filter_values)
+       when is_list(mappings) do
+    Enum.reduce(mappings, %{}, fn mapping, acc ->
+      filter = Enum.find(dashboard_filters, &(&1.id == mapping.filter_id))
+      value = if filter, do: Map.get(filter_values, filter.name)
+      put_filter_var(acc, mapping.variable_name, value)
+    end)
   end
+
+  defp build_vars_from_mappings(_, _, _), do: %{}
+
+  defp put_filter_var(acc, var_name, value)
+       when is_binary(var_name) and var_name != "" and not is_nil(value) do
+    Map.put(acc, var_name, value)
+  end
+
+  defp put_filter_var(acc, _, _), do: acc
 
   defp new_dashboard do
     %{
@@ -1239,6 +1465,42 @@ defmodule Lotus.Web.DashboardEditorPage do
     :ok
   end
 
+  defp sync_card_filter_mappings(saved_dashboard, cards) do
+    saved_cards = Lotus.list_dashboard_cards(saved_dashboard.id)
+    saved_filters = Lotus.list_dashboard_filters(saved_dashboard.id)
+    filter_by_name = Map.new(saved_filters, &{&1.name, &1})
+
+    cards
+    |> Enum.filter(&is_map(&1.filter_mappings))
+    |> Enum.each(&sync_single_card_mappings(&1, saved_cards, filter_by_name))
+
+    :ok
+  end
+
+  defp sync_single_card_mappings(card, saved_cards, filter_by_name) do
+    saved_card = Enum.find(saved_cards, &match_card?(&1, card))
+    if saved_card, do: replace_card_mappings(saved_card, card.filter_mappings, filter_by_name)
+  end
+
+  defp replace_card_mappings(saved_card, mappings, filter_by_name) do
+    existing_mappings = Lotus.list_card_filter_mappings(saved_card.id)
+    Enum.each(existing_mappings, &Lotus.delete_filter_mapping/1)
+
+    Enum.each(mappings, fn {filter_name, variable_name} ->
+      filter = Map.get(filter_by_name, filter_name)
+
+      if filter && variable_name && variable_name != "" do
+        Lotus.create_filter_mapping(saved_card.id, filter.id, variable_name)
+      end
+    end)
+  end
+
+  defp match_card?(saved_card, card) do
+    if is_integer(card.id),
+      do: saved_card.id == card.id,
+      else: saved_card.query_id == card.query_id
+  end
+
   defp card_to_attrs(card) do
     %{
       card_type: card.card_type,
@@ -1253,6 +1515,79 @@ defmodule Lotus.Web.DashboardEditorPage do
 
   defp layout_to_map(nil), do: nil
   defp layout_to_map(%{x: x, y: y, w: w, h: h}), do: %{x: x, y: y, w: w, h: h}
+
+  defp normalize_mappings(mappings, _filters) when is_map(mappings), do: mappings
+
+  defp normalize_mappings(mappings, filters) when is_list(mappings) do
+    filter_by_id = Map.new(filters, fn f -> {f.id, f.name} end)
+
+    Map.new(mappings, fn mapping ->
+      filter_name = Map.get(filter_by_id, mapping.filter_id, "unknown")
+      {filter_name, mapping.variable_name}
+    end)
+  end
+
+  defp normalize_mappings(_, _), do: %{}
+
+  defp push_filter_params_to_url(socket, filter_values) do
+    params =
+      filter_values
+      |> Enum.reject(fn {_k, v} -> v == "" or is_nil(v) end)
+      |> Map.new()
+
+    push_event(socket, "update-query-params", %{params: params})
+  end
+
+  defp extract_filter_values(params, filters) do
+    filter_names = MapSet.new(filters, & &1.name)
+
+    params
+    |> Map.drop(["id"])
+    |> Enum.filter(fn {key, _val} -> MapSet.member?(filter_names, key) end)
+    |> Map.new()
+  end
+
+  defp upsert_filter(filters, filter) do
+    if Enum.any?(filters, &(&1.id == filter.id)) do
+      Enum.map(filters, &if(&1.id == filter.id, do: filter, else: &1))
+    else
+      filters ++ [filter]
+    end
+  end
+
+  defp nullify(""), do: nil
+  defp nullify(val), do: val
+
+  defp maybe_parse_id(id) when is_integer(id), do: id
+
+  defp maybe_parse_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int, ""} -> int
+      _ -> id
+    end
+  end
+
+  defp build_filter_config(%{"options" => options}) when is_binary(options) do
+    opts =
+      options
+      |> String.split("\n")
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+
+    if opts == [], do: %{}, else: %{"options" => Enum.map(opts, &%{"value" => &1, "label" => &1})}
+  end
+
+  defp build_filter_config(_), do: %{}
+
+  defp format_options(%{"options" => options}) when is_list(options) do
+    Enum.map_join(options, "\n", fn
+      %{"value" => v} -> v
+      v when is_binary(v) -> v
+      _ -> ""
+    end)
+  end
+
+  defp format_options(_), do: ""
 
   defp filter_to_attrs(filter) do
     %{
