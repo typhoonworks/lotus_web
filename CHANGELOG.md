@@ -30,6 +30,12 @@
   - Color-coded type badges (blue for numeric, green for string, amber for temporal)
   - Full dark mode support
   - New `chart_bar_big` icon and `ColumnStats` JS hook (powered by Tippy.js)
+- **AI Query Explanation** - "Explain query" button in the AI Assistant provides a plain-language explanation of the current SQL query
+  - Quick-action button above the chat input (brain icon), enabled when a SQL query is present
+  - Also available as a prominent action in the empty state
+  - Explanations rendered as markdown with inline code, lists, and paragraphs
+  - Opens the AI drawer automatically when triggered
+  - Powered by `Lotus.AI.explain_query/1`
 - **AI Query Optimization** - "Optimize query" button in the AI Assistant analyzes the current SQL and suggests performance improvements
   - Quick-action button above the chat input (wrench icon), enabled when a SQL query is present
   - Also available as a prominent action in the empty state

@@ -12,6 +12,7 @@ The AI Assistant:
 - **Schema-aware** - Automatically understands your database structure
 - **Respects visibility** - Only sees tables and columns you can access
 - **Read-only by default** - Only generates SELECT queries unless `read_only: false` is configured
+- **Query explanation** - Get a plain-language breakdown of what any SQL query does
 - **Query optimization** - Analyzes your SQL with EXPLAIN plans and suggests performance improvements
 - **Multi-provider** - Works with any provider supported by [ReqLLM](https://github.com/agentjido/req_llm) (OpenAI, Anthropic, Google, Groq, Mistral, and more)
 
@@ -93,6 +94,24 @@ When a query execution fails while the AI drawer is open, the error appears in t
 - Click the **trash icon** to clear the conversation and start fresh
 - Scroll through conversation history — the chat auto-scrolls to new messages
 
+## Explaining Queries
+
+The AI Assistant can explain what any SQL query does in plain language — useful for understanding complex queries, onboarding teammates, or documenting existing SQL.
+
+### Using the Explain Button
+
+There are two ways to trigger an explanation:
+
+1. **Quick-action button** — Above the chat input, click the **"Explain query"** button (brain icon). It's enabled whenever the editor has a non-empty SQL query.
+2. **Empty state** — When the conversation is empty, click **"Explain query"** in the welcome screen.
+
+Clicking either button:
+- Adds an "Explain this query" message to the conversation
+- Sends the current SQL to the AI for analysis
+- Displays the explanation as formatted text with inline code, bullet points, and paragraphs
+
+The explanation covers what the query does step by step — tables accessed, joins, filters, aggregations, and the shape of the result set.
+
 ## Optimizing Queries
 
 The AI Assistant can analyze your current SQL query and suggest performance improvements.
@@ -105,7 +124,6 @@ There are two ways to trigger optimization:
 2. **Empty state** — When the conversation is empty, click **"Optimize query"** in the welcome screen.
 
 Clicking either button:
-- Opens the AI drawer (if not already open)
 - Adds an "Optimize this query" message to the conversation
 - Sends the current SQL to the AI for EXPLAIN plan analysis
 - Displays results as suggestion cards
