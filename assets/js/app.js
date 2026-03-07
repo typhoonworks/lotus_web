@@ -4,6 +4,7 @@ import AIMessageInput from "./hooks/ai_message_input";
 import AIPromptInput from "./hooks/ai_prompt_input";
 import AutoRefresh from "./hooks/auto_refresh";
 import AutoScrollAI from "./hooks/auto_scroll_ai";
+import CellContextMenu from "./hooks/cell_context_menu";
 import Clipboard from "./hooks/clipboard";
 import ColumnStats from "./hooks/column_stats";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
@@ -84,6 +85,7 @@ const hooks = {
   AIPromptInput,
   AutoRefresh,
   AutoScrollAI,
+  CellContextMenu,
   Clipboard,
   ColumnStats,
   DispatchChangeOnUpdate,

@@ -3,6 +3,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
 
   use Lotus.Web, :html
 
+  alias Lotus.Query.Filter
   alias Lotus.Result.Statistics
   alias Lotus.Web.CellFormatter
   alias Lotus.Web.VegaSpecBuilder
@@ -14,6 +15,8 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   attr(:os, :atom, default: :unknown)
   attr(:target, Phoenix.LiveComponent.CID, default: nil)
   attr(:is_saved_query, :boolean, default: true)
+  # Quick filter attrs
+  attr(:filters, :list, default: [])
   # Visualization attrs
   attr(:visualization_config, :map, default: nil)
   attr(:visualization_view_mode, :atom, default: :table)
@@ -39,12 +42,15 @@ defmodule Lotus.Web.Queries.ResultsComponent do
             </span>
           </div>
 
+          <%!-- Quick filter chips --%>
+          <.filter_chips :if={@filters != []} filters={@filters} target={@target} />
+
           <%!-- Content area: Table or Chart --%>
           <div class="flex-1 min-h-0 overflow-auto">
             <%= if @visualization_view_mode == :chart && has_valid_config?(@visualization_config) do %>
               <.render_chart result={@result} config={@visualization_config} />
             <% else %>
-              <.render_table result={@result} />
+              <.render_table result={@result} target={@target} />
             <% end %>
           </div>
 
@@ -80,7 +86,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     assigns = assign(assigns, :column_stats, stats)
 
     ~H"""
-    <div class="flow-root h-full">
+    <div class="flow-root h-full" id="results-table-context" phx-hook="CellContextMenu">
       <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8 overflow-y-auto h-full">
         <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
           <table class="relative min-w-full">
@@ -104,8 +110,11 @@ defmodule Lotus.Web.Queries.ResultsComponent do
             <tbody id="query-results" class="bg-white dark:bg-gray-800">
               <tr :for={row <- @result.rows} class="even:bg-gray-50 dark:even:bg-gray-700">
                 <td
-                  :for={{_col, index} <- Enum.with_index(@result.columns)}
+                  :for={{col, index} <- Enum.with_index(@result.columns)}
                   class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3"
+                  data-column={col}
+                  data-value={CellFormatter.format(Enum.at(row, index))}
+                  data-is-null={to_string(is_nil(Enum.at(row, index)))}
                 >
                   {CellFormatter.format(Enum.at(row, index))}
                 </td>
@@ -123,6 +132,50 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     <% end %>
     """
   end
+
+  defp filter_chips(assigns) do
+    ~H"""
+    <div class="flex flex-wrap items-center gap-2 pb-2 flex-shrink-0">
+      <span class="text-xs font-medium text-gray-500 dark:text-gray-400"><%= gettext("Filters:") %></span>
+      <span
+        :for={{filter, index} <- Enum.with_index(@filters)}
+        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 rounded-full"
+      >
+        <span class="font-semibold">{filter.column}</span>
+        <span>{Filter.operator_label(filter.op)}</span>
+        <span :if={filter.op not in [:is_null, :is_not_null]}>{format_filter_value(filter.value)}</span>
+        <button
+          type="button"
+          phx-click="remove_filter"
+          phx-target={@target}
+          phx-value-index={index}
+          class="ml-0.5 hover:text-blue-900 dark:hover:text-blue-200"
+        >
+          <Icons.x_mark class="w-3 h-3" />
+        </button>
+      </span>
+      <button
+        type="button"
+        phx-click="clear_filters"
+        phx-target={@target}
+        class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        title={gettext("Clear all filters")}
+      >
+        <Icons.funnel_x class="w-3.5 h-3.5" />
+        <%= gettext("Clear all") %>
+      </button>
+    </div>
+    """
+  end
+
+  defp format_filter_value(nil), do: "NULL"
+
+  defp format_filter_value(value) when is_binary(value) and byte_size(value) > 30 do
+    String.slice(value, 0, 30) <> "…"
+  end
+
+  defp format_filter_value(value) when is_binary(value), do: value
+  defp format_filter_value(value), do: to_string(value)
 
   defp encode_stats(nil), do: %{}
 
