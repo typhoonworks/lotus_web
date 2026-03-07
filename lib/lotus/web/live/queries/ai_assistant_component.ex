@@ -31,7 +31,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
       <%= if @visible do %>
         <.header parent={@parent} conversation={@conversation} />
         <.conversation_history conversation={@conversation} parent={@parent} current_sql={@current_sql} />
-        <.input_area generating={@generating} parent={@parent} />
+        <.input_area generating={@generating} parent={@parent} current_sql={@current_sql} />
       <% end %>
     </div>
     """
@@ -98,7 +98,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
       class="flex-1 overflow-y-auto p-4 space-y-3"
     >
       <%= if length(@conversation.messages) == 0 do %>
-        <.empty_state />
+        <.empty_state parent={@parent} current_sql={@current_sql} />
       <% else %>
         <%= for {message, index} <- Enum.with_index(@conversation.messages) do %>
           <.message_bubble message={message} index={index} parent={@parent} current_sql={@current_sql} />
@@ -107,6 +107,9 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
     </div>
     """
   end
+
+  attr(:parent, :any, required: true)
+  attr(:current_sql, :string, default: nil)
 
   defp empty_state(assigns) do
     ~H"""
@@ -127,6 +130,27 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
           <li>• <%= gettext("Count orders by month") %></li>
           <li>• <%= gettext("Find top 10 products by revenue") %></li>
         </ul>
+      </div>
+      <div class="mt-6">
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
+          <%= gettext("or optimize your current query") %>
+        </p>
+        <button
+          type="button"
+          phx-click="optimize_query"
+          phx-target={@parent}
+          disabled={is_nil(@current_sql) or @current_sql == ""}
+          class={[
+            "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors",
+            if(is_nil(@current_sql) or @current_sql == "",
+              do: "text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed",
+              else: "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            )
+          ]}
+        >
+          <Icons.wrench class="h-3.5 w-3.5" />
+          <%= gettext("Optimize query") %>
+        </button>
       </div>
     </div>
     """
@@ -149,6 +173,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
           :user -> "bg-pink-100 dark:bg-pink-900/20 text-gray-800 dark:text-pink-100"
           :assistant -> "bg-transparent text-gray-900 dark:text-gray-100"
           :error -> "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-100"
+          :optimization -> "bg-transparent text-gray-900 dark:text-gray-100"
         end
       ]}>
         <%= case @message.role do %>
@@ -191,6 +216,9 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
               <% end %>
             </div>
 
+          <% :optimization -> %>
+            <.optimization_message message={@message} />
+
           <% :error -> %>
             <div class="space-y-2">
               <div class="flex items-start">
@@ -230,12 +258,104 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
     """
   end
 
+  attr(:message, :map, required: true)
+
+  defp optimization_message(assigns) do
+    ~H"""
+    <div class="space-y-2">
+      <%= if Map.get(@message, :suggestions, []) == [] do %>
+        <div class="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+          <Icons.check class="h-4 w-4 flex-shrink-0" />
+          <span><%= gettext("Your query is already well-optimized!") %></span>
+        </div>
+      <% else %>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">
+          <%= ngettext(
+            "%{count} optimization suggestion:",
+            "%{count} optimization suggestions:",
+            length(@message.suggestions),
+            count: length(@message.suggestions)
+          ) %>
+        </p>
+        <%= for suggestion <- @message.suggestions do %>
+          <div class="rounded-md border border-gray-200 dark:border-gray-700 p-2.5 space-y-1.5">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <.suggestion_type_pill type={suggestion["type"] || "rewrite"} />
+              <.suggestion_impact_pill impact={suggestion["impact"] || "medium"} />
+            </div>
+            <p class="text-xs font-semibold text-gray-900 dark:text-gray-100">
+              <%= suggestion["title"] %>
+            </p>
+            <div class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap"><%= suggestion["suggestion"] %></div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr(:type, :string, required: true)
+
+  defp suggestion_type_pill(assigns) do
+    ~H"""
+    <span class={[
+      "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium",
+      case @type do
+        "index" -> "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+        "rewrite" -> "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+        "schema" -> "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+        "configuration" -> "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+        _ -> "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+      end
+    ]}>
+      <%= @type %>
+    </span>
+    """
+  end
+
+  attr(:impact, :string, required: true)
+
+  defp suggestion_impact_pill(assigns) do
+    ~H"""
+    <span class={[
+      "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium",
+      case @impact do
+        "high" -> "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+        "medium" -> "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300"
+        "low" -> "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+        _ -> "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+      end
+    ]}>
+      <%= @impact %>
+    </span>
+    """
+  end
+
   attr(:generating, :boolean, required: true)
   attr(:parent, :any, required: true)
+  attr(:current_sql, :string, default: nil)
 
   defp input_area(assigns) do
     ~H"""
     <div class="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-4">
+      <div class="mb-2">
+        <button
+          type="button"
+          phx-click="optimize_query"
+          phx-target={@parent}
+          disabled={@generating or is_nil(@current_sql) or @current_sql == ""}
+          class={[
+            "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
+            if(@generating or is_nil(@current_sql) or @current_sql == "",
+              do: "text-gray-400 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed",
+              else: "text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            )
+          ]}
+        >
+          <Icons.wrench class="h-3.5 w-3.5" />
+          <%= gettext("Optimize query") %>
+        </button>
+      </div>
       <form id="ai-message-form" phx-submit="send_ai_message" phx-target={@parent}>
         <div class="flex gap-2">
           <textarea

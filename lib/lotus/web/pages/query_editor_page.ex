@@ -609,6 +609,39 @@ defmodule Lotus.Web.QueryEditorPage do
     handle_event("send_ai_message", %{"message" => message}, socket)
   end
 
+  @impl Phoenix.LiveComponent
+  def handle_event("optimize_query", _params, socket) do
+    sql = socket.assigns.query_form[:statement].value
+
+    if is_nil(sql) or String.trim(sql) == "" do
+      {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before optimizing"))}
+    else
+      data_source = socket.assigns.query_form[:data_repo].value
+
+      data_source =
+        if is_nil(data_source) or data_source == "",
+          do: socket.assigns.default_repo,
+          else: data_source
+
+      conversation =
+        add_user_message(socket.assigns.ai_conversation, gettext("Optimize this query"))
+
+      socket =
+        socket
+        |> assign(left_drawer: :ai_assistant)
+        |> assign(ai_generating: true)
+        |> assign(ai_conversation: conversation)
+        |> start_async(:ai_optimization, fn ->
+          Lotus.AI.suggest_optimizations(
+            sql: sql,
+            data_source: data_source
+          )
+        end)
+
+      {:noreply, socket}
+    end
+  end
+
   # Visualization event handlers
 
   def handle_event("smart_toggle_visualization_drawer", _params, socket) do
@@ -946,6 +979,50 @@ defmodule Lotus.Web.QueryEditorPage do
       add_error_message(
         socket.assigns.ai_conversation,
         gettext("Query generation timed out or crashed")
+      )
+
+    {:noreply,
+     socket
+     |> assign(ai_generating: false)
+     |> assign(ai_conversation: conversation)}
+  end
+
+  def handle_async(:ai_optimization, {:ok, result}, socket) do
+    conversation = socket.assigns.ai_conversation
+
+    case result do
+      {:ok, %{suggestions: suggestions}} ->
+        conversation = add_optimization_result(conversation, suggestions)
+
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_conversation: conversation)}
+
+      {:error, error} ->
+        error_msg =
+          case error do
+            :not_configured -> gettext("AI features are not configured")
+            :api_key_not_configured -> gettext("API key is missing or invalid")
+            :timeout -> gettext("Optimization request timed out. Please try again.")
+            msg when is_binary(msg) -> msg
+            other -> gettext("Optimization failed: %{error}", error: inspect(other))
+          end
+
+        conversation = add_error_message(conversation, error_msg)
+
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_conversation: conversation)}
+    end
+  end
+
+  def handle_async(:ai_optimization, {:exit, _reason}, socket) do
+    conversation =
+      add_error_message(
+        socket.assigns.ai_conversation,
+        gettext("Query optimization timed out or crashed")
       )
 
     {:noreply,
@@ -1646,6 +1723,22 @@ defmodule Lotus.Web.QueryEditorPage do
       conversation
       | messages: conversation.messages ++ [message],
         generation_count: conversation.generation_count + 1,
+        last_activity: DateTime.utc_now()
+    }
+  end
+
+  defp add_optimization_result(conversation, suggestions) do
+    message = %{
+      role: :optimization,
+      content: nil,
+      sql: nil,
+      suggestions: suggestions,
+      timestamp: DateTime.utc_now()
+    }
+
+    %{
+      conversation
+      | messages: conversation.messages ++ [message],
         last_activity: DateTime.utc_now()
     }
   end

@@ -30,6 +30,13 @@
   - Color-coded type badges (blue for numeric, green for string, amber for temporal)
   - Full dark mode support
   - New `chart_bar_big` icon and `ColumnStats` JS hook (powered by Tippy.js)
+- **AI Query Optimization** - "Optimize query" button in the AI Assistant analyzes the current SQL and suggests performance improvements
+  - Quick-action button above the chat input (wrench icon), enabled when a SQL query is present
+  - Also available as a prominent action in the empty state
+  - Optimization suggestions rendered as cards with type pills (index/rewrite/schema/configuration) and impact badges (high/medium/low)
+  - Shows "Your query is already well-optimized!" when no suggestions found
+  - Opens the AI drawer automatically when triggered
+  - Powered by `Lotus.AI.suggest_optimizations/1` with EXPLAIN plan analysis
 - **AI-Generated Variables and Widgets** - The AI Assistant can now generate variable configurations alongside SQL queries
   - AI responses include variable metadata (type, widget, label, default, static options)
   - "Use this query" applies both SQL and variable settings in one action
