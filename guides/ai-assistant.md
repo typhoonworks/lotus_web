@@ -12,6 +12,7 @@ The AI Assistant:
 - **Schema-aware** - Automatically understands your database structure
 - **Respects visibility** - Only sees tables and columns you can access
 - **Read-only by default** - Only generates SELECT queries unless `read_only: false` is configured
+- **Query optimization** - Analyzes your SQL with EXPLAIN plans and suggests performance improvements
 - **Multi-provider** - Works with any provider supported by [ReqLLM](https://github.com/agentjido/req_llm) (OpenAI, Anthropic, Google, Groq, Mistral, and more)
 
 ## Enabling the Feature
@@ -91,6 +92,37 @@ When a query execution fails while the AI drawer is open, the error appears in t
 - The header shows the message count and how many queries have been generated
 - Click the **trash icon** to clear the conversation and start fresh
 - Scroll through conversation history — the chat auto-scrolls to new messages
+
+## Optimizing Queries
+
+The AI Assistant can analyze your current SQL query and suggest performance improvements.
+
+### Using the Optimize Button
+
+There are two ways to trigger optimization:
+
+1. **Quick-action button** — Above the chat input, click the **"Optimize query"** button (wrench icon). It's enabled whenever the editor has a non-empty SQL query.
+2. **Empty state** — When the conversation is empty, click **"Optimize query"** in the welcome screen.
+
+Clicking either button:
+- Opens the AI drawer (if not already open)
+- Adds an "Optimize this query" message to the conversation
+- Sends the current SQL to the AI for EXPLAIN plan analysis
+- Displays results as suggestion cards
+
+### Reading Optimization Suggestions
+
+Each suggestion is rendered as a card with:
+- **Type pill** — The kind of optimization: `index`, `rewrite`, `schema`, or `configuration`
+- **Impact pill** — Expected improvement level: `high` (red), `medium` (yellow), or `low` (green)
+- **Title** — A short summary of the suggestion
+- **Details** — Full explanation, often including exact SQL (e.g., `CREATE INDEX` statements)
+
+If the query is already well-optimized, you'll see a success message instead.
+
+### Lotus Variable Syntax
+
+Queries using `{{variable}}` placeholders and `[[optional clauses]]` work seamlessly — the optimizer sanitizes the syntax for EXPLAIN while preserving the original query for AI analysis.
 
 ## How It Works
 
