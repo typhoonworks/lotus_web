@@ -127,6 +127,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   os={Map.get(assigns, :os, :unknown)}
                   target={@myself}
                   is_saved_query={@page.mode == :edit}
+                  filters={@filters}
                   visualization_config={@visualization_config}
                   visualization_view_mode={@visualization_view_mode}
                   visualization_visible={@left_drawer == :visualization}
@@ -841,10 +842,53 @@ defmodule Lotus.Web.QueryEditorPage do
       socket =
         socket
         |> update_query_state(changeset, [])
-        |> assign(page_index: 0)
+        |> assign(page_index: 0, filters: [])
 
       {:noreply, execute_query(socket, query)}
     end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("add_filter", params, socket) do
+    op = String.to_existing_atom(params["op"])
+    value = if op in [:is_null, :is_not_null], do: nil, else: params["value"]
+    filter = Lotus.Query.Filter.new(params["column"], op, value)
+
+    if filter in socket.assigns.filters do
+      {:noreply, socket}
+    else
+      filters = socket.assigns.filters ++ [filter]
+
+      socket =
+        socket
+        |> assign(filters: filters, page_index: 0)
+        |> execute_query(socket.assigns.query)
+
+      {:noreply, socket}
+    end
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("remove_filter", %{"index" => index}, socket) do
+    index = String.to_integer(index)
+    filters = List.delete_at(socket.assigns.filters, index)
+
+    socket =
+      socket
+      |> assign(filters: filters, page_index: 0)
+      |> execute_query(socket.assigns.query)
+
+    {:noreply, socket}
+  end
+
+  @impl Phoenix.LiveComponent
+  def handle_event("clear_filters", _params, socket) do
+    socket =
+      socket
+      |> assign(filters: [], page_index: 0)
+      |> execute_query(socket.assigns.query)
+
+    {:noreply, socket}
   end
 
   @impl Phoenix.LiveComponent
@@ -1202,6 +1246,8 @@ defmodule Lotus.Web.QueryEditorPage do
       detected_variables: [],
       variable_form: to_form(%{}, as: "variables"),
       resolved_variable_options: %{},
+      # Quick filters state
+      filters: [],
       # Visualization state
       query_timeout: 5_000,
       visualization_config: nil,
@@ -1346,9 +1392,12 @@ defmodule Lotus.Web.QueryEditorPage do
     page_index = socket.assigns.page_index || 0
     query_timeout = socket.assigns[:query_timeout]
 
+    filters = Map.get(socket.assigns, :filters, [])
+
     opts = [
       repo: repo,
       vars: vars,
+      filters: filters,
       window: [limit: page_size, offset: page_index * page_size, count: :exact]
     ]
 

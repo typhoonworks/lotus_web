@@ -26,6 +26,20 @@ Visit the mounted path in your browser (e.g., `/lotus`). You should see:
 4. **Run Query** - Click the play button or press Cmd+Enter
 5. **View Results** - See the results displayed in a table
 
+## Quick Filters
+
+After running a query, you can quickly filter results without rewriting SQL — just right-click any cell value in the results table.
+
+- **Right-click a cell** to open a context menu with filter operators (`=`, `≠`, `>`, `<`, `≥`, `≤`, `LIKE`, `IS NULL`, `IS NOT NULL`)
+- **Choose an operator** to add a filter and re-run the query instantly
+- **NULL cells** only show `IS NULL` and `IS NOT NULL` operators
+- **LIKE filters** automatically wrap the value with `%…%` wildcards
+- **Multiple filters** stack with `AND`, displayed as dismissible chips above the results
+- **Remove a filter** by clicking the `×` on its chip, or click "Clear all" to remove all filters
+- **Run the query manually** (play button or Cmd+Enter) to clear all filters and start fresh
+
+Filters wrap the original query in a CTE, so they work safely with any SQL complexity (joins, subqueries, unions, etc.).
+
 ## Using the AI Query Assistant (Optional)
 
 > ⚠️ **Experimental Feature**: The AI Query Assistant is optional and requires setup. See the [AI Assistant Guide](ai-assistant.md) for details.

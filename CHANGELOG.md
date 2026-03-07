@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Quick Filters on Query Results** - Right-click any cell value in the results table to filter by it via a context menu
+  - Context menu offers all filter operators: `=`, `≠`, `>`, `<`, `≥`, `≤`, `LIKE`, `IS NULL`, `IS NOT NULL`
+  - Active filters displayed as dismissible chips above the results table
+  - Multiple filters stack with `AND`; duplicate filters are ignored
+  - Running the query manually clears all filters
+  - New `CellContextMenu` JS hook for right-click context menu positioning and interaction
+  - New `funnel` and `funnel_x`
 - **Dashboard Filters** - Add interactive filter widgets to dashboards that dynamically filter query card data
   - Filter bar component with support for input, select, date picker, and date range picker widgets
   - Filter management UI in the dashboard editor: add, edit, and delete filters via a modal
