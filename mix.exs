@@ -48,7 +48,7 @@ defmodule Lotus.Web.MixProject do
       {:earmark, "~> 1.4"},
 
       # Lotus
-      {:lotus, "~> 0.16"},
+      {:lotus, "~> 0.16.1"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
