@@ -126,7 +126,7 @@ See the [variables and widgets guide](guides/variables-and-widgets.md) for advan
 
 ### AI Query Assistant
 
-Ask your database questions in plain English. The AI assistant discovers your schema, respects table visibility rules, and supports multi-turn conversations for iterative refinement — no other embeddable BI tool does this. Click "Explain query" for a plain-language breakdown of what your SQL does, or "Optimize query" for AI-powered performance suggestions based on EXPLAIN plan analysis. Bring your own API key for any provider supported by [ReqLLM](https://github.com/agentjido/req_llm). Open it with Cmd/Ctrl+K.
+Ask your database questions in plain English. The AI assistant discovers your schema, respects table visibility rules, and supports multi-turn conversations for iterative refinement — no other embeddable BI tool does this. Click "Explain query" for a plain-language breakdown of what your SQL does, or "Optimize query" for AI-powered performance suggestions based on EXPLAIN plan analysis. Highlight any portion of SQL in the editor and click "Explain fragment" to get a focused explanation of just that selection. Bring your own API key for any provider supported by [ReqLLM](https://github.com/agentjido/req_llm). Open it with Cmd/Ctrl+K.
 
 See the [AI assistant guide](guides/ai-assistant.md) for setup and configuration.
 

@@ -112,6 +112,18 @@ Clicking either button:
 
 The explanation covers what the query does step by step — tables accessed, joins, filters, aggregations, and the shape of the result set.
 
+### Explaining a Fragment
+
+You can also explain a specific portion of a query by selecting it directly in the editor:
+
+1. **Highlight text** — Select any portion of SQL in the CodeMirror editor (at least one word)
+2. **Click the floating button** — An "Explain fragment" button (brain icon) appears near your selection
+3. **Read the explanation** — The AI Assistant drawer opens and explains only the selected fragment, using the full query for context
+
+This is useful for understanding individual clauses (e.g., a JOIN, a window function, or a subquery) without getting a full query breakdown.
+
+The button dismisses automatically when you clear the selection, press Escape, or click elsewhere in the editor.
+
 ## Optimizing Queries
 
 The AI Assistant can analyze your current SQL query and suggest performance improvements.

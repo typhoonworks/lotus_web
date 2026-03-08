@@ -7,6 +7,7 @@ import AutoScrollAI from "./hooks/auto_scroll_ai";
 import CellContextMenu from "./hooks/cell_context_menu";
 import Clipboard from "./hooks/clipboard";
 import DispatchChangeOnUpdate from "./hooks/dispatch_change_on_update";
+import EditorContextMenu from "./hooks/editor_context_menu";
 import EditorForm from "./hooks/editor_form";
 import Flash from "./hooks/flash";
 import MultiSelectSearch from "./hooks/multi_select_search";
@@ -87,6 +88,7 @@ const hooks = {
   CellContextMenu,
   Clipboard,
   DispatchChangeOnUpdate,
+  EditorContextMenu,
   EditorForm,
   Flash,
   MultiSelectSearch,
