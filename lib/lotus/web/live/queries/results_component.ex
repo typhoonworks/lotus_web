@@ -98,7 +98,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   id={"col-stats-#{col}"}
                   phx-hook="ColumnStats"
                   data-stats={Jason.encode!(encode_stats(@column_stats[col]))}
-                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 select-none transition-colors"
+                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none"
                 >
                   <span class="inline-flex items-center gap-1">
                     {col}
@@ -111,7 +111,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
               <tr :for={row <- @result.rows} class="even:bg-gray-50 dark:even:bg-gray-700">
                 <td
                   :for={{col, index} <- Enum.with_index(@result.columns)}
-                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3"
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                   data-column={col}
                   data-value={CellFormatter.format(Enum.at(row, index))}
                   data-is-null={to_string(is_nil(Enum.at(row, index)))}

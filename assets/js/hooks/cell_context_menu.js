@@ -2,6 +2,7 @@ const CellContextMenu = {
   mounted() {
     this.menu = null;
     this.cellData = null;
+    this.activeCell = null;
 
     this.handleContextMenu = (e) => {
       const td = e.target.closest("td[data-column]");
@@ -15,6 +16,7 @@ const CellContextMenu = {
         isNull: td.dataset.isNull === "true",
       };
 
+      this.highlightCell(td);
       this.showMenu(e.clientX, e.clientY);
     };
 
@@ -49,7 +51,10 @@ const CellContextMenu = {
   },
 
   showMenu(x, y) {
-    this.hideMenu();
+    if (this.menu) {
+      this.menu.remove();
+      this.menu = null;
+    }
 
     const menu = document.createElement("div");
     menu.className =
@@ -89,11 +94,28 @@ const CellContextMenu = {
       (y + rect.height > vh ? Math.max(0, y - rect.height) : y) + "px";
   },
 
+  highlightCell(td) {
+    this.clearHighlight();
+    const isDark = document.documentElement.classList.contains("dark");
+    td.style.backgroundColor = isDark
+      ? "rgb(30 58 138 / 0.3)"
+      : "rgb(191 219 254)";
+    this.activeCell = td;
+  },
+
+  clearHighlight() {
+    if (this.activeCell) {
+      this.activeCell.style.backgroundColor = "";
+      this.activeCell = null;
+    }
+  },
+
   hideMenu() {
     if (this.menu) {
       this.menu.remove();
       this.menu = null;
     }
+    this.clearHighlight();
   },
 
   buildMenuItems() {

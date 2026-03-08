@@ -11,6 +11,7 @@
   - Running the query manually clears all filters
   - New `CellContextMenu` JS hook for right-click context menu positioning and interaction
   - New `funnel` and `funnel_x`
+  - Result cells highlight on hover and stay highlighted while the context menu is open
 - **Dashboard Filters** - Add interactive filter widgets to dashboards that dynamically filter query card data
   - Filter bar component with support for input, select, date picker, and date range picker widgets
   - Filter management UI in the dashboard editor: add, edit, and delete filters via a modal
