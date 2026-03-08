@@ -37,7 +37,7 @@ We're running Lotus Web in production at [Accomplish](https://accomplish.dev).
 def deps do
   [
     {:lotus, "~> 0.16.0"},
-    {:lotus_web, "~> 0.14.0"}
+    {:lotus_web, "~> 0.14.1"}
   ]
 end
 ```

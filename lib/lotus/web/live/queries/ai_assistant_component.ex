@@ -194,6 +194,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
           :user -> "bg-pink-100 dark:bg-pink-900/20 text-gray-800 dark:text-pink-100"
           :assistant -> "bg-transparent text-gray-900 dark:text-gray-100"
           :error -> "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-900 dark:text-red-100"
+          :service_error -> "bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-100"
           :optimization -> "bg-transparent text-gray-900 dark:text-gray-100"
           :explanation -> "bg-transparent text-gray-900 dark:text-gray-100"
         end
@@ -272,6 +273,17 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
                 <Icons.rotate_ccw class="h-3.5 w-3.5 mr-1" />
                 <%= gettext("Ask AI to fix this") %>
               </button>
+            </div>
+
+          <% :service_error -> %>
+            <div class="space-y-2">
+              <div class="flex items-start">
+                <Icons.exclamation_triangle class="h-4 w-4 text-amber-600 dark:text-amber-400 mr-2 flex-shrink-0 mt-0.5" />
+                <div class="text-sm">
+                  <p class="font-medium"><%= gettext("Service Unavailable") %></p>
+                  <p class="mt-1 text-xs opacity-90"><%= @message.content %></p>
+                </div>
+              </div>
             </div>
         <% end %>
 

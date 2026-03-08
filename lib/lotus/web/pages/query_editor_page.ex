@@ -1117,6 +1117,14 @@ defmodule Lotus.Web.QueryEditorPage do
          |> assign(ai_generating: false)
          |> assign(ai_conversation: conversation)}
 
+      {:error, error} when is_exception(error) ->
+        conversation = add_service_error_message(conversation, Exception.message(error))
+
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_conversation: conversation)}
+
       {:error, error} ->
         conversation =
           add_error_message(
@@ -1156,12 +1164,19 @@ defmodule Lotus.Web.QueryEditorPage do
          |> assign(ai_generating: false)
          |> assign(ai_conversation: conversation)}
 
+      {:error, error} when is_exception(error) ->
+        conversation = add_service_error_message(conversation, Exception.message(error))
+
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_conversation: conversation)}
+
       {:error, error} ->
         error_msg =
           case error do
             :not_configured -> gettext("AI features are not configured")
             :api_key_not_configured -> gettext("API key is missing or invalid")
-            :timeout -> gettext("Optimization request timed out. Please try again.")
             msg when is_binary(msg) -> msg
             other -> gettext("Optimization failed: %{error}", error: inspect(other))
           end
@@ -1200,12 +1215,19 @@ defmodule Lotus.Web.QueryEditorPage do
          |> assign(ai_generating: false)
          |> assign(ai_conversation: conversation)}
 
+      {:error, error} when is_exception(error) ->
+        conversation = add_service_error_message(conversation, Exception.message(error))
+
+        {:noreply,
+         socket
+         |> assign(ai_generating: false)
+         |> assign(ai_conversation: conversation)}
+
       {:error, error} ->
         error_msg =
           case error do
             :not_configured -> gettext("AI features are not configured")
             :api_key_not_configured -> gettext("API key is missing or invalid")
-            :timeout -> gettext("Explanation request timed out. Please try again.")
             msg when is_binary(msg) -> msg
             other -> gettext("Explanation failed: %{error}", error: inspect(other))
           end
@@ -1973,6 +1995,21 @@ defmodule Lotus.Web.QueryEditorPage do
       role: :error,
       content: error_content,
       sql: sql,
+      timestamp: DateTime.utc_now()
+    }
+
+    %{
+      conversation
+      | messages: conversation.messages ++ [message],
+        last_activity: DateTime.utc_now()
+    }
+  end
+
+  defp add_service_error_message(conversation, error_content) do
+    message = %{
+      role: :service_error,
+      content: error_content,
+      sql: nil,
       timestamp: DateTime.utc_now()
     }
 

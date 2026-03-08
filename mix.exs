@@ -2,7 +2,7 @@ defmodule Lotus.Web.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/typhoonworks/lotus_web"
-  @version "0.14.0"
+  @version "0.14.1"
 
   def project do
     [
@@ -48,7 +48,7 @@ defmodule Lotus.Web.MixProject do
       {:earmark, "~> 1.4"},
 
       # Lotus
-      {:lotus, "~> 0.16"},
+      {:lotus, "~> 0.16.1"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
