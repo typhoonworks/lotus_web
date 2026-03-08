@@ -6,9 +6,9 @@ This guide walks you through setting up LotusWeb in your Phoenix application.
 
 - **Elixir 1.17+** and **OTP 25+**
 - **Phoenix 1.7+** for LiveView compatibility
-- **[Lotus 0.14+](https://hex.pm/packages/lotus)** configured in your application
+- **[Lotus 0.16+](https://hex.pm/packages/lotus)** configured in your application
 
-> **Version Compatibility**: LotusWeb 0.13+ requires Lotus 0.14 or later.
+> **Version Compatibility**: LotusWeb 0.14+ requires Lotus 0.16 or later.
 
 ## Step 1: Add Dependency
 
@@ -17,7 +17,7 @@ Add `lotus_web` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:lotus_web, "~> 0.13.0"}
+    {:lotus_web, "~> 0.14.0"}
   ]
 end
 ```

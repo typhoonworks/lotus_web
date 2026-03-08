@@ -36,8 +36,8 @@ We're running Lotus Web in production at [Accomplish](https://accomplish.dev).
 # mix.exs
 def deps do
   [
-    {:lotus, "~> 0.14.0"},
-    {:lotus_web, "~> 0.13.0"}
+    {:lotus, "~> 0.16.0"},
+    {:lotus_web, "~> 0.14.0"}
   ]
 end
 ```
@@ -251,6 +251,7 @@ config :lotus,
 
 | Lotus Web | Lotus | Elixir | Phoenix |
 |-----------|-------|--------|---------|
+| 0.14.x | 0.16.0+ | 1.17+ | 1.7+ |
 | 0.13.x | 0.14.0+ | 1.17+ | 1.7+ |
 | 0.12.x | 0.13.0+ | 1.17+ | 1.7+ |
 | 0.11.x | 0.12.0+ | 1.17+ | 1.7+ |

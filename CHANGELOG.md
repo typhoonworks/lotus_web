@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.14.0] - 2026-03-08
+
 ### Added
 
 - **Quick Filters on Query Results** - Right-click any cell value in the results table to filter by it via a context menu
@@ -88,6 +90,11 @@
 
 - Tab key no longer opens off-screen drawers in the query editor and dashboard pages
   - Added `inert` attribute to all slide-out drawers when hidden, preventing Tab focus from reaching off-screen elements
+
+### BREAKING
+
+- **Minimum Lotus Version** - Updated from 0.14.0 to 0.16.0 to align with Lotus core library requirements
+  - Applications using Lotus 0.14.x or 0.15.x must upgrade to Lotus 0.16.0+ to use this version
 
 ## [0.13.1] - 2026-03-05
 
