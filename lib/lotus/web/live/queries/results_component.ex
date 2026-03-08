@@ -4,6 +4,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   use Lotus.Web, :html
 
   alias Lotus.Query.Filter
+  alias Lotus.Query.Sort
   alias Lotus.Result.Statistics
   alias Lotus.Web.CellFormatter
   alias Lotus.Web.VegaSpecBuilder
@@ -17,6 +18,8 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   attr(:is_saved_query, :boolean, default: true)
   # Quick filter attrs
   attr(:filters, :list, default: [])
+  # Sort attrs
+  attr(:sorts, :list, default: [])
   # Visualization attrs
   attr(:visualization_config, :map, default: nil)
   attr(:visualization_view_mode, :atom, default: :table)
@@ -45,12 +48,15 @@ defmodule Lotus.Web.Queries.ResultsComponent do
           <%!-- Quick filter chips --%>
           <.filter_chips :if={@filters != []} filters={@filters} target={@target} />
 
+          <%!-- Sort chips --%>
+          <.sort_chips :if={@sorts != []} sorts={@sorts} target={@target} />
+
           <%!-- Content area: Table or Chart --%>
           <div class="flex-1 min-h-0 overflow-auto">
             <%= if @visualization_view_mode == :chart && has_valid_config?(@visualization_config) do %>
               <.render_chart result={@result} config={@visualization_config} />
             <% else %>
-              <.render_table result={@result} target={@target} />
+              <.render_table result={@result} target={@target} sorts={@sorts} />
             <% end %>
           </div>
 
@@ -95,14 +101,19 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                 <th
                   :for={{col, _index} <- Enum.with_index(@result.columns)}
                   scope="col"
-                  id={"col-stats-#{col}"}
-                  phx-hook="ColumnStats"
+                  data-column={col}
                   data-stats={Jason.encode!(encode_stats(@column_stats[col]))}
-                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none"
+                  class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none cursor-context-menu hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <span class="inline-flex items-center gap-1">
                     {col}
-                    <Icons.chart_bar_big class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                    <%= if sort = find_sort(@sorts, col) do %>
+                      <%= if sort.direction == :asc do %>
+                        <Icons.chevron_up class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+                      <% else %>
+                        <Icons.chevron_down class="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
+                      <% end %>
+                    <% end %>
                   </span>
                 </th>
               </tr>
@@ -111,7 +122,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
               <tr :for={row <- @result.rows} class="even:bg-gray-50 dark:even:bg-gray-700">
                 <td
                   :for={{col, index} <- Enum.with_index(@result.columns)}
-                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-text-light dark:text-text-dark sm:pl-3 cursor-context-menu hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                   data-column={col}
                   data-value={CellFormatter.format(Enum.at(row, index))}
                   data-is-null={to_string(is_nil(Enum.at(row, index)))}
@@ -166,6 +177,44 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       </button>
     </div>
     """
+  end
+
+  defp sort_chips(assigns) do
+    ~H"""
+    <div class="flex flex-wrap items-center gap-2 pb-2 flex-shrink-0">
+      <span class="text-xs font-medium text-gray-500 dark:text-gray-400"><%= gettext("Sort:") %></span>
+      <span
+        :for={{sort, index} <- Enum.with_index(@sorts)}
+        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded-full"
+      >
+        <span class="font-semibold">{sort.column}</span>
+        <span>{Sort.direction_label(sort.direction)}</span>
+        <button
+          type="button"
+          phx-click="remove_sort"
+          phx-target={@target}
+          phx-value-index={index}
+          class="ml-0.5 hover:text-purple-900 dark:hover:text-purple-200"
+        >
+          <Icons.x_mark class="w-3 h-3" />
+        </button>
+      </span>
+      <button
+        type="button"
+        phx-click="clear_sorts"
+        phx-target={@target}
+        class="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        title={gettext("Clear all sorts")}
+      >
+        <Icons.x_mark class="w-3.5 h-3.5" />
+        <%= gettext("Clear all") %>
+      </button>
+    </div>
+    """
+  end
+
+  defp find_sort(sorts, column) do
+    Enum.find(sorts, &(&1.column == column))
   end
 
   defp format_filter_value(nil), do: "NULL"

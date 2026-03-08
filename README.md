@@ -94,7 +94,7 @@ That's it. Full BI dashboard, running inside your Phoenix app.
 
 ### SQL Editor
 
-Web-based SQL editor with syntax highlighting, autocomplete, and real-time execution powered by LiveView. Switch between configured databases, run queries with Cmd/Ctrl+Enter, and see results instantly.
+Web-based SQL editor with syntax highlighting, autocomplete, and real-time execution powered by LiveView. Switch between configured databases, run queries with Cmd/Ctrl+Enter, and see results instantly. Right-click cells to quick-filter results, right-click column headers to sort, and hover over headers to see column statistics (type, nulls, distribution).
 
 See the [getting started guide](guides/getting-started.md) for more.
 

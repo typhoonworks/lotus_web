@@ -383,6 +383,16 @@ defmodule Lotus.Web.Components.Icons do
 
   attr(:rest, :global)
 
+  def chevron_up(assigns) do
+    ~H"""
+    <.svg_outline {@rest}>
+      <path d="m18 15-6-6-6 6"/>
+    </.svg_outline>
+    """
+  end
+
+  attr(:rest, :global)
+
   def sun(assigns) do
     ~H"""
     <.svg_outline {@rest}>

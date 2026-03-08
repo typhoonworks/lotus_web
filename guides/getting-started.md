@@ -40,6 +40,28 @@ After running a query, you can quickly filter results without rewriting SQL — 
 
 Filters wrap the original query in a CTE, so they work safely with any SQL complexity (joins, subqueries, unions, etc.).
 
+## Sorting Results
+
+You can sort query results by any column without modifying your SQL — just right-click a column header.
+
+- **Right-click a column header** to open a context menu with "Sort ascending" and "Sort descending" options
+- **Sort indicator** — the active sort column displays a chevron icon (up for ascending, down for descending)
+- **Active sorts** are shown as purple chips above the results table
+- **Remove a sort** by clicking the `×` on its chip, or click "Clear all" to remove all sorts
+- **Running the query manually** (play button or Cmd+Enter) clears all sorts and starts fresh
+
+Like filters, sorting wraps the original query in a CTE, so it works safely with any SQL complexity.
+
+## Column Statistics
+
+Hover over any column header to see a statistics popover with information about that column's data:
+
+- **Numeric columns** — count, nulls, distinct values, min, max, avg, median, sum, and a distribution histogram
+- **String columns** — count, nulls, distinct values, min/max length, and top values with frequency bars
+- **Temporal columns** — count, nulls, distinct values, earliest, latest, and a time distribution chart
+
+The popover appears after a short delay and dismisses when you move your mouse away.
+
 ## Using the AI Query Assistant (Optional)
 
 > ⚠️ **Experimental Feature**: The AI Query Assistant is optional and requires setup. See the [AI Assistant Guide](ai-assistant.md) for details.

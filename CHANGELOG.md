@@ -31,13 +31,18 @@
   - New config options: `value_field`, `size_field`, `min_value`, `max_value`, `goal_value`, `comparison_field`, `y2_field`, `y2_axis_title`
   - Chart type selector reorganized into grouped sections (Charts, Distribution, Part of whole, Single value)
 - **French Translations** - Added French translations for all new chart types and visualization settings
-- **Column Statistics Popover** - Click any column header in the results table to view computed statistics
+- **Column Statistics Popover** - Hover over any column header in the results table to view computed statistics
   - Numeric columns show min, max, avg, median, sum, and a distribution histogram
   - String columns show distinct count, top values with frequency bars, and min/max length
   - Temporal columns show earliest, latest, and a time distribution chart
   - Color-coded type badges (blue for numeric, green for string, amber for temporal)
   - Full dark mode support
-  - New `chart_bar_big` icon and `ColumnStats` JS hook (powered by Tippy.js)
+  - Stats rendering integrated into `CellContextMenu` hook (no external tooltip library needed)
+- **Column Sorting via Context Menu** - Right-click any column header to sort results ascending or descending
+  - Sort indicator (chevron) displayed on the active sort column
+  - Active sorts shown as dismissible purple chips above the results table
+  - Sorting wraps the query in a CTE, working safely with any SQL complexity
+  - New `chevron_up` icon component
 - **AI Query Explanation** - "Explain query" button in the AI Assistant provides a plain-language explanation of the current SQL query
   - Quick-action button above the chat input (brain icon), enabled when a SQL query is present
   - Also available as a prominent action in the empty state
@@ -63,6 +68,9 @@
 
 ### Changed
 
+- Column stats popover is now triggered by hovering over column headers (600ms delay) instead of clicking, and no longer depends on Tippy.js
+- Removed `ColumnStats` JS hook — stats rendering consolidated into `CellContextMenu` hook
+- Column headers and result cells now show a context-menu cursor on hover
 - Replaced drawer visibility booleans with a state machine (`left_drawer`, `right_drawer`, `modal` enums) for cleaner mutual exclusion
 - Extracted pure variable data-transformation logic into `QueryEditor.Variables` module
 - Extracted shared `chart_type_label/1` to `VegaSpecBuilder` — both `VisualizationSettingsComponent` and `CardSettingsDrawer` now delegate to it
