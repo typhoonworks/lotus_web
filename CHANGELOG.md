@@ -49,6 +49,12 @@
   - Explanations rendered as markdown with inline code, lists, and paragraphs
   - Opens the AI drawer automatically when triggered
   - Powered by `Lotus.AI.explain_query/1`
+- **Fragment Explanation via Editor Selection** - Highlight any portion of SQL in the editor to get a focused explanation of just that fragment
+  - Floating "Explain fragment" button appears near the selection when at least one word is selected
+  - Clicking the button opens the AI Assistant drawer and explains only the selected fragment in context of the full query
+  - Button dismisses on Escape, clicking elsewhere, or clearing the selection
+  - Viewport-aware positioning keeps the button within screen bounds
+  - Only visible when AI is enabled
 - **AI Query Optimization** - "Optimize query" button in the AI Assistant analyzes the current SQL and suggests performance improvements
   - Quick-action button above the chat input (wrench icon), enabled when a SQL query is present
   - Also available as a prominent action in the empty state
@@ -76,6 +82,7 @@
 - Extracted shared `chart_type_label/1` to `VegaSpecBuilder` — both `VisualizationSettingsComponent` and `CardSettingsDrawer` now delegate to it
 - `ResultsComponent` delegates to `VegaSpecBuilder.valid_config?/1` instead of duplicating validation logic
 - Reduced cyclomatic complexity in `VegaSpecBuilder` by extracting multi-head function clauses and helpers
+- Changed AI loading overlay text from "Generating query..." to "AI is thinking..." to reflect broader AI capabilities
 
 ### Fixed
 

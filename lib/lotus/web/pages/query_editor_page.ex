@@ -677,6 +677,42 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
+  def handle_event("explain_fragment", %{"fragment" => fragment}, socket) do
+    sql = socket.assigns.query_form[:statement].value
+
+    if is_nil(sql) or String.trim(sql) == "" do
+      {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before explaining"))}
+    else
+      data_source = socket.assigns.query_form[:data_repo].value
+
+      data_source =
+        if is_nil(data_source) or data_source == "",
+          do: socket.assigns.default_repo,
+          else: data_source
+
+      conversation =
+        add_user_message(
+          socket.assigns.ai_conversation,
+          gettext("Explain this fragment: `%{fragment}`", fragment: fragment)
+        )
+
+      socket =
+        socket
+        |> assign(left_drawer: :ai_assistant)
+        |> assign(ai_generating: true)
+        |> assign(ai_conversation: conversation)
+        |> start_async(:ai_explanation, fn ->
+          Lotus.AI.explain_query(
+            sql: sql,
+            fragment: fragment,
+            data_source: data_source
+          )
+        end)
+
+      {:noreply, socket}
+    end
+  end
+
   # Visualization event handlers
 
   def handle_event("smart_toggle_visualization_drawer", _params, socket) do
