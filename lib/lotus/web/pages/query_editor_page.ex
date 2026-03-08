@@ -734,10 +734,11 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("select_chart_type", %{"type" => chart_type}, socket) do
-    # Reset to a clean config with only chart_type to prevent stale fields
-    # from a previous type leaking through (e.g. KPI's value_field surviving
-    # a switch to bar chart).
-    config = %{"chart_type" => chart_type}
+    # Merge with existing config so compatible fields (x_field, y_field, etc.)
+    # persist across chart type switches. build_config filters to only the
+    # fields relevant for the new chart type.
+    existing = socket.assigns[:visualization_config] || %{}
+    config = VegaSpecBuilder.build_config(Map.put(existing, "chart_type", chart_type))
 
     socket =
       socket

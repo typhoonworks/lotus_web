@@ -73,6 +73,11 @@ defmodule Lotus.Web.Dashboards.CardComponent do
     """
   end
 
+  @impl Phoenix.LiveComponent
+  def handle_event("chart_render_error", %{"error" => error}, socket) do
+    {:noreply, assign(socket, :error, error)}
+  end
+
   defp grid_position(%{x: x, y: y, w: w, h: h}) do
     min_height = h * 100
 
@@ -141,12 +146,12 @@ defmodule Lotus.Web.Dashboards.CardComponent do
           <span class="truncate"><%= @error %></span>
         </div>
 
-      <% @result && has_visualization_config?(@card) -> %>
+      <% @result && VegaSpecBuilder.valid_config?(@card.visualization_config) -> %>
         <div
           id={"chart-#{@card.id}"}
           phx-hook="VegaChart"
           phx-update="ignore"
-          data-spec={Jason.encode!(VegaSpecBuilder.build(@result, @card.visualization_config))}
+          data-spec={Lotus.JSON.encode!(VegaSpecBuilder.build(@result, @card.visualization_config))}
           class="w-full h-full min-h-[150px]"
         />
 
@@ -160,13 +165,6 @@ defmodule Lotus.Web.Dashboards.CardComponent do
     <% end %>
     """
   end
-
-  defp has_visualization_config?(%{visualization_config: config})
-       when is_map(config) and map_size(config) > 0 do
-    Map.has_key?(config, "chart_type") or Map.has_key?(config, :chart_type)
-  end
-
-  defp has_visualization_config?(_), do: false
 
   defp mini_table(assigns) do
     ~H"""
