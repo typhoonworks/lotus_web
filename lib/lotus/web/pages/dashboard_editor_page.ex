@@ -614,10 +614,13 @@ defmodule Lotus.Web.DashboardEditorPage do
       ) do
     card_id = parse_id(card_id)
 
-    config = VegaSpecBuilder.build_config(viz)
-
     socket =
       update_card_and_selection(socket, card_id, fn card ->
+        existing =
+          (card.visualization_config || %{})
+          |> Map.new(fn {k, v} -> {to_string(k), v} end)
+
+        config = VegaSpecBuilder.build_config(Map.merge(existing, viz))
         %{card | visualization_config: config}
       end)
 

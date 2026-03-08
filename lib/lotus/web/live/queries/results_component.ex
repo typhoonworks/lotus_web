@@ -102,7 +102,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   :for={{col, _index} <- Enum.with_index(@result.columns)}
                   scope="col"
                   data-column={col}
-                  data-stats={Jason.encode!(encode_stats(@column_stats[col]))}
+                  data-stats={Lotus.JSON.encode!(encode_stats(@column_stats[col]))}
                   class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none cursor-context-menu hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <span class="inline-flex items-center gap-1">
@@ -250,7 +250,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
       id="vega-chart-container"
       phx-hook="VegaChart"
       phx-update="ignore"
-      data-spec={Jason.encode!(@spec)}
+      data-spec={Lotus.JSON.encode!(@spec)}
       class="w-full h-[calc(100vh-420px)] min-h-[250px] max-h-[500px] flex items-center justify-center"
     >
       <div class="text-gray-400">

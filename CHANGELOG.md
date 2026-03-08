@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## [0.14.2] - 2026-03-08
+
+### Fixed
+
+- **Dashboard chart rendering crash** - Added missing `handle_event/3` for `chart_render_error` in `CardComponent`, so JS chart errors are displayed gracefully instead of crashing the LiveView process
+- **Incomplete visualization config crash** - `CardComponent` now uses `VegaSpecBuilder.valid_config?/1` to guard chart rendering, preventing specs with missing x/y fields from being sent to Vega-Lite
+- **Chart data normalization** - `VegaSpecBuilder.transform_data` now normalizes `Decimal`, `NaiveDateTime`, `DateTime`, `Date`, and `Time` values to JSON-safe primitives before encoding, fixing "Invalid datetime format" errors in Vega-Lite
+- **Use `Lotus.JSON` instead of `Jason` directly** - Replaced all `Jason.encode!` calls in `CardComponent` and `ResultsComponent` with `Lotus.JSON.encode!` for consistent JSON encoding
+
+### Improved
+
+- **Preserve chart fields across type switches** - Changing chart type in both the dashboard card settings and query editor now retains compatible fields (x_field, y_field, series_field, etc.) instead of resetting them
+
+### Added
+
+- **VegaSpecBuilder tests** - Comprehensive test coverage for all public functions: `valid_config?/1`, `build_config/1`, `build/2` across all 18 chart types, data normalization, and type inference
+
 ## [0.14.1] - 2026-03-08
 
 ### Added
