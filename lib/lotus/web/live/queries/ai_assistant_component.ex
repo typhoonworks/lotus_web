@@ -27,6 +27,7 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
         "flex flex-col",
         if(@visible, do: "translate-x-0", else: "-translate-x-full")
       ]}
+      inert={!@visible}
     >
       <%= if @visible do %>
         <.header parent={@parent} conversation={@conversation} />

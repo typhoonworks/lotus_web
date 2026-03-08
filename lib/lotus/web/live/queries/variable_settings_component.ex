@@ -40,6 +40,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
         "fixed sm:absolute top-0 right-0 h-full w-full sm:w-80 bg-white dark:bg-gray-800 border-l-0 sm:border-l border-gray-200 dark:border-gray-700 z-20 transition-transform duration-300 ease-in-out overflow-hidden",
         if(@visible, do: "translate-x-0", else: "translate-x-full")
       ]}
+      inert={!@visible}
     >
       <div class="h-full flex flex-col">
         <.variable_settings_header active_tab={@active_tab} has_variables={@has_variables} myself={@myself} parent={@parent} />

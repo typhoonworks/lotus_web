@@ -68,6 +68,11 @@
 - `ResultsComponent` delegates to `VegaSpecBuilder.valid_config?/1` instead of duplicating validation logic
 - Reduced cyclomatic complexity in `VegaSpecBuilder` by extracting multi-head function clauses and helpers
 
+### Fixed
+
+- Tab key no longer opens off-screen drawers in the query editor and dashboard pages
+  - Added `inert` attribute to all slide-out drawers when hidden, preventing Tab focus from reaching off-screen elements
+
 ## [0.13.1] - 2026-03-05
 
 ### Changed
