@@ -102,7 +102,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   :for={{col, _index} <- Enum.with_index(@result.columns)}
                   scope="col"
                   data-column={col}
-                  data-stats={Lotus.JSON.encode!(encode_stats(@column_stats[col]))}
+                  data-stats={safe_json_encode_or_empty(encode_stats(@column_stats[col]))}
                   class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none cursor-context-menu hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <span class="inline-flex items-center gap-1">
@@ -229,35 +229,38 @@ defmodule Lotus.Web.Queries.ResultsComponent do
   defp encode_stats(nil), do: %{}
 
   defp encode_stats(stats) do
-    stats
-    |> Enum.map(fn
-      {k, %Date{} = v} -> {k, Date.to_iso8601(v)}
-      {k, %DateTime{} = v} -> {k, DateTime.to_iso8601(v)}
-      {k, %NaiveDateTime{} = v} -> {k, NaiveDateTime.to_iso8601(v)}
-      {k, %Time{} = v} -> {k, Time.to_iso8601(v)}
-      {k, v} -> {k, v}
-    end)
-    |> Map.new()
+    Map.new(stats, fn {k, v} -> {k, Lotus.Normalizer.normalize(v)} end)
   end
 
   defp render_chart(assigns) do
     spec = VegaSpecBuilder.build(assigns.result, assigns.config)
 
-    assigns = assign(assigns, :spec, spec)
+    case safe_json_encode(spec) do
+      {:ok, json} ->
+        assigns = assign(assigns, :spec_json, json)
 
-    ~H"""
-    <div
-      id="vega-chart-container"
-      phx-hook="VegaChart"
-      phx-update="ignore"
-      data-spec={Lotus.JSON.encode!(@spec)}
-      class="w-full h-[calc(100vh-420px)] min-h-[250px] max-h-[500px] flex items-center justify-center"
-    >
-      <div class="text-gray-400">
-        <.spinner />
-      </div>
-    </div>
-    """
+        ~H"""
+        <div
+          id="vega-chart-container"
+          phx-hook="VegaChart"
+          phx-update="ignore"
+          data-spec={@spec_json}
+          class="w-full h-[calc(100vh-420px)] min-h-[250px] max-h-[500px] flex items-center justify-center"
+        >
+          <div class="text-gray-400">
+            <.spinner />
+          </div>
+        </div>
+        """
+
+      {:error, _reason} ->
+        ~H"""
+        <div class="flex items-center justify-center h-64 text-red-500 dark:text-red-400 text-sm">
+          <Icons.exclamation_circle class="h-5 w-5 mr-2 flex-shrink-0" />
+          <span><%= gettext("Chart could not be rendered: result contains values that cannot be displayed") %></span>
+        </div>
+        """
+    end
   end
 
   attr(:result, :any, required: true)

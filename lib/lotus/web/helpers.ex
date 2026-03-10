@@ -99,4 +99,28 @@ defmodule Lotus.Web.Helpers do
     |> List.wrap()
     |> Enum.member?(to_string(value))
   end
+
+  require Logger
+
+  @doc """
+  Encodes data to JSON, returning `{:ok, json}` or `{:error, :encoding_failed}`.
+  """
+  def safe_json_encode(data) do
+    {:ok, Lotus.JSON.encode!(data)}
+  rescue
+    error ->
+      Logger.warning("JSON encoding failed: #{Exception.message(error)}")
+      {:error, :encoding_failed}
+  end
+
+  @doc """
+  Encodes data to JSON, returning `"{}"` on failure.
+  """
+  def safe_json_encode_or_empty(data) do
+    Lotus.JSON.encode!(data)
+  rescue
+    error ->
+      Logger.warning("JSON encoding failed: #{Exception.message(error)}")
+      "{}"
+  end
 end
