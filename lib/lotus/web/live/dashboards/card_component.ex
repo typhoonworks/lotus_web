@@ -160,7 +160,7 @@ defmodule Lotus.Web.Dashboards.CardComponent do
           <% {:error, _reason} -> %>
             <div class="flex items-center justify-center h-full text-red-500 dark:text-red-400 text-sm p-4">
               <Icons.exclamation_circle class="h-5 w-5 mr-2 flex-shrink-0" />
-              <span class="truncate"><%= gettext("Failed to render chart") %></span>
+              <span class="truncate"><%= gettext("Chart could not be rendered: result contains values that cannot be displayed") %></span>
             </div>
         <% end %>
 
@@ -301,5 +301,4 @@ defmodule Lotus.Web.Dashboards.CardComponent do
       true -> "https://" <> url
     end
   end
-
 end

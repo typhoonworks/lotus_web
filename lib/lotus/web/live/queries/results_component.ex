@@ -102,7 +102,7 @@ defmodule Lotus.Web.Queries.ResultsComponent do
                   :for={{col, _index} <- Enum.with_index(@result.columns)}
                   scope="col"
                   data-column={col}
-                  data-stats={safe_json_encode!(encode_stats(@column_stats[col]))}
+                  data-stats={safe_json_encode_or_empty(encode_stats(@column_stats[col]))}
                   class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-light dark:text-text-dark sm:pl-3 bg-white dark:bg-gray-800 select-none cursor-context-menu hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   <span class="inline-flex items-center gap-1">
@@ -541,5 +541,4 @@ defmodule Lotus.Web.Queries.ResultsComponent do
     </div>
     """
   end
-
 end
