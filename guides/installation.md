@@ -132,6 +132,85 @@ lotus_dashboard "/lotus",
 |---------|-------------|
 | `:timeout_options` | Adds a per-query timeout selector to the query editor toolbar, allowing users to override the default 5-second query timeout for long-running queries. |
 
+## Content Security Policy (CSP)
+
+If your application sets a `Content-Security-Policy` header (via `:put_secure_browser_headers`
+or a custom plug), you'll need to configure it to allow the resources used by LotusWeb.
+
+### Nonce-based CSP
+
+LotusWeb supports CSP nonces for inline scripts and styles. To enable them:
+
+1. **Generate a nonce** in a custom plug and store it in `conn.assigns`:
+
+```elixir
+defmodule MyAppWeb.CSPPlug do
+  import Plug.Conn
+
+  def init(opts), do: opts
+
+  def call(conn, _opts) do
+    nonce =
+      24
+      |> :crypto.strong_rand_bytes()
+      |> Base.url_encode64(padding: false)
+
+    conn
+    |> assign(:csp_nonce, nonce)
+    |> put_resp_header(
+      "content-security-policy",
+      "default-src 'self'; " <>
+        "script-src 'nonce-#{nonce}' https://cdn.jsdelivr.net; " <>
+        "style-src 'nonce-#{nonce}' 'unsafe-inline'; " <>
+        "font-src 'self' data:; " <>
+        "img-src 'self' data:; " <>
+        "connect-src 'self' ws: wss:;"
+    )
+  end
+end
+```
+
+2. **Add the plug** to your browser pipeline, **after** `:put_secure_browser_headers`
+   (so it overrides Phoenix's default CSP):
+
+```elixir
+pipeline :browser do
+  plug :accepts, ["html"]
+  plug :fetch_session
+  plug :fetch_live_flash
+  plug :put_root_layout, html: {MyAppWeb.Layouts, :root}
+  plug :protect_from_forgery
+  plug :put_secure_browser_headers
+  plug MyAppWeb.CSPPlug
+end
+```
+
+3. **Pass the nonce key** when mounting the dashboard:
+
+```elixir
+lotus_dashboard "/lotus",
+  csp_nonce_assign_key: :csp_nonce
+```
+
+You can also use separate keys for script and style nonces:
+
+```elixir
+lotus_dashboard "/lotus",
+  csp_nonce_assign_key: %{script: :script_csp_nonce, style: :style_csp_nonce}
+```
+
+### Required CSP directives
+
+LotusWeb uses the following resources that your CSP policy must allow:
+
+| Directive | Required value | Reason |
+|-----------|---------------|--------|
+| `script-src` | `'nonce-<value>'` and `https://cdn.jsdelivr.net` | Inline app script and TailwindPlus CDN module |
+| `style-src` | `'nonce-<value>'` or `'unsafe-inline'` | Inline app stylesheet |
+| `font-src` | `data:` | Embedded Inter font (base64-encoded) |
+| `img-src` | `data:` | Data URI images |
+| `connect-src` | `ws:` or `wss:` | LiveView WebSocket connection |
+
 ## Step 6: Visit the Dashboard
 
 Start your Phoenix server and visit `/lotus` to access the dashboard.

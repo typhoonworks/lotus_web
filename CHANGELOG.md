@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed
+
+- **CSP blocks TailwindPlus CDN script** - Added missing `nonce` attribute to the TailwindPlus CDN `<script>` tag in the root layout, which was blocked by `script-src-elem` CSP policies on browsers like Firefox
+
+### Added
+
+- **CSP nonce documentation** - Added Content Security Policy section to the installation guide covering nonce setup, required CSP directives, and an example plug
+
 ## [0.14.2] - 2026-03-08
 
 ### Fixed
