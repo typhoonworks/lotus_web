@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.14.3] - 2026-03-10
+
 ### Fixed
 
 - **CSP blocks TailwindPlus CDN script** - Added missing `nonce` attribute to the TailwindPlus CDN `<script>` tag in the root layout, which was blocked by `script-src-elem` CSP policies on browsers like Firefox
