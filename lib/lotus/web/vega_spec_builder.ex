@@ -203,15 +203,12 @@ defmodule Lotus.Web.VegaSpecBuilder do
     end)
   end
 
+  # Vega needs Decimals as numbers, not strings, so handle before the general normalizer
   defp normalize_value(%Decimal{} = val) do
     if Decimal.integer?(val), do: Decimal.to_integer(val), else: Decimal.to_float(val)
   end
 
-  defp normalize_value(%Date{} = val), do: Date.to_iso8601(val)
-  defp normalize_value(%DateTime{} = val), do: DateTime.to_iso8601(val)
-  defp normalize_value(%NaiveDateTime{} = val), do: NaiveDateTime.to_iso8601(val)
-  defp normalize_value(%Time{} = val), do: Time.to_iso8601(val)
-  defp normalize_value(val), do: val
+  defp normalize_value(val), do: Lotus.Normalizer.normalize(val)
 
   defp chart_mark("bar"), do: %{"type" => "bar"}
   defp chart_mark("line"), do: %{"type" => "line", "point" => true}

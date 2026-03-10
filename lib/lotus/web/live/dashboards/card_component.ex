@@ -147,13 +147,22 @@ defmodule Lotus.Web.Dashboards.CardComponent do
         </div>
 
       <% @result && VegaSpecBuilder.valid_config?(@card.visualization_config) -> %>
-        <div
-          id={"chart-#{@card.id}"}
-          phx-hook="VegaChart"
-          phx-update="ignore"
-          data-spec={Lotus.JSON.encode!(VegaSpecBuilder.build(@result, @card.visualization_config))}
-          class="w-full h-full min-h-[150px]"
-        />
+        <% chart_spec = VegaSpecBuilder.build(@result, @card.visualization_config) %>
+        <%= case safe_json_encode(chart_spec) do %>
+          <% {:ok, json} -> %>
+            <div
+              id={"chart-#{@card.id}"}
+              phx-hook="VegaChart"
+              phx-update="ignore"
+              data-spec={json}
+              class="w-full h-full min-h-[150px]"
+            />
+          <% {:error, _reason} -> %>
+            <div class="flex items-center justify-center h-full text-red-500 dark:text-red-400 text-sm p-4">
+              <Icons.exclamation_circle class="h-5 w-5 mr-2 flex-shrink-0" />
+              <span class="truncate"><%= gettext("Failed to render chart") %></span>
+            </div>
+        <% end %>
 
       <% @result -> %>
         <.mini_table result={@result} />
@@ -292,4 +301,5 @@ defmodule Lotus.Web.Dashboards.CardComponent do
       true -> "https://" <> url
     end
   end
+
 end
