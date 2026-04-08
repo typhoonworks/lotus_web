@@ -50,7 +50,10 @@ defmodule Lotus.Web.ExportController do
   defp stream_csv_export(conn, export_params) do
     case build_query(export_params) do
       %Query{} = query ->
-        filename = Map.get(export_params, "filename", "export.csv")
+        filename =
+          export_params
+          |> Map.get("filename", "export.csv")
+          |> sanitize_filename()
 
         conn
         |> put_resp_content_type("text/csv")
@@ -64,6 +67,21 @@ defmodule Lotus.Web.ExportController do
         |> text("Query not found.")
     end
   end
+
+  # Sanitize filename to prevent Content-Disposition header injection.
+  # Strips characters that could break out of the quoted filename or inject
+  # additional headers (double quotes, backslashes, CR/LF, control chars).
+  defp sanitize_filename(filename) when is_binary(filename) do
+    filename
+    |> String.replace(~r/[\x00-\x1f\x7f"\\]/, "")
+    |> String.trim()
+    |> case do
+      "" -> "export.csv"
+      sanitized -> sanitized
+    end
+  end
+
+  defp sanitize_filename(_), do: "export.csv"
 
   defp build_query(%{"query_id" => query_id}) when not is_nil(query_id) do
     Lotus.get_query(query_id)
