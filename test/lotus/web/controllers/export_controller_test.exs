@@ -177,6 +177,86 @@ defmodule Lotus.Web.Controllers.ExportControllerTest do
       assert conn.resp_body =~ "result"
     end
 
+    test "strips CRLF from filename to prevent header injection", %{conn: conn} do
+      query = query_fixture(%{statement: "SELECT 1 as result"})
+
+      params = %{
+        "query_id" => query.id,
+        "repo" => "public",
+        "vars" => %{},
+        "filename" => "evil.csv\"\r\nX-Injected: pwned"
+      }
+
+      token = ExportController.generate_token(Lotus.Web.Endpoint, params)
+      conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
+
+      assert conn.status == 200
+
+      [content_disposition] = get_resp_header(conn, "content-disposition")
+      refute content_disposition =~ ~r/[\r\n]/
+      assert content_disposition == ~s(attachment; filename="evil.csvX-Injected: pwned")
+    end
+
+    test "strips null bytes, backslashes, and double-quotes from filename", %{conn: conn} do
+      query = query_fixture(%{statement: "SELECT 1 as result"})
+
+      params = %{
+        "query_id" => query.id,
+        "repo" => "public",
+        "vars" => %{},
+        "filename" => "my\\\"file\x00.csv"
+      }
+
+      token = ExportController.generate_token(Lotus.Web.Endpoint, params)
+      conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
+
+      assert conn.status == 200
+
+      assert get_resp_header(conn, "content-disposition") == [
+               ~s(attachment; filename="myfile.csv")
+             ]
+    end
+
+    test "falls back to default when sanitized filename is empty", %{conn: conn} do
+      query = query_fixture(%{statement: "SELECT 1 as result"})
+
+      params = %{
+        "query_id" => query.id,
+        "repo" => "public",
+        "vars" => %{},
+        "filename" => ~s("""")
+      }
+
+      token = ExportController.generate_token(Lotus.Web.Endpoint, params)
+      conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
+
+      assert conn.status == 200
+
+      assert get_resp_header(conn, "content-disposition") == [
+               ~s(attachment; filename="export.csv")
+             ]
+    end
+
+    test "falls back to default when filename is only whitespace", %{conn: conn} do
+      query = query_fixture(%{statement: "SELECT 1 as result"})
+
+      params = %{
+        "query_id" => query.id,
+        "repo" => "public",
+        "vars" => %{},
+        "filename" => "   \t  "
+      }
+
+      token = ExportController.generate_token(Lotus.Web.Endpoint, params)
+      conn = get(conn, ~p"/lotus/export/csv?token=#{token}")
+
+      assert conn.status == 200
+
+      assert get_resp_header(conn, "content-disposition") == [
+               ~s(attachment; filename="export.csv")
+             ]
+    end
+
     test "streams CSV with variables", %{conn: conn} do
       create_test_users()
 
