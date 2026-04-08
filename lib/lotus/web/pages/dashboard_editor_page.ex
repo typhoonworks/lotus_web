@@ -485,12 +485,17 @@ defmodule Lotus.Web.DashboardEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("confirm_add_card", %{"type" => type} = params, socket) do
-    card_type = String.to_existing_atom(type)
-    query_id = Map.get(params, "query-id")
-    query_id = if query_id && query_id != "", do: String.to_integer(query_id), else: nil
+    case parse_card_type(type) do
+      nil ->
+        {:noreply, assign(socket, add_card_modal_open: false)}
 
-    socket = add_card(socket, card_type, query_id)
-    {:noreply, assign(socket, add_card_modal_open: false)}
+      card_type ->
+        query_id = Map.get(params, "query-id")
+        query_id = if query_id && query_id != "", do: String.to_integer(query_id), else: nil
+
+        socket = add_card(socket, card_type, query_id)
+        {:noreply, assign(socket, add_card_modal_open: false)}
+    end
   end
 
   @impl Phoenix.LiveComponent
@@ -572,7 +577,7 @@ defmodule Lotus.Web.DashboardEditorPage do
         socket
       ) do
     card_id = parse_id(card_id)
-    card_type = params["card_type"] |> to_atom_safe()
+    card_type = parse_card_type(params["card_type"])
 
     # Store content in the proper format based on card type
     formatted_content =
@@ -1333,9 +1338,15 @@ defmodule Lotus.Web.DashboardEditorPage do
     end
   end
 
-  defp to_atom_safe(nil), do: nil
-  defp to_atom_safe(value) when is_atom(value), do: value
-  defp to_atom_safe(value) when is_binary(value), do: String.to_existing_atom(value)
+  defp parse_card_type(:query), do: :query
+  defp parse_card_type(:text), do: :text
+  defp parse_card_type(:link), do: :link
+  defp parse_card_type(:heading), do: :heading
+  defp parse_card_type("query"), do: :query
+  defp parse_card_type("text"), do: :text
+  defp parse_card_type("link"), do: :link
+  defp parse_card_type("heading"), do: :heading
+  defp parse_card_type(_), do: nil
 
   defp maybe_run_card(socket, card) do
     if card.card_type == :query && card.query_id do

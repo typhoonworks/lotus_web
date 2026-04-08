@@ -6,6 +6,7 @@
 
 - **XSS via unsanitized markdown rendering** - `AiAssistantComponent` and dashboard `CardComponent` piped Earmark output straight into `Phoenix.HTML.raw/1`, allowing `<script>` tags, inline event handlers, and `javascript:` URLs to execute in the browser. Rendered markdown is now scrubbed via `HtmlSanitizeEx.markdown_html/1` through the new `Lotus.Web.Markdown.to_safe_html/1` helper
 - **Content-Disposition header injection via unsanitized filename** - `ExportController` interpolated the token-supplied `filename` directly into the `Content-Disposition` header. Filenames are now sanitized to strip double quotes, backslashes, and control characters (including `\r`/`\n`), preventing HTTP response header injection as a defense-in-depth measure
+- **LiveView process crash via crafted WebSocket events** - Replaced `String.to_existing_atom/1` on client-supplied values in `QueriesPage`, `QueryEditorPage`, and `DashboardEditorPage` event handlers (`switch_tab`, `switch_variable_tab`, `set_view_mode`, `switch_visualization_tab`, `add_filter`, `set_sort`, `confirm_add_card`, `update_card_content`) with explicit allowlists. A malicious client could previously send an unknown string to raise `ArgumentError` and crash the LiveView process, enabling targeted denial-of-service against individual user sessions
 
 ### Fixed
 

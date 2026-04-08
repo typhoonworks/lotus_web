@@ -172,7 +172,14 @@ defmodule Lotus.Web.QueriesPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, active_tab: String.to_existing_atom(tab))}
+    active_tab =
+      case tab do
+        "queries" -> :queries
+        "dashboards" -> :dashboards
+        _ -> :queries
+      end
+
+    {:noreply, assign(socket, active_tab: active_tab)}
   end
 
   @impl Page
