@@ -266,14 +266,7 @@ defmodule Lotus.Web.Dashboards.CardComponent do
     """
   end
 
-  defp render_markdown(""), do: ""
-
-  defp render_markdown(text) do
-    case Earmark.as_html(text) do
-      {:ok, html, _warnings} -> Phoenix.HTML.raw(html)
-      {:error, _html, _errors} -> text
-    end
-  end
+  defp render_markdown(text), do: Lotus.Web.Markdown.to_safe_html(text)
 
   defp get_content_text(nil), do: ""
   defp get_content_text(content) when is_binary(content), do: content
