@@ -326,7 +326,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("switch_variable_tab", %{"tab" => tab}, socket) do
-    active_tab = String.to_existing_atom(tab)
+    active_tab =
+      case tab do
+        "settings" -> :settings
+        "help" -> :help
+        _ -> :settings
+      end
+
     {:noreply, assign(socket, variable_settings_active_tab: active_tab)}
   end
 
@@ -780,13 +786,26 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("set_view_mode", %{"mode" => mode}, socket) do
-    view_mode = String.to_existing_atom(mode)
+    view_mode =
+      case mode do
+        "table" -> :table
+        "chart" -> :chart
+        _ -> :table
+      end
+
     {:noreply, assign(socket, visualization_view_mode: view_mode)}
   end
 
   @impl Phoenix.LiveComponent
   def handle_event("switch_visualization_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, visualization_drawer_tab: String.to_existing_atom(tab))}
+    drawer_tab =
+      case tab do
+        "types" -> :types
+        "config" -> :config
+        _ -> :types
+      end
+
+    {:noreply, assign(socket, visualization_drawer_tab: drawer_tab)}
   end
 
   @impl Phoenix.LiveComponent
@@ -888,7 +907,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("add_filter", params, socket) do
-    op = String.to_existing_atom(params["op"])
+    op = parse_filter_op(params["op"])
     value = if op in [:is_null, :is_not_null], do: nil, else: params["value"]
     filter = Lotus.Query.Filter.new(params["column"], op, value)
 
@@ -931,7 +950,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("set_sort", %{"column" => col, "direction" => dir}, socket) do
-    direction = String.to_existing_atom(dir)
+    direction =
+      case dir do
+        "asc" -> :asc
+        "desc" -> :desc
+        _ -> :asc
+      end
+
     new_sort = Lotus.Query.Sort.new(col, direction)
 
     sorts =
@@ -2020,4 +2045,15 @@ defmodule Lotus.Web.QueryEditorPage do
         last_activity: DateTime.utc_now()
     }
   end
+
+  defp parse_filter_op("eq"), do: :eq
+  defp parse_filter_op("neq"), do: :neq
+  defp parse_filter_op("gt"), do: :gt
+  defp parse_filter_op("lt"), do: :lt
+  defp parse_filter_op("gte"), do: :gte
+  defp parse_filter_op("lte"), do: :lte
+  defp parse_filter_op("like"), do: :like
+  defp parse_filter_op("is_null"), do: :is_null
+  defp parse_filter_op("is_not_null"), do: :is_not_null
+  defp parse_filter_op(_), do: :eq
 end

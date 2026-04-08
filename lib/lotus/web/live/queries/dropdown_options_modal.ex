@@ -23,7 +23,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
 
   @impl Phoenix.LiveComponent
   def handle_event("change_option_source", %{"source" => source}, socket) do
-    option_source = String.to_existing_atom(source)
+    option_source = parse_option_source(source)
 
     socket =
       socket
@@ -298,4 +298,8 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
      |> assign(:custom_options, custom_options)
      |> assign(:sql_query, sql_query)}
   end
+
+  defp parse_option_source("static"), do: :static
+  defp parse_option_source("query"), do: :query
+  defp parse_option_source(_), do: :static
 end

@@ -125,7 +125,7 @@ defmodule Lotus.Web.Dashboards.AddCardModal do
 
   @impl Phoenix.LiveComponent
   def handle_event("select_card_type", %{"type" => type}, socket) do
-    {:noreply, assign(socket, selected_type: String.to_existing_atom(type))}
+    {:noreply, assign(socket, selected_type: parse_card_type(type))}
   end
 
   @impl Phoenix.LiveComponent
@@ -133,4 +133,10 @@ defmodule Lotus.Web.Dashboards.AddCardModal do
     query_id = if id == "", do: nil, else: String.to_integer(id)
     {:noreply, assign(socket, selected_query_id: query_id)}
   end
+
+  defp parse_card_type("query"), do: :query
+  defp parse_card_type("text"), do: :text
+  defp parse_card_type("link"), do: :link
+  defp parse_card_type("heading"), do: :heading
+  defp parse_card_type(_), do: :query
 end
