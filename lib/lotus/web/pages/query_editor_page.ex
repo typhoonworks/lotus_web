@@ -2046,9 +2046,14 @@ defmodule Lotus.Web.QueryEditorPage do
     }
   end
 
-  defp parse_filter_op(op) when is_binary(op) do
-    Enum.find(Lotus.Query.Filter.operators(), :eq, &(Atom.to_string(&1) == op))
-  end
-
+  defp parse_filter_op("eq"), do: :eq
+  defp parse_filter_op("neq"), do: :neq
+  defp parse_filter_op("gt"), do: :gt
+  defp parse_filter_op("lt"), do: :lt
+  defp parse_filter_op("gte"), do: :gte
+  defp parse_filter_op("lte"), do: :lte
+  defp parse_filter_op("like"), do: :like
+  defp parse_filter_op("is_null"), do: :is_null
+  defp parse_filter_op("is_not_null"), do: :is_not_null
   defp parse_filter_op(_), do: :eq
 end

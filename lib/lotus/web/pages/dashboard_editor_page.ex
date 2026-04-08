@@ -576,24 +576,28 @@ defmodule Lotus.Web.DashboardEditorPage do
         %{"content" => content, "card_id" => card_id} = params,
         socket
       ) do
-    card_id = parse_id(card_id)
-    card_type = parse_card_type(params["card_type"])
+    case parse_card_type(params["card_type"]) do
+      nil ->
+        {:noreply, socket}
 
-    # Store content in the proper format based on card type
-    formatted_content =
-      case card_type do
-        :link -> %{"url" => content}
-        :text -> %{"text" => content}
-        :heading -> %{"text" => content}
-        _ -> content
-      end
+      card_type ->
+        card_id = parse_id(card_id)
 
-    socket =
-      update_card_and_selection(socket, card_id, fn card ->
-        %{card | content: formatted_content}
-      end)
+        formatted_content =
+          case card_type do
+            :link -> %{"url" => content}
+            :text -> %{"text" => content}
+            :heading -> %{"text" => content}
+            :query -> content
+          end
 
-    {:noreply, socket}
+        socket =
+          update_card_and_selection(socket, card_id, fn card ->
+            %{card | content: formatted_content}
+          end)
+
+        {:noreply, socket}
+    end
   end
 
   @impl Phoenix.LiveComponent
@@ -722,8 +726,8 @@ defmodule Lotus.Web.DashboardEditorPage do
       editing
       | name: filter_params["name"] || "",
         label: filter_params["label"] || "",
-        filter_type: String.to_existing_atom(filter_params["filter_type"]),
-        widget: String.to_existing_atom(filter_params["widget"]),
+        filter_type: parse_filter_type(filter_params["filter_type"]),
+        widget: parse_filter_widget(filter_params["widget"]),
         default_value: nullify(filter_params["default_value"]),
         config: build_filter_config(filter_params)
     }
@@ -1338,15 +1342,24 @@ defmodule Lotus.Web.DashboardEditorPage do
     end
   end
 
-  defp parse_card_type(:query), do: :query
-  defp parse_card_type(:text), do: :text
-  defp parse_card_type(:link), do: :link
-  defp parse_card_type(:heading), do: :heading
   defp parse_card_type("query"), do: :query
   defp parse_card_type("text"), do: :text
   defp parse_card_type("link"), do: :link
   defp parse_card_type("heading"), do: :heading
   defp parse_card_type(_), do: nil
+
+  defp parse_filter_type("text"), do: :text
+  defp parse_filter_type("number"), do: :number
+  defp parse_filter_type("date"), do: :date
+  defp parse_filter_type("date_range"), do: :date_range
+  defp parse_filter_type("select"), do: :select
+  defp parse_filter_type(_), do: :text
+
+  defp parse_filter_widget("input"), do: :input
+  defp parse_filter_widget("select"), do: :select
+  defp parse_filter_widget("date_picker"), do: :date_picker
+  defp parse_filter_widget("date_range_picker"), do: :date_range_picker
+  defp parse_filter_widget(_), do: :input
 
   defp maybe_run_card(socket, card) do
     if card.card_type == :query && card.query_id do

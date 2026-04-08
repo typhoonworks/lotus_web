@@ -64,30 +64,6 @@ defmodule Lotus.Web.Helpers do
   end
 
   @doc """
-  Restore params from URI encoding.
-  """
-  def decode_params(params) do
-    Map.new(params, fn
-      {"limit", val} ->
-        {:limit, String.to_integer(val)}
-
-      {key, val} when key in ~w(args meta) ->
-        val =
-          val
-          |> String.split("++")
-          |> List.update_at(0, &String.split(&1, ","))
-
-        {String.to_existing_atom(key), val}
-
-      {key, val} when key in ~w(ids modes nodes priorities queues stats tags workers) ->
-        {String.to_existing_atom(key), String.split(val, ",")}
-
-      {key, val} ->
-        {String.to_existing_atom(key), val}
-    end)
-  end
-
-  @doc """
   """
   def active_filter?(params, :state, value) do
     params[:state] == value or (is_nil(params[:state]) and value == "executing")
