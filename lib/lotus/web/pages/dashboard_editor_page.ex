@@ -1260,7 +1260,6 @@ defmodule Lotus.Web.DashboardEditorPage do
         :heading -> {12, 1}
         :text -> {6, 2}
         :link -> {6, 1}
-        _ -> {6, 4}
       end
 
     if cards == [] do
