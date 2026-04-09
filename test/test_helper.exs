@@ -28,6 +28,10 @@ Application.put_env(:lotus, :data_repos, %{
 
 Application.put_env(:lotus, :default_repo, "public")
 
+# Lotus caches its validated config in :persistent_term at boot, so any
+# Application.put_env calls above need an explicit reload to take effect.
+Lotus.Config.reload!()
+
 Application.put_env(:lotus_web, Lotus.Web.Endpoint,
   check_origin: false,
   http: [port: 4002],

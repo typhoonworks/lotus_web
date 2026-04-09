@@ -46,6 +46,34 @@ defmodule Lotus.Web.Pages.QueriesPageTest do
     end
   end
 
+  describe "dashboards tab" do
+    test "preloads :cards so card counts render without triggering NotLoaded" do
+      dashboard1 = dashboard_fixture(%{name: "Sales"})
+      dashboard_card_fixture(dashboard1, %{position: 0})
+      dashboard_card_fixture(dashboard1, %{position: 1})
+
+      dashboard2 = dashboard_fixture(%{name: "Marketing"})
+      dashboard_card_fixture(dashboard2, %{position: 0})
+
+      {:ok, live, _html} = live(build_conn(), "/lotus?tab=dashboards")
+
+      # The card count column renders `length(dashboard.cards)` — if `:cards`
+      # were still `%Ecto.Association.NotLoaded{}`, render would raise and
+      # the `{:ok, live, _}` match above would blow up. Asserting on the
+      # actual counts also pins the preload to returning loaded data (not,
+      # say, an accidentally-empty list).
+      assert has_element?(live, ~s|#dashboards-table tr|, "Sales")
+      assert has_element?(live, ~s|#dashboards-table tr|, "Marketing")
+
+      html = render(live)
+      assert html =~ "Sales"
+      assert html =~ "Marketing"
+      # Both dashboards' card-count cells are present.
+      assert html =~ ~r/Sales.*?\b2\b/s
+      assert html =~ ~r/Marketing.*?\b1\b/s
+    end
+  end
+
   defp has_query?(live, query_name) do
     has_element?(live, "#queries-table", query_name)
   end
