@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **Consolidated `PublicDashboardLive` into `DashboardLive`** - Removed ~95% duplicated callbacks by unifying the two LiveViews. The `/public/:token` route now mounts `DashboardLive`, which resolves a `:public_dashboard` page via `resolve_page/1` and branches mount defaults on the existing `public_view` assign (#104)
+
 ### Security
 
 - **XSS via unsanitized markdown rendering** - `AiAssistantComponent` and dashboard `CardComponent` piped Earmark output straight into `Phoenix.HTML.raw/1`, allowing `<script>` tags, inline event handlers, and `javascript:` URLs to execute in the browser. Rendered markdown is now scrubbed via `HtmlSanitizeEx.markdown_html/1` through the new `Lotus.Web.Markdown.to_safe_html/1` helper

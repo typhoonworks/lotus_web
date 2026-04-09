@@ -66,7 +66,7 @@ defmodule Lotus.Web.Router do
 
         # Public dashboard - separate live_session without authentication
         live_session :"#{session_name}_public", public_session_opts do
-          live("/public/:token", Lotus.Web.PublicDashboardLive, :show)
+          live("/public/:token", Lotus.Web.DashboardLive, :show)
         end
 
         live_session session_name, session_opts do
