@@ -57,7 +57,7 @@ defmodule Lotus.Web.Controllers.ExportControllerTest do
       expired_token =
         Phoenix.Token.encrypt(
           Lotus.Web.Endpoint,
-          "lotus:" <> Lotus.Web.Endpoint.config(:secret_key_base),
+          "lotus_export",
           params,
           signed_at: System.system_time(:second) - 400
         )

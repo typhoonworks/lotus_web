@@ -3,6 +3,8 @@ defmodule Lotus.Web.SourcesMap do
   Data structure representing the complete database schema hierarchy.
   """
 
+  require Logger
+
   defstruct databases: []
 
   defmodule Database do
@@ -46,7 +48,13 @@ defmodule Lotus.Web.SourcesMap do
         schemas: schemas
       }
     rescue
-      _ -> nil
+      error ->
+        Logger.warning(
+          "Failed to load database #{inspect(db_name)} for the explorer: " <>
+            Exception.message(error)
+        )
+
+        nil
     end
   end
 

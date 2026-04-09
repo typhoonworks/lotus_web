@@ -5,6 +5,21 @@ defmodule Lotus.Web.VegaSpecBuilder do
 
   use Gettext, backend: Lotus.Web.Gettext
 
+  # Centralized chart color palette. Kept in one place so visualization marks
+  # share the same accents and a future theme/dark-mode pass only has to touch
+  # this map.
+  @chart_colors %{
+    primary: "#ec4899",
+    positive: "#10b981",
+    negative: "#ef4444",
+    neutral: "#6b7280",
+    track: "#e5e7eb",
+    accent: "#f97316"
+  }
+
+  @doc "Returns the chart color palette used for built-in visualizations."
+  def chart_colors, do: @chart_colors
+
   @chart_type_ids ~w(bar horizontal_bar line area combo scatter bubble histogram heatmap pie donut funnel waterfall kpi trend gauge progress sparkline)
 
   @doc "Returns the ordered list of chart type ID strings."
@@ -509,7 +524,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "align" => "center",
             "baseline" => "middle",
             "dy" => 30,
-            "color" => "#6b7280"
+            "color" => @chart_colors.neutral
           },
           "encoding" => %{
             "text" => %{"field" => "_label", "type" => "nominal"}
@@ -594,7 +609,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "outerRadius" => 80,
             "theta" => end_angle,
             "theta2" => start_angle,
-            "color" => "#e5e7eb"
+            "color" => @chart_colors.track
           }
         },
         # Foreground arc (value)
@@ -605,7 +620,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "outerRadius" => 80,
             "theta" => value_angle,
             "theta2" => start_angle,
-            "color" => "#ec4899"
+            "color" => @chart_colors.primary
           }
         },
         # Value text
@@ -630,7 +645,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "align" => "center",
             "baseline" => "middle",
             "dy" => 20,
-            "color" => "#6b7280"
+            "color" => @chart_colors.neutral
           },
           "encoding" => %{
             "text" => %{"value" => label}
@@ -671,7 +686,12 @@ defmodule Lotus.Web.VegaSpecBuilder do
       "layer" => [
         # Background bar
         %{
-          "mark" => %{"type" => "bar", "height" => 24, "cornerRadius" => 4, "color" => "#e5e7eb"},
+          "mark" => %{
+            "type" => "bar",
+            "height" => 24,
+            "cornerRadius" => 4,
+            "color" => @chart_colors.track
+          },
           "encoding" => %{
             "x" => %{
               "field" => "_value",
@@ -688,7 +708,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "type" => "bar",
             "height" => 24,
             "cornerRadius" => 4,
-            "color" => "#ec4899"
+            "color" => @chart_colors.primary
           },
           "encoding" => %{
             "x" => %{
@@ -722,7 +742,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "align" => "center",
             "baseline" => "middle",
             "dy" => 30,
-            "color" => "#6b7280"
+            "color" => @chart_colors.neutral
           },
           "encoding" => %{
             "text" => %{"value" => label}
@@ -772,7 +792,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
             "align" => "center",
             "baseline" => "middle",
             "dy" => 10,
-            "color" => "#6b7280"
+            "color" => @chart_colors.neutral
           },
           "encoding" => %{
             "text" => %{"value" => label}
@@ -812,17 +832,17 @@ defmodule Lotus.Web.VegaSpecBuilder do
     extract_numeric(second_row, value_field, nil)
   end
 
-  defp format_delta(_current, nil), do: {"", "#6b7280"}
-  defp format_delta(_current, 0), do: {"", "#6b7280"}
-  defp format_delta(_current, +0.0), do: {"", "#6b7280"}
+  defp format_delta(_current, nil), do: {"", @chart_colors.neutral}
+  defp format_delta(_current, 0), do: {"", @chart_colors.neutral}
+  defp format_delta(_current, +0.0), do: {"", @chart_colors.neutral}
 
   defp format_delta(current, comparison) do
     pct = Float.round((current - comparison) / abs(comparison) * 100, 1)
 
     if pct >= 0 do
-      {"\u25B2 +#{pct}%", "#10b981"}
+      {"\u25B2 +#{pct}%", @chart_colors.positive}
     else
-      {"\u25BC #{pct}%", "#ef4444"}
+      {"\u25BC #{pct}%", @chart_colors.negative}
     end
   end
 
@@ -845,7 +865,8 @@ defmodule Lotus.Web.VegaSpecBuilder do
           "as" => "_prev_cumulative"
         },
         %{
-          "calculate" => "datum['#{y_field}'] >= 0 ? '#10b981' : '#ef4444'",
+          "calculate" =>
+            "datum['#{y_field}'] >= 0 ? '#{@chart_colors.positive}' : '#{@chart_colors.negative}'",
           "as" => "_color"
         }
       ],
@@ -913,7 +934,7 @@ defmodule Lotus.Web.VegaSpecBuilder do
     layers =
       if y2_field && y2_field != "" do
         line_layer = %{
-          "mark" => %{"type" => "line", "point" => true, "color" => "#f97316"},
+          "mark" => %{"type" => "line", "point" => true, "color" => @chart_colors.accent},
           "encoding" => %{
             "x" => %{
               "field" => x_field,
