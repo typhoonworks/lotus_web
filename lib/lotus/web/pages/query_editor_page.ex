@@ -555,12 +555,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("send_ai_message", %{"message" => message}, socket) do
-    data_source = socket.assigns.query_form[:data_repo].value
-
-    data_source =
-      if is_nil(data_source) or data_source == "",
-        do: socket.assigns.default_repo,
-        else: data_source
+    data_source = resolve_data_source(socket)
 
     if is_nil(data_source) or data_source == "" do
       conversation =
@@ -624,12 +619,7 @@ defmodule Lotus.Web.QueryEditorPage do
     if is_nil(sql) or String.trim(sql) == "" do
       {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before optimizing"))}
     else
-      data_source = socket.assigns.query_form[:data_repo].value
-
-      data_source =
-        if is_nil(data_source) or data_source == "",
-          do: socket.assigns.default_repo,
-          else: data_source
+      data_source = resolve_data_source(socket)
 
       conversation =
         add_user_message(socket.assigns.ai_conversation, gettext("Optimize this query"))
@@ -657,12 +647,7 @@ defmodule Lotus.Web.QueryEditorPage do
     if is_nil(sql) or String.trim(sql) == "" do
       {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before explaining"))}
     else
-      data_source = socket.assigns.query_form[:data_repo].value
-
-      data_source =
-        if is_nil(data_source) or data_source == "",
-          do: socket.assigns.default_repo,
-          else: data_source
+      data_source = resolve_data_source(socket)
 
       conversation =
         add_user_message(socket.assigns.ai_conversation, gettext("Explain this query"))
@@ -689,12 +674,7 @@ defmodule Lotus.Web.QueryEditorPage do
     if is_nil(sql) or String.trim(sql) == "" do
       {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before explaining"))}
     else
-      data_source = socket.assigns.query_form[:data_repo].value
-
-      data_source =
-        if is_nil(data_source) or data_source == "",
-          do: socket.assigns.default_repo,
-          else: data_source
+      data_source = resolve_data_source(socket)
 
       conversation =
         add_user_message(
@@ -1353,6 +1333,14 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp show_toast(socket, kind, message) do
     push_event(socket, "toast", %{kind: kind, message: message})
+  end
+
+  defp resolve_data_source(socket) do
+    case socket.assigns.query_form[:data_repo].value do
+      nil -> socket.assigns.default_repo
+      "" -> socket.assigns.default_repo
+      data_source -> data_source
+    end
   end
 
   defp assign_ui_state(socket) do
