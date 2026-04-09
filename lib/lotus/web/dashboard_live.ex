@@ -1,7 +1,7 @@
 defmodule Lotus.Web.DashboardLive do
   use Lotus.Web, :live_view
 
-  alias Lotus.Web.{DashboardEditorPage, QueriesPage, QueryEditorPage}
+  alias Lotus.Web.{DashboardEditorPage, PublicDashboardPage, QueriesPage, QueryEditorPage}
 
   @impl Phoenix.LiveView
   def mount(params, session, socket) do
@@ -9,12 +9,8 @@ defmodule Lotus.Web.DashboardLive do
     %{"live_path" => live_path, "live_transport" => live_transport} = session
     %{"csp_nonces" => csp_nonces} = session
 
-    resolver = Map.get(session, "resolver")
-    user = Map.get(session, "user")
-    access = Map.get(session, "access", :all)
-    features = Map.get(session, "features", [])
-
     page = resolve_page(params)
+    {resolver, user, access, features, page_title} = mount_defaults(page, session)
 
     put_router_prefix(socket, prefix)
 
@@ -22,17 +18,25 @@ defmodule Lotus.Web.DashboardLive do
       socket
       |> assign(params: params, page: page)
       |> assign(live_path: live_path, live_transport: live_transport)
-      |> assign(:page_title, "Lotus Dashboard")
+      |> assign(:page_title, page_title)
       |> assign(:csp_nonces, csp_nonces)
       |> assign(:resolver, resolver)
       |> assign(:user, user)
       |> assign(:access, access)
       |> assign(:features, features)
-      |> assign(:public_view, false)
+      |> assign(:public_view, page.name == :public_dashboard)
       |> page.comp.handle_mount()
 
     {:ok, socket}
   end
+
+  defp mount_defaults(%{name: :public_dashboard}, _session),
+    do: {nil, nil, :read_only, [], "Public Dashboard"}
+
+  defp mount_defaults(_page, session),
+    do:
+      {Map.get(session, "resolver"), Map.get(session, "user"), Map.get(session, "access", :all),
+       Map.get(session, "features", []), "Lotus Dashboard"}
 
   @impl Phoenix.LiveView
   def render(assigns) do
@@ -81,6 +85,9 @@ defmodule Lotus.Web.DashboardLive do
   end
 
   ## Render Helpers
+
+  defp resolve_page(%{"token" => token}),
+    do: %{name: :public_dashboard, comp: PublicDashboardPage, token: token}
 
   defp resolve_page(%{"page" => "queries", "id" => "new"}),
     do: %{name: :query_new, comp: QueryEditorPage, mode: :new}
