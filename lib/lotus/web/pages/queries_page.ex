@@ -146,7 +146,7 @@ defmodule Lotus.Web.QueriesPage do
   @impl Page
   def handle_mount(socket) do
     queries = Lotus.list_queries()
-    dashboards = Lotus.list_dashboards() |> preload_cards()
+    dashboards = Lotus.list_dashboards(preload: [:cards])
 
     socket
     |> assign(
@@ -154,13 +154,6 @@ defmodule Lotus.Web.QueriesPage do
       dashboards: dashboards,
       active_tab: :queries
     )
-  end
-
-  defp preload_cards(dashboards) do
-    Enum.map(dashboards, fn dashboard ->
-      cards = Lotus.list_dashboard_cards(dashboard.id)
-      %{dashboard | cards: cards}
-    end)
   end
 
   @impl Page

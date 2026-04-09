@@ -49,7 +49,7 @@ defmodule Lotus.Web.MixProject do
       {:html_sanitize_ex, "~> 1.4"},
 
       # Lotus
-      {:lotus, "~> 0.16.4"},
+      {:lotus, github: "typhoonworks/lotus", branch: "main"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},
