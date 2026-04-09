@@ -136,46 +136,76 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
         <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">
           <%= gettext("or use AI on your current query") %>
         </p>
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            phx-click="explain_query"
-            phx-target={@parent}
-            disabled={is_nil(@current_sql) or @current_sql == ""}
-            title={gettext("Get a plain-language explanation of your SQL query")}
-            class={[
-              "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors",
-              if(is_nil(@current_sql) or @current_sql == "",
-                do: "text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed",
-                else: "text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
-              )
-            ]}
-          >
-            <Icons.brain class="h-3.5 w-3.5" />
-            <%= gettext("Explain query") %>
-          </button>
-          <button
-            type="button"
-            phx-click="optimize_query"
-            phx-target={@parent}
-            disabled={is_nil(@current_sql) or @current_sql == ""}
-            title={gettext("Analyze your SQL and suggest performance improvements")}
-            class={[
-              "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors",
-              if(is_nil(@current_sql) or @current_sql == "",
-                do: "text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed",
-                else: "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-              )
-            ]}
-          >
-            <Icons.wrench class="h-3.5 w-3.5" />
-            <%= gettext("Optimize query") %>
-          </button>
-        </div>
+        <.ai_action_buttons
+          parent={@parent}
+          current_sql={@current_sql}
+          generating={false}
+          size={:lg}
+        />
       </div>
     </div>
     """
   end
+
+  attr(:parent, :any, required: true)
+  attr(:current_sql, :string, default: nil)
+  attr(:generating, :boolean, default: false)
+  attr(:size, :atom, values: [:sm, :lg], default: :sm)
+
+  defp ai_action_buttons(assigns) do
+    ~H"""
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        phx-click="explain_query"
+        phx-target={@parent}
+        disabled={ai_action_disabled?(@generating, @current_sql)}
+        title={gettext("Get a plain-language explanation of your SQL query")}
+        class={[
+          ai_action_base_classes(@size),
+          if(ai_action_disabled?(@generating, @current_sql),
+            do: ai_action_disabled_classes(@size),
+            else: "text-cyan-700 dark:text-cyan-300 border-cyan-300 dark:border-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
+          )
+        ]}
+      >
+        <Icons.brain class="h-3.5 w-3.5" />
+        <%= gettext("Explain query") %>
+      </button>
+      <button
+        type="button"
+        phx-click="optimize_query"
+        phx-target={@parent}
+        disabled={ai_action_disabled?(@generating, @current_sql)}
+        title={gettext("Analyze your SQL and suggest performance improvements")}
+        class={[
+          ai_action_base_classes(@size),
+          if(ai_action_disabled?(@generating, @current_sql),
+            do: ai_action_disabled_classes(@size),
+            else: "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+          )
+        ]}
+      >
+        <Icons.wrench class="h-3.5 w-3.5" />
+        <%= gettext("Optimize query") %>
+      </button>
+    </div>
+    """
+  end
+
+  defp ai_action_disabled?(generating, current_sql),
+    do: generating or is_nil(current_sql) or current_sql == ""
+
+  defp ai_action_base_classes(:lg),
+    do:
+      "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors"
+
+  defp ai_action_base_classes(:sm),
+    do:
+      "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-colors"
+
+  defp ai_action_disabled_classes(_size),
+    do: "text-gray-400 dark:text-gray-600 border-gray-200 dark:border-gray-700 cursor-not-allowed"
 
   attr(:message, :map, required: true)
   attr(:index, :integer, required: true)
@@ -391,41 +421,13 @@ defmodule Lotus.Web.Queries.AiAssistantComponent do
   defp input_area(assigns) do
     ~H"""
     <div class="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-4">
-      <div class="mb-2 flex items-center gap-2">
-        <button
-          type="button"
-          phx-click="explain_query"
-          phx-target={@parent}
-          disabled={@generating or is_nil(@current_sql) or @current_sql == ""}
-          title={gettext("Get a plain-language explanation of your SQL query")}
-          class={[
-            "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
-            if(@generating or is_nil(@current_sql) or @current_sql == "",
-              do: "text-gray-400 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed",
-              else: "text-cyan-700 dark:text-cyan-300 border border-cyan-300 dark:border-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
-            )
-          ]}
-        >
-          <Icons.brain class="h-3.5 w-3.5" />
-          <%= gettext("Explain query") %>
-        </button>
-        <button
-          type="button"
-          phx-click="optimize_query"
-          phx-target={@parent}
-          disabled={@generating or is_nil(@current_sql) or @current_sql == ""}
-          title={gettext("Analyze your SQL and suggest performance improvements")}
-          class={[
-            "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors",
-            if(@generating or is_nil(@current_sql) or @current_sql == "",
-              do: "text-gray-400 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed",
-              else: "text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-            )
-          ]}
-        >
-          <Icons.wrench class="h-3.5 w-3.5" />
-          <%= gettext("Optimize query") %>
-        </button>
+      <div class="mb-2">
+        <.ai_action_buttons
+          parent={@parent}
+          current_sql={@current_sql}
+          generating={@generating}
+          size={:sm}
+        />
       </div>
       <form id="ai-message-form" phx-submit="send_ai_message" phx-target={@parent}>
         <div class="flex gap-2">

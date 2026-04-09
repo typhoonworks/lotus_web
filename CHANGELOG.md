@@ -4,6 +4,9 @@
 
 ### Changed
 
+- **Centralized chart colors in `VegaSpecBuilder`** - 15+ scattered hex literals (gauge/progress fills, delta indicators, waterfall bars, combo accent line, neutral labels, track backgrounds) are now consolidated into a single `@chart_colors` module attribute, exposed via `VegaSpecBuilder.chart_colors/0`, so a future theme/dark-mode pass only has to touch one place (#107)
+- **Extracted duplicated AI action buttons in `AiAssistantComponent`** - The "Explain query" / "Optimize query" buttons were duplicated between the empty state and the input area with slightly different sizing; both now render via a shared `ai_action_buttons` function component that takes a `:size` (`:lg` or `:sm`) and a `:generating` flag (#109)
+- **Use a dedicated salt for export tokens** - `ExportController` now passes `"lotus_export"` as the salt to `Phoenix.Token.encrypt/decrypt` instead of prefixing the full `secret_key_base`. This follows the Phoenix convention and lets the framework handle key derivation internally (#108)
 - **Extracted duplicated data source resolution in `QueryEditorPage`** - The four AI-related event handlers (`send_ai_message`, `optimize_query`, `explain_query`, `explain_fragment`) each inlined the same fallback-to-default-repo logic; this is now a single `resolve_data_source/1` private helper (#106)
 - **Consolidated `PublicDashboardLive` into `DashboardLive`** - Removed ~95% duplicated callbacks by unifying the two LiveViews. The `/public/:token` route now mounts `DashboardLive`, which resolves a `:public_dashboard` page via `resolve_page/1` and branches mount defaults on the existing `public_view` assign (#104)
 
@@ -15,6 +18,7 @@
 
 ### Fixed
 
+- **`SourcesMap.load_database/1` no longer silently swallows exceptions** - The bare `rescue _ -> nil` clause now logs a warning with the database name and the exception message before returning `nil`, so configuration errors, connection failures, and adapter issues are diagnosable instead of silently dropping a database from the explorer (#105)
 - **N+1 query on the Queries page dashboards tab** - `QueriesPage` previously issued one `list_dashboard_cards` query per dashboard while preloading card counts. It now uses the new `Lotus.list_dashboards(preload: [:cards])` option, collapsing the load into a single query (#103)
 - **Graceful error handling for JSON encoding failures** - Wrapped `Lotus.JSON.encode!` calls in `ResultsComponent`, `CardComponent`, and `VegaSpecBuilder` with safe encoding that renders user-friendly error messages instead of crashing the LiveView process when results contain non-encodable values (e.g. raw UUID binaries)
 - **Raw database value normalization** - `VegaSpecBuilder` and `ResultsComponent` now use `Lotus.Normalizer` to normalize raw database values (UUID binaries, Dates, Decimals, etc.) before JSON encoding
