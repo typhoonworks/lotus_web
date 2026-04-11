@@ -14,24 +14,27 @@ defmodule Lotus.Web.SchemaBuilder do
       database ->
         schema_map =
           database
-          |> determine_selected_schemas(search_path)
+          |> determine_selected_schemas(data_repo, search_path)
           |> build_schema_map(database, data_repo)
 
         {:ok, schema_map}
     end
   end
 
-  defp determine_selected_schemas(database, search_path) do
+  defp determine_selected_schemas(database, data_repo, search_path) do
     if search_path && search_path != "" do
       String.split(search_path, ",", trim: true)
     else
-      default_schemas_for_database(database)
+      default_schemas_for_database(database, data_repo)
     end
   end
 
-  defp default_schemas_for_database(database) do
+  defp default_schemas_for_database(database, data_repo) do
     if database.supports_schemas do
-      ["public"]
+      case Lotus.Config.data_sources()[data_repo] do
+        nil -> ["public"]
+        repo -> Lotus.Source.default_schemas(repo)
+      end
     else
       Enum.map(database.schemas, & &1.name)
     end
@@ -54,10 +57,10 @@ defmodule Lotus.Web.SchemaBuilder do
   end
 
   defp qualify_table_name(table_name, schema, selected_schemas, database) do
-    if length(selected_schemas) > 1 && database.supports_schemas do
-      "#{schema.name}.#{table_name}"
-    else
-      table_name
+    case selected_schemas do
+      [_single] -> table_name
+      _ when database.supports_schemas -> "#{schema.name}.#{table_name}"
+      _ -> table_name
     end
   end
 

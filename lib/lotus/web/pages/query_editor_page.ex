@@ -108,6 +108,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   optional_variable_names={@optional_variable_names}
                   query_timeout={@query_timeout}
                   timeout_options_enabled={:timeout_options in (@features || [])}
+                  source_type={@source_type}
                 />
 
                 <.results_pill
@@ -617,7 +618,7 @@ defmodule Lotus.Web.QueryEditorPage do
     sql = socket.assigns.query_form[:statement].value
 
     if is_nil(sql) or String.trim(sql) == "" do
-      {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before optimizing"))}
+      {:noreply, show_toast(socket, :error, gettext("Write a query first before optimizing"))}
     else
       data_source = resolve_data_source(socket)
 
@@ -645,7 +646,7 @@ defmodule Lotus.Web.QueryEditorPage do
     sql = socket.assigns.query_form[:statement].value
 
     if is_nil(sql) or String.trim(sql) == "" do
-      {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before explaining"))}
+      {:noreply, show_toast(socket, :error, gettext("Write a query first before explaining"))}
     else
       data_source = resolve_data_source(socket)
 
@@ -672,7 +673,7 @@ defmodule Lotus.Web.QueryEditorPage do
     sql = socket.assigns.query_form[:statement].value
 
     if is_nil(sql) or String.trim(sql) == "" do
-      {:noreply, show_toast(socket, :error, gettext("Write a SQL query first before explaining"))}
+      {:noreply, show_toast(socket, :error, gettext("Write a query first before explaining"))}
     else
       data_source = resolve_data_source(socket)
 
@@ -869,7 +870,7 @@ defmodule Lotus.Web.QueryEditorPage do
     if check_statement_empty(form) do
       {:noreply,
        assign(socket,
-         error: gettext("Please enter a SQL statement"),
+         error: gettext("Please enter a statement"),
          result: nil,
          running: false
        )}
@@ -1071,7 +1072,7 @@ defmodule Lotus.Web.QueryEditorPage do
         conversation =
           add_assistant_response(
             conversation,
-            gettext("Here's your SQL query:"),
+            gettext("Here's your query:"),
             sql,
             variables || []
           )
@@ -1326,9 +1327,12 @@ defmodule Lotus.Web.QueryEditorPage do
     {default_source, _module} = Lotus.default_data_source()
     sources_map = SourcesMap.build()
 
+    source_type = Lotus.Sources.source_type(default_source)
+
     socket
     |> assign(data_source_names: data_source_names, default_source: default_source)
     |> assign(sources_map: sources_map)
+    |> assign(source_type: source_type)
   end
 
   defp show_toast(socket, kind, message) do
@@ -1428,14 +1432,23 @@ defmodule Lotus.Web.QueryEditorPage do
   defp maybe_update_editor_schema(socket, data_source) do
     if data_source && data_source != "" do
       dialect = dialect_for_repo(data_source)
+      source_type = Lotus.Sources.source_type(data_source)
       search_path = socket.assigns.query && socket.assigns.query.search_path
 
       case SchemaBuilder.build(socket.assigns.sources_map, data_source, search_path) do
         {:ok, schema} ->
-          assign(socket, editor_schema: schema, editor_dialect: dialect)
+          assign(socket,
+            editor_schema: schema,
+            editor_dialect: dialect,
+            source_type: source_type
+          )
 
         {:error, _reason} ->
-          assign(socket, editor_schema: nil, editor_dialect: dialect)
+          assign(socket,
+            editor_schema: nil,
+            editor_dialect: dialect,
+            source_type: source_type
+          )
       end
     else
       assign(socket, editor_schema: nil, editor_dialect: nil)
@@ -1721,6 +1734,13 @@ defmodule Lotus.Web.QueryEditorPage do
 
     filename = "#{timestamp}_#{base_name}.csv"
 
+    source_type = Lotus.Sources.source_type(repo)
+
+    search_path =
+      if Lotus.Sources.supports_feature?(source_type, :search_path),
+        do: query.search_path,
+        else: nil
+
     export_params =
       case socket.assigns.page do
         %{mode: :edit, id: id} ->
@@ -1728,7 +1748,7 @@ defmodule Lotus.Web.QueryEditorPage do
             "query_id" => id,
             "repo" => repo,
             "vars" => vars,
-            "search_path" => query.search_path,
+            "search_path" => search_path,
             "filename" => filename
           }
 
@@ -1740,7 +1760,7 @@ defmodule Lotus.Web.QueryEditorPage do
             },
             "repo" => repo,
             "vars" => vars,
-            "search_path" => query.search_path,
+            "search_path" => search_path,
             "filename" => filename
           }
       end

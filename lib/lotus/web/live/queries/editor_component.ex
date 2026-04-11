@@ -30,6 +30,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:optional_variable_names, :any, default: MapSet.new())
   attr(:query_timeout, :integer, default: 5_000)
   attr(:timeout_options_enabled, :boolean, default: false)
+  attr(:source_type, :atom, default: :postgres)
 
   def editor(assigns) do
     search_path_field = assigns.form[:search_path]
@@ -42,7 +43,9 @@ defmodule Lotus.Web.Queries.EditorComponent do
         value when is_binary(value) -> value
       end
 
-    show_search_path = search_path_value != ""
+    show_search_path =
+      search_path_value != "" &&
+        Lotus.Sources.supports_feature?(assigns.source_type, :search_path)
 
     assigns =
       assigns
@@ -115,7 +118,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
             ]}
            title={
              if @statement_empty,
-               do: gettext("Enter SQL to run query"),
+               do: gettext("Enter a query to run"),
                else: gettext("Run Query")
            }
           >
@@ -249,7 +252,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
         id="toolbar-run-query-tippy"
         data-title={
           cond do
-            @statement_empty -> gettext("Enter SQL to run query")
+            @statement_empty -> gettext("Enter a query to run")
             @running -> gettext("Query running...")
             true -> gettext("Run query")
           end

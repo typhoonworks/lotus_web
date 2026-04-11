@@ -93,7 +93,7 @@ defmodule Lotus.Web.Queries.SchemaExplorerComponent do
     <%= case @view_mode do %>
       <% :databases -> %>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          <%= gettext("Browse the contents of your databases, tables, and columns. Pick a database to get started.") %>
+          <%= gettext("Browse the contents of your data sources. Pick one to get started.") %>
         </p>
       <% :tables -> %>
         <%= if @current_db do %>
