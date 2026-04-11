@@ -511,7 +511,7 @@ Task.async(fn ->
   {:ok, _} = Lotus.create_dashboard_card(reporting_dashboard, %{
     card_type: :link,
     title: "Documentation",
-    content: %{"url" => "https://github.com/typhoonworks/lotus"},
+    content: %{"url" => "https://github.com/elixir-lotus/lotus"},
     position: 1,
     layout: %{x: 6, y: 0, w: 6, h: 2}
   })
