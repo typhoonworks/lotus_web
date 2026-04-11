@@ -103,5 +103,12 @@ defmodule Lotus.Web.DashboardLive do
   defp resolve_page(%{"page" => "dashboards", "id" => id}),
     do: %{name: :dashboard_edit, comp: DashboardEditorPage, mode: :edit, id: id}
 
+  defp resolve_page(%{"page" => slug}) do
+    case Enum.find(Lotus.Web.Pro.extra_pages(), &(&1.slug == slug)) do
+      nil -> resolve_page(%{})
+      %{name: name, component: comp} -> %{name: name, comp: comp}
+    end
+  end
+
   defp resolve_page(_params), do: %{name: :home, comp: QueriesPage}
 end

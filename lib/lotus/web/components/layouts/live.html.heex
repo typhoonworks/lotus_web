@@ -6,10 +6,18 @@
   <nav class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
     <div class="mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 justify-between">
-        <div class="flex">
+        <div class="flex items-center gap-6">
           <div class="flex items-center">
             <.logo />
           </div>
+          <.link
+            :for={item <- Lotus.Web.Pro.nav_items(assigns)}
+            :if={not Map.get(assigns, :public_view, false)}
+            navigate={lotus_path(item.path)}
+            class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <%= item.label %>
+          </.link>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-4">
           <%= if not Map.get(assigns, :public_view, false) do %>
