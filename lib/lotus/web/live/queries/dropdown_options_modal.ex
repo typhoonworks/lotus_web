@@ -52,7 +52,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
 
   def handle_event("test_sql_query", _, socket) do
     if String.trim(socket.assigns.sql_query) == "" do
-      {:noreply, assign(socket, :query_error, gettext("SQL query cannot be empty"))}
+      {:noreply, assign(socket, :query_error, gettext("Query cannot be empty"))}
     else
       socket =
         socket
@@ -126,7 +126,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 type="radio"
                 name="option_source"
                 value="query"
-                label={gettext("From SQL")}
+                label={gettext("From query")}
                 checked={@option_source == :query}
               />
             </div>
@@ -158,7 +158,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
                 <%= if @option_source == :static do %>
                   <%= gettext("Enter one value per line. Use \"value | label\" format to add display labels.") %>
                 <% else %>
-                  <%= gettext("Write a SQL query that returns value and label columns (or just a value column).") %>
+                  <%= gettext("Write a query that returns value and label columns (or just a value column).") %>
                 <% end %>
               </div>
             </div>
@@ -240,7 +240,7 @@ defmodule Lotus.Web.Queries.DropdownOptionsModal do
 
       :query ->
         if socket.assigns.query_full_results == [] do
-          {:error, gettext("Please test your SQL query first and ensure it returns results")}
+          {:error, gettext("Please test your query first and ensure it returns results")}
         else
           {:ok, %{static_options: [], options_query: String.trim(socket.assigns.sql_query)}}
         end

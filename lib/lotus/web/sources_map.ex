@@ -29,34 +29,40 @@ defmodule Lotus.Web.SourcesMap do
   end
 
   defp load_database(db_name) do
-    try do
-      source_type = Lotus.Sources.source_type(db_name)
-      supports_schemas = Lotus.Sources.supports_feature?(source_type, :schema_hierarchy)
+    source_type = Lotus.Sources.source_type(db_name)
+    supports_schemas = Lotus.Sources.supports_feature?(source_type, :schema_hierarchy)
 
-      repo = Lotus.Config.get_data_source!(db_name)
+    repo = Lotus.Config.get_data_source!(db_name)
 
-      schemas =
-        if supports_schemas do
-          load_postgres_schemas(db_name, repo)
-        else
-          load_simple_tables(db_name)
-        end
+    schemas =
+      if supports_schemas do
+        load_postgres_schemas(db_name, repo)
+      else
+        load_simple_tables(db_name)
+      end
 
-      %Database{
-        name: db_name,
-        source_type: source_type,
-        supports_schemas: supports_schemas,
-        schemas: schemas
-      }
-    rescue
-      error in [RuntimeError, DBConnection.ConnectionError, ArgumentError] ->
-        Logger.warning(
-          "Failed to load database #{inspect(db_name)} for the explorer: " <>
-            Exception.message(error)
-        )
+    %Database{
+      name: db_name,
+      source_type: source_type,
+      supports_schemas: supports_schemas,
+      schemas: schemas
+    }
+  rescue
+    error in [DBConnection.ConnectionError] ->
+      Logger.warning(
+        "Failed to load database #{inspect(db_name)} for the explorer: " <>
+          Exception.message(error)
+      )
 
-        nil
-    end
+      nil
+
+    error in [RuntimeError, ArgumentError] ->
+      Logger.error(
+        "Unexpected error loading database #{inspect(db_name)}: " <>
+          Exception.message(error)
+      )
+
+      nil
   end
 
   defp load_postgres_schemas(db_name, repo) do
@@ -91,7 +97,7 @@ defmodule Lotus.Web.SourcesMap do
           %Schema{
             name: "default",
             is_default: false,
-            display_name: "Tables",
+            display_name: Lotus.Sources.hierarchy_label(db_name),
             tables: Enum.sort(table_names)
           }
         ]
@@ -101,12 +107,9 @@ defmodule Lotus.Web.SourcesMap do
     end
   end
 
-  defp extract_table_names(tables) do
-    case List.first(tables) do
-      {_schema, _table} -> Enum.map(tables, fn {_schema, table} -> table end)
-      _table -> tables
-    end
-  end
+  defp extract_table_names([]), do: []
+  defp extract_table_names([{_schema, _table} | _] = tables), do: Enum.map(tables, &elem(&1, 1))
+  defp extract_table_names(tables), do: tables
 
   def get_database(_sources_map, db_name) when is_nil(db_name), do: nil
 

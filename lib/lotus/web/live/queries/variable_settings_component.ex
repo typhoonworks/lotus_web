@@ -211,7 +211,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
           <p class="mt-1">
             <% variable_code =
                 "<code class=\"font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded\">&#123;&#123;var_name&#125;&#125;</code>" %>
-            <%= gettext("Add variables in SQL with %{variable_code}. When you type one, Lotus detects it and adds an input in the toolbar.",
+            <%= gettext("Add variables in your query with %{variable_code}. When you type one, Lotus detects it and adds an input in the toolbar.",
               variable_code: variable_code
             )
             |> raw() %>
@@ -248,7 +248,7 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
                 <code class="font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded">value</code>.
               </li>
               <li>
-                <span class="font-medium"><%= gettext("SQL query") %></span> –
+                <span class="font-medium"><%= gettext("Query") %></span> –
                 <%= gettext("return columns as") %>
                 <code class="font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded">value, label</code>
                 <% value_code = "<code class=\"font-mono text-xs bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-1 py-0.5 rounded\">value</code>" %>
@@ -303,18 +303,17 @@ defmodule Lotus.Web.Queries.VariableSettingsComponent do
   end
 
   defp empty_variables?(form) do
-    vars =
-      try do
-        form[:variables].value
-      rescue
-        _ -> nil
-      end
+    case form[:variables] do
+      nil ->
+        true
 
-    case vars do
-      nil -> true
-      [] -> true
-      %{} -> map_size(vars) == 0
-      _ -> Enum.empty?(List.wrap(vars))
+      field ->
+        case field.value do
+          nil -> true
+          [] -> true
+          vars when is_map(vars) -> map_size(vars) == 0
+          vars -> Enum.empty?(List.wrap(vars))
+        end
     end
   end
 end
