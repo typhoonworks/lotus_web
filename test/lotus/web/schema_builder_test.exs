@@ -219,7 +219,7 @@ defmodule Lotus.Web.SchemaBuilderTest do
       # Create a sources map with a database that has no schemas
       db_with_no_schemas = %SourcesMap.Database{
         name: "empty_db",
-        adapter: Ecto.Adapters.Postgres,
+        source_type: :postgres,
         supports_schemas: true,
         schemas: []
       }

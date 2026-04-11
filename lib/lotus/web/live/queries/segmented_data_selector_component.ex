@@ -150,24 +150,15 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
   end
 
   defp get_adapter_info(repo_name) do
-    try do
-      repo = Lotus.Config.get_data_source!(repo_name)
+    source_type = Lotus.Sources.source_type(repo_name)
 
-      case repo.__adapter__() do
-        Ecto.Adapters.Postgres ->
-          %{type: :postgres, label: gettext("Schema"), multiple: true, show: true}
-
-        Ecto.Adapters.MyXQL ->
-          %{type: :mysql, label: gettext("Database"), multiple: false, show: false}
-
-        Ecto.Adapters.SQLite3 ->
-          %{type: :sqlite, label: gettext("Schema"), multiple: false, show: false}
-
-        _ ->
-          %{type: :unknown, label: gettext("Schema"), multiple: false, show: false}
+    {label, multiple, show} =
+      case source_type do
+        :postgres -> {gettext("Schema"), true, true}
+        :mysql -> {gettext("Database"), false, false}
+        _ -> {gettext("Schema"), false, false}
       end
-    rescue
-      _ -> %{type: :unknown, label: gettext("Schema"), multiple: false, show: false}
-    end
+
+    %{type: source_type, label: label, multiple: multiple, show: show}
   end
 end

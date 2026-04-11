@@ -10,7 +10,7 @@ defmodule Lotus.Web.SourcesMap do
   defmodule Database do
     @moduledoc false
 
-    defstruct [:name, :adapter, :supports_schemas, schemas: []]
+    defstruct [:name, :source_type, :supports_schemas, schemas: []]
   end
 
   defmodule Schema do
@@ -30,9 +30,10 @@ defmodule Lotus.Web.SourcesMap do
 
   defp load_database(db_name) do
     try do
+      source_type = Lotus.Sources.source_type(db_name)
+      supports_schemas = Lotus.Sources.supports_feature?(source_type, :schema_hierarchy)
+
       repo = Lotus.Config.get_data_source!(db_name)
-      adapter = repo.__adapter__()
-      supports_schemas = adapter == Ecto.Adapters.Postgres
 
       schemas =
         if supports_schemas do
@@ -43,12 +44,12 @@ defmodule Lotus.Web.SourcesMap do
 
       %Database{
         name: db_name,
-        adapter: adapter,
+        source_type: source_type,
         supports_schemas: supports_schemas,
         schemas: schemas
       }
     rescue
-      error ->
+      error in [RuntimeError, DBConnection.ConnectionError, ArgumentError] ->
         Logger.warning(
           "Failed to load database #{inspect(db_name)} for the explorer: " <>
             Exception.message(error)
@@ -67,12 +68,11 @@ defmodule Lotus.Web.SourcesMap do
       |> Enum.group_by(fn {schema, _table} -> schema end, fn {_schema, table} -> table end)
       |> Enum.map(fn {schema_name, tables} ->
         is_default = schema_name == default_schema
-        display_name = if is_default, do: schema_name, else: schema_name
 
         %Schema{
           name: schema_name,
           is_default: is_default,
-          display_name: display_name,
+          display_name: schema_name,
           tables: Enum.sort(tables)
         }
       end)
