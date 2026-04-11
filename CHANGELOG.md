@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- **Pro UI integration mechanism** — `Lotus.Web.Pro` helper module enables `lotus_pro` to contribute pages, nav items, and slot content into the dashboard at runtime via `Code.ensure_loaded?/1`, with zero compile-time coupling. `DashboardLive.resolve_page/1` now falls back to Pro pages, and the layout renders Pro nav items when available (#9)
+
 ### Changed
 
 - **Centralized chart colors in `VegaSpecBuilder`** - 15+ scattered hex literals (gauge/progress fills, delta indicators, waterfall bars, combo accent line, neutral labels, track backgrounds) are now consolidated into a single `@chart_colors` module attribute, exposed via `VegaSpecBuilder.chart_colors/0`, so a future theme/dark-mode pass only has to touch one place (#107)
