@@ -64,7 +64,7 @@ defmodule Lotus.Web.PublicDashboardPage do
           <%!-- Footer --%>
           <div class="px-6 py-3 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400">
             <%= gettext("Powered by") %>
-            <a href="https://github.com/typhoonworks/lotus" class="text-pink-600 hover:text-pink-700 dark:text-pink-400">
+            <a href="https://github.com/elixir-lotus/lotus" class="text-pink-600 hover:text-pink-700 dark:text-pink-400">
               Lotus
             </a>
           </div>

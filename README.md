@@ -1,6 +1,6 @@
 # Lotus Web
 
-![Lotus Web](https://raw.githubusercontent.com/typhoonworks/lotus_web/main/media/banner.png)
+![Lotus Web](https://raw.githubusercontent.com/elixir-lotus/lotus_web/main/media/banner.png)
 
 <p>
   <a href="https://hex.pm/packages/lotus_web">
@@ -9,8 +9,8 @@
   <a href="https://hexdocs.pm/lotus_web">
     <img src="https://img.shields.io/badge/docs-hexdocs-blue" alt="HexDocs">
   </a>
-  <a href="https://github.com/typhoonworks/lotus_web/actions">
-    <img alt="CI Status" src="https://github.com/typhoonworks/lotus_web/workflows/ci/badge.svg">
+  <a href="https://github.com/elixir-lotus/lotus_web/actions">
+    <img alt="CI Status" src="https://github.com/elixir-lotus/lotus_web/workflows/ci/badge.svg">
   </a>
 </p>
 

@@ -1,7 +1,7 @@
 defmodule Lotus.Web.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/typhoonworks/lotus_web"
+  @source_url "https://github.com/elixir-lotus/lotus_web"
   @version "0.14.4"
 
   def project do
@@ -49,7 +49,7 @@ defmodule Lotus.Web.MixProject do
       {:html_sanitize_ex, "~> 1.4"},
 
       # Lotus
-      {:lotus, github: "typhoonworks/lotus", branch: "main"},
+      {:lotus, github: "elixir-lotus/lotus", branch: "main"},
 
       # Databases
       {:postgrex, "~> 0.20", only: [:dev, :test]},

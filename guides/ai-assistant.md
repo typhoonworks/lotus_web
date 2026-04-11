@@ -18,7 +18,7 @@ The AI Assistant:
 
 ## Enabling the Feature
 
-AI features are disabled by default. To enable them, configure Lotus with your API key. See the [Lotus AI documentation](https://github.com/typhoonworks/lotus#ai-query-generation-experimental-byok) for detailed setup instructions.
+AI features are disabled by default. To enable them, configure Lotus with your API key. See the [Lotus AI documentation](https://github.com/elixir-lotus/lotus#ai-query-generation-experimental-byok) for detailed setup instructions.
 
 Quick example:
 
@@ -315,6 +315,6 @@ If generated queries are wrong:
 
 ## Getting Help
 
-- [Lotus GitHub Issues](https://github.com/typhoonworks/lotus/issues)
+- [Lotus GitHub Issues](https://github.com/elixir-lotus/lotus/issues)
 - [Lotus Documentation](https://hexdocs.pm/lotus)
-- [LotusWeb GitHub Issues](https://github.com/typhoonworks/lotus_web/issues)
+- [LotusWeb GitHub Issues](https://github.com/elixir-lotus/lotus_web/issues)
