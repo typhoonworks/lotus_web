@@ -21,12 +21,12 @@ Application.put_env(:lotus_web, Lotus.Web.ReportingTestRepo,
 
 Application.put_env(:lotus, :ecto_repo, Lotus.Web.TestRepo)
 
-Application.put_env(:lotus, :data_repos, %{
+Application.put_env(:lotus, :data_sources, %{
   "public" => Lotus.Web.TestRepo,
   "reporting" => Lotus.Web.ReportingTestRepo
 })
 
-Application.put_env(:lotus, :default_repo, "public")
+Application.put_env(:lotus, :default_source, "public")
 
 # Lotus caches its validated config in :persistent_term at boot, so any
 # Application.put_env calls above need an explicit reload to take effect.
