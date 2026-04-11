@@ -15,7 +15,7 @@ defmodule Lotus.Web.SourcesMapTest do
 
       assert %Database{
                name: "public",
-               adapter: Ecto.Adapters.Postgres,
+               source_type: :postgres,
                supports_schemas: true,
                schemas: public_schemas
              } = public_db
@@ -24,7 +24,7 @@ defmodule Lotus.Web.SourcesMapTest do
 
       assert %Database{
                name: "reporting",
-               adapter: Ecto.Adapters.Postgres,
+               source_type: :postgres,
                supports_schemas: true,
                schemas: reporting_schemas
              } = reporting_db
@@ -142,7 +142,7 @@ defmodule Lotus.Web.SourcesMapTest do
       # Create a mock MySQL-style database
       mysql_db = %Database{
         name: "mysql_test",
-        adapter: Ecto.Adapters.MyXQL,
+        source_type: :mysql,
         supports_schemas: false,
         schemas: [
           %Schema{
@@ -160,7 +160,7 @@ defmodule Lotus.Web.SourcesMapTest do
     test "handles empty databases gracefully" do
       empty_db = %Database{
         name: "empty",
-        adapter: Ecto.Adapters.Postgres,
+        source_type: :postgres,
         supports_schemas: true,
         schemas: []
       }
@@ -176,7 +176,7 @@ defmodule Lotus.Web.SourcesMapTest do
 
       Enum.each(sources_map.databases, fn database ->
         assert database.name != nil
-        assert database.adapter != nil
+        assert database.source_type != nil
         assert is_boolean(database.supports_schemas)
         assert is_list(database.schemas)
       end)

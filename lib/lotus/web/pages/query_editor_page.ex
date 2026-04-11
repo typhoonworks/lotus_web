@@ -1443,18 +1443,9 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp dialect_for_repo(repo_name) do
-    repo =
-      try do
-        Lotus.Config.get_data_source!(repo_name)
-      rescue
-        _ -> nil
-      end
-
-    case repo && repo.__adapter__() do
-      Ecto.Adapters.Postgres -> "postgres"
-      Ecto.Adapters.MyXQL -> "mysql"
-      Ecto.Adapters.SQLite3 -> "sqlite"
-      _ -> "postgres"
+    case Lotus.Sources.query_language(repo_name) do
+      "sql:" <> dialect -> dialect
+      _ -> "sql"
     end
   end
 
@@ -1636,7 +1627,7 @@ defmodule Lotus.Web.QueryEditorPage do
     try do
       limited_query =
         if limit do
-          "SELECT * FROM (#{sql_query}) AS test_query LIMIT #{limit}"
+          Lotus.Sources.limit_query(repo, sql_query, limit)
         else
           sql_query
         end
