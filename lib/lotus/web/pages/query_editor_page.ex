@@ -57,7 +57,7 @@ defmodule Lotus.Web.QueryEditorPage do
               id="schema-explorer"
               visible={@right_drawer == :schema_explorer}
               parent={@myself}
-              initial_db={@query_form[:data_repo].value}
+              initial_db={@query_form[:data_source].value}
             />
 
             <.live_component
@@ -75,7 +75,7 @@ defmodule Lotus.Web.QueryEditorPage do
               id="ai-assistant"
               visible={@left_drawer == :ai_assistant}
               parent={@myself}
-              data_source={@query_form[:data_repo].value}
+              data_source={@query_form[:data_source].value}
               generating={@ai_generating}
               conversation={@ai_conversation}
               current_sql={@query_form[:statement].value}
@@ -94,7 +94,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   form={@query_form}
                   target={@myself}
                   minimized={@editor_minimized}
-                  data_repo_names={@data_repo_names}
+                  data_source_names={@data_source_names}
                   schema={@editor_schema}
                   dialect={@editor_dialect}
                   running={@running}
@@ -272,7 +272,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Lotus.Web.Page
   def handle_mount(socket) do
     socket
-    |> assign_data_repos()
+    |> assign_data_sources()
     |> assign_ui_state()
   end
 
@@ -301,7 +301,7 @@ defmodule Lotus.Web.QueryEditorPage do
           name: "",
           description: "",
           statement: "",
-          data_repo: socket.assigns.default_repo,
+          data_source: socket.assigns.default_source,
           variables: []
         }
 
@@ -371,7 +371,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
     send_update(SchemaExplorerComponent,
       id: "schema-explorer",
-      initial_db: query_params["data_repo"]
+      initial_db: query_params["data_source"]
     )
 
     query = Ecto.Changeset.apply_changes(changeset)
@@ -390,7 +390,7 @@ defmodule Lotus.Web.QueryEditorPage do
         statement_empty: statement_empty,
         variable_values: normalized_vars
       )
-      |> maybe_update_editor_schema(query_params["data_repo"])
+      |> maybe_update_editor_schema(query_params["data_source"])
 
     {:noreply, socket}
   end
@@ -811,8 +811,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
   @impl Phoenix.LiveComponent
   def handle_event("request_editor_schema", _params, socket) do
-    data_repo = socket.assigns.query.data_repo
-    socket = maybe_update_editor_schema(socket, data_repo)
+    data_source = socket.assigns.query.data_source
+    socket = maybe_update_editor_schema(socket, data_source)
     {:noreply, socket}
   end
 
@@ -1036,7 +1036,7 @@ defmodule Lotus.Web.QueryEditorPage do
   @impl Page
   def handle_info({:source_changed, new_source, _field}, socket) do
     current_query = socket.assigns.query
-    updated_query = %{current_query | data_repo: new_source}
+    updated_query = %{current_query | data_source: new_source}
 
     socket =
       socket
@@ -1055,7 +1055,7 @@ defmodule Lotus.Web.QueryEditorPage do
       socket
       |> assign(query: updated_query)
       |> assign_query_changeset(updated_query)
-      |> maybe_update_editor_schema(current_query.data_repo)
+      |> maybe_update_editor_schema(current_query.data_source)
 
     {:noreply, socket}
   end
@@ -1297,7 +1297,7 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   def update(%{action: :test_dropdown_query} = assigns, socket) do
-    repo = socket.assigns.query.data_repo || socket.assigns.default_repo
+    repo = socket.assigns.query.data_source || socket.assigns.default_source
     search_path = socket.assigns.query.search_path
 
     case fetch_dropdown_options(assigns.sql_query, repo, search_path, limit: 3, cache: false) do
@@ -1321,13 +1321,13 @@ defmodule Lotus.Web.QueryEditorPage do
     {:ok, assign(socket, assigns)}
   end
 
-  defp assign_data_repos(socket) do
-    data_repo_names = Lotus.list_data_repo_names()
-    {default_repo, _module} = Lotus.default_data_repo()
+  defp assign_data_sources(socket) do
+    data_source_names = Lotus.list_data_source_names()
+    {default_source, _module} = Lotus.default_data_source()
     sources_map = SourcesMap.build()
 
     socket
-    |> assign(data_repo_names: data_repo_names, default_repo: default_repo)
+    |> assign(data_source_names: data_source_names, default_source: default_source)
     |> assign(sources_map: sources_map)
   end
 
@@ -1336,9 +1336,9 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp resolve_data_source(socket) do
-    case socket.assigns.query_form[:data_repo].value do
-      nil -> socket.assigns.default_repo
-      "" -> socket.assigns.default_repo
+    case socket.assigns.query_form[:data_source].value do
+      nil -> socket.assigns.default_source
+      "" -> socket.assigns.default_source
       data_source -> data_source
     end
   end
@@ -1407,10 +1407,10 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp ensure_query_repo_default(socket, %Query{} = q) do
-    if q.data_repo in socket.assigns.data_repo_names do
+    if q.data_source in socket.assigns.data_source_names do
       assign(socket, query: q)
     else
-      assign(socket, query: %{q | data_repo: socket.assigns.default_repo})
+      assign(socket, query: %{q | data_source: socket.assigns.default_source})
     end
   end
 
@@ -1425,12 +1425,12 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp maybe_update_editor_schema(socket, data_repo) do
-    if data_repo && data_repo != "" do
-      dialect = dialect_for_repo(data_repo)
+  defp maybe_update_editor_schema(socket, data_source) do
+    if data_source && data_source != "" do
+      dialect = dialect_for_repo(data_source)
       search_path = socket.assigns.query && socket.assigns.query.search_path
 
-      case SchemaBuilder.build(socket.assigns.sources_map, data_repo, search_path) do
+      case SchemaBuilder.build(socket.assigns.sources_map, data_source, search_path) do
         {:ok, schema} ->
           assign(socket, editor_schema: schema, editor_dialect: dialect)
 
@@ -1445,7 +1445,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp dialect_for_repo(repo_name) do
     repo =
       try do
-        Lotus.Config.get_data_repo!(repo_name)
+        Lotus.Config.get_data_source!(repo_name)
       rescue
         _ -> nil
       end
@@ -1505,7 +1505,7 @@ defmodule Lotus.Web.QueryEditorPage do
 
   defp execute_query(socket, query) do
     vars = Map.get(socket.assigns, :variable_values, %{})
-    repo = query.data_repo || socket.assigns.default_repo
+    repo = query.data_source || socket.assigns.default_source
     page_size = socket.assigns.page_size || @default_page_size
     page_index = socket.assigns.page_index || 0
     query_timeout = socket.assigns[:query_timeout]
@@ -1583,7 +1583,7 @@ defmodule Lotus.Web.QueryEditorPage do
       "name" => save_params["name"],
       "description" => save_params["description"],
       "statement" => current_query.statement,
-      "data_repo" => current_query.data_repo,
+      "data_source" => current_query.data_source,
       "search_path" => current_query.search_path,
       "variables" => Enum.map(current_query.variables, &Variables.to_params/1)
     }
@@ -1657,7 +1657,7 @@ defmodule Lotus.Web.QueryEditorPage do
           run_opts
         end
 
-      case Lotus.run_sql(limited_query, [], run_opts) do
+      case Lotus.run_statement(limited_query, [], run_opts) do
         {:ok, result} ->
           formatted_results = OptionsFormatter.from_lotus_result(result)
           {:ok, formatted_results}
@@ -1671,11 +1671,11 @@ defmodule Lotus.Web.QueryEditorPage do
     end
   end
 
-  defp resolve_variable_options(%{data_repo: nil}), do: %{}
-  defp resolve_variable_options(%{data_repo: ""}), do: %{}
+  defp resolve_variable_options(%{data_source: nil}), do: %{}
+  defp resolve_variable_options(%{data_source: ""}), do: %{}
 
   defp resolve_variable_options(%{
-         data_repo: repo,
+         data_source: repo,
          search_path: search_path,
          variables: variables
        }) do
@@ -1708,7 +1708,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp generate_export_url(socket) do
     query = socket.assigns.query
     vars = Map.get(socket.assigns, :variable_values, %{})
-    repo = query.data_repo || socket.assigns.default_repo
+    repo = query.data_source || socket.assigns.default_source
 
     timestamp =
       DateTime.utc_now()

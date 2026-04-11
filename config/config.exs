@@ -49,6 +49,6 @@ config :lotus_web, Lotus.Web.Repo,
 
 config :lotus,
   ecto_repo: WebDev.Repo,
-  data_repos: %{
+  data_sources: %{
     "main" => WebDev.Repo
   }

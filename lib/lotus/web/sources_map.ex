@@ -21,7 +21,7 @@ defmodule Lotus.Web.SourcesMap do
 
   def build() do
     databases =
-      Lotus.list_data_repo_names()
+      Lotus.list_data_source_names()
       |> Enum.map(&load_database/1)
       |> Enum.reject(&is_nil/1)
 
@@ -30,7 +30,7 @@ defmodule Lotus.Web.SourcesMap do
 
   defp load_database(db_name) do
     try do
-      repo = Lotus.Config.get_data_repo!(db_name)
+      repo = Lotus.Config.get_data_source!(db_name)
       adapter = repo.__adapter__()
       supports_schemas = adapter == Ecto.Adapters.Postgres
 

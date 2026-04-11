@@ -151,7 +151,7 @@ defmodule Lotus.Web.Queries.SegmentedDataSelectorComponent do
 
   defp get_adapter_info(repo_name) do
     try do
-      repo = Lotus.Config.get_data_repo!(repo_name)
+      repo = Lotus.Config.get_data_source!(repo_name)
 
       case repo.__adapter__() do
         Ecto.Adapters.Postgres ->

@@ -8,6 +8,7 @@
 
 ### Changed
 
+- **Migrated all deprecated Lotus API calls** — Updated to use renamed Lotus APIs: `list_data_repo_names/0` → `list_data_source_names/0`, `default_data_repo/0` → `default_data_source/0`, `Config.get_data_repo!/1` → `Config.get_data_source!/1`, `run_sql/3` → `run_statement/3`. Renamed `data_repo` struct field access to `data_source` throughout. Updated config keys from `:data_repos`/`:default_repo` to `:data_sources`/`:default_source` in config.exs, test_helper.exs, and dev.exs
 - **Centralized chart colors in `VegaSpecBuilder`** - 15+ scattered hex literals (gauge/progress fills, delta indicators, waterfall bars, combo accent line, neutral labels, track backgrounds) are now consolidated into a single `@chart_colors` module attribute, exposed via `VegaSpecBuilder.chart_colors/0`, so a future theme/dark-mode pass only has to touch one place (#107)
 - **Extracted duplicated AI action buttons in `AiAssistantComponent`** - The "Explain query" / "Optimize query" buttons were duplicated between the empty state and the input area with slightly different sizing; both now render via a shared `ai_action_buttons` function component that takes a `:size` (`:lg` or `:sm`) and a `:generating` flag (#109)
 - **Use a dedicated salt for export tokens** - `ExportController` now passes `"lotus_export"` as the salt to `Phoenix.Token.encrypt/decrypt` instead of prefixing the full `secret_key_base`. This follows the Phoenix convention and lets the framework handle key derivation internally (#108)

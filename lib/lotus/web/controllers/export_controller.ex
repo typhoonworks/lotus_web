@@ -92,7 +92,7 @@ defmodule Lotus.Web.ExportController do
     # Build query struct from attributes (for unsaved queries)
     %Query{
       statement: attrs["statement"],
-      data_repo: params["repo"],
+      data_source: params["repo"],
       search_path: params["search_path"],
       variables: build_variables(attrs["variables"] || [])
     }

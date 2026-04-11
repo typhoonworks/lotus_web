@@ -21,7 +21,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   attr(:ai_generating, :boolean, default: false)
   attr(:form, Phoenix.HTML.Form, required: true)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
-  attr(:data_repo_names, :list, default: [])
+  attr(:data_source_names, :list, default: [])
   attr(:schema, :map, default: %{})
   attr(:dialect, :string, default: "postgres")
   attr(:variables, :list, default: [])
@@ -54,7 +54,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
       <div class="bg-editor-light dark:bg-editor-dark">
         <.render_toolbar
           form={@form}
-          data_repo_names={@data_repo_names}
+          data_source_names={@data_source_names}
           right_drawer={@right_drawer}
           left_drawer={@left_drawer}
           target={@target}
@@ -135,7 +135,7 @@ defmodule Lotus.Web.Queries.EditorComponent do
   end
 
   attr(:form, Phoenix.HTML.Form, required: true)
-  attr(:data_repo_names, :list, default: [])
+  attr(:data_source_names, :list, default: [])
   attr(:right_drawer, :atom, default: nil, values: @right_drawer_values)
   attr(:left_drawer, :atom, default: nil, values: @left_drawer_values)
   attr(:target, Phoenix.LiveComponent.CID, required: true)
@@ -158,12 +158,12 @@ defmodule Lotus.Web.Queries.EditorComponent do
           <.live_component
             module={SegmentedDataSelectorComponent}
             id="data-selector"
-            source_field={@form[:data_repo]}
+            source_field={@form[:data_source]}
             schema_field={@form[:search_path]}
-            source_options={Enum.map(@data_repo_names, &{&1, &1})}
+            source_options={Enum.map(@data_source_names, &{&1, &1})}
             source_id="source-selector"
             schema_id="schema-selector"
-            target_field="data_repo"
+            target_field="data_source"
             parent={@target}
             disabled={false}
           />
