@@ -109,6 +109,7 @@ defmodule Lotus.Web.QueryEditorPage do
                   query_timeout={@query_timeout}
                   timeout_options_enabled={:timeout_options in (@features || [])}
                   source_type={@source_type}
+                  data_source={@default_source}
                 />
 
                 <.results_pill
@@ -818,6 +819,17 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   @impl Phoenix.LiveComponent
+  def handle_event("fetch_dialect_config", %{"dialect" => dialect_name}, socket) do
+    config =
+      case find_source_for_dialect(dialect_name, socket.assigns) do
+        nil -> %{language: "sql", keywords: [], types: [], functions: [], context_boundaries: []}
+        source_name -> Lotus.Source.editor_config(source_name)
+      end
+
+    {:reply, %{config: config}, socket}
+  end
+
+  @impl Phoenix.LiveComponent
   def handle_event("variables_detected", %{"variables" => names}, socket) do
     names = List.wrap(names)
     existing_variables = socket.assigns.query.variables
@@ -1327,7 +1339,7 @@ defmodule Lotus.Web.QueryEditorPage do
     {default_source, _module} = Lotus.default_data_source()
     sources_map = SourcesMap.build()
 
-    source_type = Lotus.Sources.source_type(default_source)
+    source_type = Lotus.Source.source_type(default_source)
 
     socket
     |> assign(data_source_names: data_source_names, default_source: default_source)
@@ -1432,7 +1444,7 @@ defmodule Lotus.Web.QueryEditorPage do
   defp maybe_update_editor_schema(socket, data_source) do
     if data_source && data_source != "" do
       dialect = dialect_for_repo(data_source)
-      source_type = Lotus.Sources.source_type(data_source)
+      source_type = Lotus.Source.source_type(data_source)
       search_path = socket.assigns.query && socket.assigns.query.search_path
 
       case SchemaBuilder.build(socket.assigns.sources_map, data_source, search_path) do
@@ -1456,10 +1468,23 @@ defmodule Lotus.Web.QueryEditorPage do
   end
 
   defp dialect_for_repo(repo_name) do
-    case Lotus.Sources.query_language(repo_name) do
+    case Lotus.Source.query_language(repo_name) do
       "sql:" <> dialect -> dialect
+      "json:" <> _ = full -> full
       _ -> "sql"
     end
+  end
+
+  defp find_source_for_dialect(dialect_name, assigns) do
+    data_source_names = assigns[:data_source_names] || []
+
+    Enum.find(data_source_names, fn name ->
+      case Lotus.Source.query_language(name) do
+        "sql:" <> ^dialect_name -> true
+        ^dialect_name -> true
+        _ -> false
+      end
+    end)
   end
 
   defp build_query_changeset(query, params, action \\ :validate) do
@@ -1640,7 +1665,7 @@ defmodule Lotus.Web.QueryEditorPage do
     try do
       limited_query =
         if limit do
-          Lotus.Sources.limit_query(repo, sql_query, limit)
+          Lotus.Source.limit_query(repo, sql_query, limit)
         else
           sql_query
         end
@@ -1734,10 +1759,8 @@ defmodule Lotus.Web.QueryEditorPage do
 
     filename = "#{timestamp}_#{base_name}.csv"
 
-    source_type = Lotus.Sources.source_type(repo)
-
     search_path =
-      if Lotus.Sources.supports_feature?(source_type, :search_path),
+      if Lotus.Source.supports_feature?(repo, :search_path),
         do: query.search_path,
         else: nil
 

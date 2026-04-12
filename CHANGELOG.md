@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Elasticsearch/OpenSearch dev server integration** — Added `lotus_elasticsearch` adapter to dev server with OpenSearch docker service (port 9209), `WebDev.SearchClient` module, `dev_logs` sample index with seed data, and an "Error Logs" sample query using JSON DSL
+- **JSON language mode in query editor** — Non-SQL data sources (e.g. Elasticsearch) now get CodeMirror JSON syntax highlighting and adapter-provided completions instead of SQL mode. Added `@codemirror/lang-json` dependency and `JsonDslCompletion` class under `languages/json_dsl/`. The `dialect_for_repo/1` function now preserves `"json:"` prefixed language identifiers
 - **Pro UI integration mechanism** — `Lotus.Web.Pro` helper module enables `lotus_pro` to contribute pages, nav items, and slot content into the dashboard at runtime via `Code.ensure_loaded?/1`, with zero compile-time coupling. `DashboardLive.resolve_page/1` now falls back to Pro pages, and the layout renders Pro nav items when available (#9)
 
 ### Breaking
@@ -12,7 +14,8 @@
 
 ### Changed
 
-- **SchemaBuilder uses `default_schemas/1` from core** — `SchemaBuilder.default_schemas_for_database/2` now calls `Lotus.Source.default_schemas/1` instead of hardcoding `["public"]`, so non-Postgres sources get correct defaults (#123)
+- **Dialect-aware editor** — adapters now provide their own keywords, types, and function completions through `editor_config/0`. The editor dynamically reconfigures syntax highlighting and completions when switching data sources, with client-side caching for instant re-switches. Built-in CodeMirror dialects used for Postgres/MySQL/SQLite; custom `SQLDialect.define()` for others like ClickHouse
+- **SchemaBuilder uses `default_schemas/1` from core** — `SchemaBuilder.default_schemas_for_database/2` and `SourcesMap.load_postgres_schemas/2` now call `Lotus.Source.Adapter.default_schemas/1` via `Lotus.Source.get_source!/1` instead of the removed `Lotus.Source.default_schemas/1` (#123)
 - **search_path badge gated behind `supports_feature?`** — `EditorComponent` only shows the search_path badge when the source supports `:search_path`, and export params skip `search_path` for unsupported sources (#123)
 - **SourcesMap uses `hierarchy_label` from core** — `load_simple_tables/1` now calls `Lotus.Sources.hierarchy_label/1` instead of hardcoding `"Tables"` for the schema display_name (#123)
 - **Schema Explorer browse hint generalized** — replaced "databases, tables, and columns" with "data sources" (#123)
